@@ -40,6 +40,6 @@ jobs:
           git checkout -B main
 
           git add .
-          git commit -m "Deploy: ${{ github.sha }}"
+          git commit -m "Deploy: ${{ github.event.head_commit.message }}"
 
           git push -f https://${{ secrets.PAGES_TOKEN }}@github.com/aso-off/mini-app.git main
