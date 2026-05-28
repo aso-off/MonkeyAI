@@ -32,9 +32,12 @@ jobs:
       - name: Deploy dist to public repo
         run: |
           cd mini-app/dist
+
           git init
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
+          git checkout -B main
 
           git add .
           git commit -m "deploy"
