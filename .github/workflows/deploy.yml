@@ -18,16 +18,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          cache-dependency-path: mini-app/package-lock.json
 
       - name: Install dependencies
         run: |
-          cd mini-app
-          npm install
+          cd mini-app && npm ci
 
       - name: Build mini-app
         run: |
-          cd mini-app
-          npm run build
+          cd mini-app && npm run build
 
       - name: Deploy dist to public repo
         run: |
@@ -40,6 +40,6 @@ jobs:
           git checkout -B main
 
           git add .
-          git commit -m "deploy"
+          git commit -m "Deploy: ${{ github.sha }}"
 
-          git push -f https://x-access-token:${{ secrets.PAGES_TOKEN }}@github.com/aso-off/mini-app.git main
+          git push -f https://${{ secrets.PAGES_TOKEN }}@github.com/aso-off/mini-app.git main
