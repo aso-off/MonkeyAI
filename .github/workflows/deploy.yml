@@ -1,0 +1,42 @@
+name: Deploy Mini App to GitHub Pages repo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mini-app/**"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          cd mini-app
+          npm install
+
+      - name: Build mini-app
+        run: |
+          cd mini-app
+          npm run build
+
+      - name: Deploy dist to public repo
+        run: |
+          cd mini-app/dist
+          git init
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add .
+          git commit -m "deploy"
+
+          git push -f https://x-access-token:${{ secrets.PAGES_TOKEN }}@github.com/aso-off/mini-app.git main
