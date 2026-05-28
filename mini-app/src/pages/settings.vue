@@ -201,7 +201,7 @@ const openSupport = () => {
 };
 
 const openReleases = () => {
-  openLink('https://github.com/aso-off/MonkeyAI/releases');
+  openLink('https://github.com/aso-off/MonkeyAI');
 };
 
 const openAuthor = () => {
