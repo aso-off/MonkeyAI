@@ -107,7 +107,7 @@
                   <div class="settings__container-title-text">{{ $t('version') }}</div>
                 </div>
                 <div class="settings__container-text-value">
-                  <span class="settings__current-val">2.2.1</span>
+                  <span class="settings__current-val">2.2.3</span>
                   <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
