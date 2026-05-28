@@ -1,0 +1,47 @@
+available_text_models: ["gpt-5-nano", "gpt-4o", "gpt-5-mini"]
+
+info:
+  gpt-5-nano:
+    type: chat_completion
+    name: GPT-5 Nano
+    description: "{model_description_gpt_5_nano}"
+    price_per_1000_input_tokens: 0.00005
+    price_per_1000_output_tokens: 0.0004
+
+    scores:
+      "{score_smart}": 4
+      "{score_fast}": 5
+      "{score_cheap}": 5
+
+  gpt-5-mini:
+    type: chat_completion
+    name: GPT-5 Mini
+    description: "{model_description_gpt_5_mini}"
+    price_per_1000_input_tokens: 0.00025
+    price_per_1000_output_tokens: 0.0020
+
+    scores:
+      "{score_smart}": 5
+      "{score_fast}": 4
+      "{score_cheap}": 4
+
+  gpt-4o:
+    type: chat_completion
+    name: GPT-4o
+    description: "{model_description_gpt_4o}"
+    price_per_1000_input_tokens: 0.0025
+    price_per_1000_output_tokens: 0.0100
+
+    scores:
+      "{score_smart}": 5
+      "{score_fast}": 3
+      "{score_cheap}": 3
+
+  gpt-image-1.5:
+    type: image
+    price_per_1_image: 0.034
+    price_per_1_image_hd: 0.050
+
+  whisper-1:
+    type: audio
+    price_per_1_min: 0.006
