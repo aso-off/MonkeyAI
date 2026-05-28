@@ -1,0 +1,346 @@
+services:
+  prometheus:
+    image: prom/prometheus:v3.11.3
+    container_name: monkey_prometheus
+    volumes:
+      - ./deployment/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--query.max-concurrency=4"
+      - "--query.timeout=30s"
+      - "--query.max-samples=5000000"
+      - "--web.enable-lifecycle"
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    container_name: monkey_grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-admin}
+      - GF_SERVER_ROOT_URL=https://grafana.si881.ru
+      - GF_SERVER_DOMAIN=grafana.si881.ru
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/monkey-overview.json
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deployment/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deployment/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
+  loki:
+    image: grafana/loki:3.5.1
+    container_name: monkey_loki
+    command:
+      - "-config.file=/etc/loki/loki-config.yml"
+      - "-target=all"
+    volumes:
+      - ./deployment/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3100/ready || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
+  promtail:
+    image: grafana/promtail:3.5.1
+    container_name: monkey_promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      loki:
+        condition: service_healthy
+    volumes:
+      - ./deployment/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./api/logs:/var/log/monkey/api:ro
+      - ./bot/logs:/var/log/monkey/bot:ro
+      - promtail_data:/run/promtail
+    restart: unless-stopped
+    mem_limit: 128m
+    mem_reservation: 64m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
+  cadvisor:
+    image: ghcr.io/google/cadvisor:v0.57.0
+    container_name: monkey_cadvisor
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    command:
+      - "--housekeeping_interval=15s"
+      - "--docker_only=true"
+      - "--disable_metrics=percpu,sched,hugetlb,referenced_memory,resctrl,process"
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: monkey_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=2MB
+      -c min_wal_size=512MB
+      -c max_wal_size=2GB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: "0.5"
+    networks:
+      - monkey_network
+
+  redis:
+    image: redis:8.6-alpine
+    container_name: monkey_redis
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+      --appendonly yes
+      --appendfsync everysec
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
+  redis_exporter:
+    image: oliver006/redis_exporter:v1.67.0
+    container_name: monkey_redis_exporter
+    environment:
+      REDIS_ADDR: redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 64m
+    mem_reservation: 32m
+    cpus: "0.1"
+    networks:
+      - monkey_network
+
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    container_name: monkey_postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 64m
+    mem_reservation: 32m
+    cpus: "0.1"
+    networks:
+      - monkey_network
+
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    container_name: monkey_bot
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - TZ=Europe/Kaliningrad
+      - API_URL=http://api:8000
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
+      - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME_BOT:-Monkey AI Bot}
+      - NEW_RELIC_HOST=${NEW_RELIC_HOST:-collector.newrelic.com}
+    volumes:
+      - ./configs:/app/configs
+      - ./bot/data:/app/data
+      - ./bot/logs:/app/logs
+      - ./bot/static:/app/static
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - monkey_network
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: monkey_api
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - TZ=Europe/Kaliningrad
+      - PYTHONPATH=/app/src
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
+      - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME_API:-Monkey AI API}
+      - NEW_RELIC_HOST=${NEW_RELIC_HOST:-collector.newrelic.com}
+    volumes:
+      - ./configs:/app/configs
+      - ./api/logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - monkey_network
+
+  # mini-app: deploy to GitHub Pages (https://aso-off.github.io/mini-app/)
+  # mini-app:
+  #   build:
+  #     context: .
+  #     dockerfile: mini-app/Dockerfile
+  #     args:
+  #       - VITE_API_URL=${VITE_API_URL:-https://api.si881.ru}
+  #   container_name: monkey_mini_app
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 6
+  #     start_period: 10s
+  #   mem_limit: 256m
+  #   mem_reservation: 128m
+  #   cpus: "0.25"
+  #   networks:
+  #     - monkey_network
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: monkey_cloudflared
+    depends_on:
+      bot:
+        condition: service_started
+      grafana:
+        condition: service_started
+    volumes:
+      - ./deployment/cloudflared:/etc/cloudflared:ro
+    command: tunnel --no-autoupdate --protocol http2 run
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
+  postgres_admin:
+    image: adminer
+    container_name: monkey_postgres_admin
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 128m
+    mem_reservation: 64m
+    cpus: "0.1"
+    networks:
+      - monkey_network
+
+networks:
+  monkey_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  promtail_data:

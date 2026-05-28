@@ -1,0 +1,53 @@
+# Доступ
+whitelist_mode: true
+
+# Диалог
+n_chat_modes_per_page: 5
+
+# Стриминг и модерация
+enable_message_streaming: true
+enable_content_moderation: true
+
+# OpenAI
+openai_api_base: null
+return_n_generated_images: 1
+image_size: 1024x1024
+image_quality: medium
+
+# Цены
+chatgpt_price_per_1000_tokens: 0.00275
+gpt_price_per_1000_tokens: 0.01
+whisper_price_per_1_min: 0.006
+
+# Модерация
+moderation_thresholds:
+  harassment: 0.8
+  harassment/threatening: 0.5
+  hate: 0.8
+  hate/threatening: 0.5
+  illicit: 0.9
+  illicit/violent: 0.6
+  self-harm: 0.8
+  self-harm/intent: 0.5
+  sexual: 0.8
+  sexual/minors: 0.4
+  violence: 0.8
+  violence/graphic: 0.5
+
+# Mini-App
+webapp_url: 'https://aso-off.github.io/mini-app/'
+
+# Docker-контейнеры для мониторинга (system info)
+container_names:
+  - monkey_api
+  - monkey_bot
+#  - monkey_mini_app
+  - monkey_postgres
+  - monkey_redis
+  - monkey_cloudflared
+  - monkey_prometheus
+  - monkey_postgres_admin
+  - monkey_loki
+  - monkey_promtail
+  - monkey_cadvisor
+  - monkey_grafana

@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Runtime / persistent data
+data/
+*.db
+*.sqlite3
+*.pid
+
+# Generated images (can be large; regenerated on demand)
+api/images/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Cloudflared credentials (sensitive)
+deployment/cloudflared/*.json
+deployment/cloudflared/config.yml
+
+# Docker
+*.override.yml
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/
+
+# Node / mini-app
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.local
+*.tsbuildinfo
+/mini-app/cypress/videos/
+/mini-app/cypress/screenshots/

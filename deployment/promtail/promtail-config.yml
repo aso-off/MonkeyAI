@@ -1,0 +1,110 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  filename: /run/promtail/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # ── Docker container logs (json-file driver) ──
+  - job_name: docker
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker
+          __path__: /var/lib/docker/containers/*/*-json.log
+
+    pipeline_stages:
+      # Parse Docker json-file format: {"log":"...","stream":"...","time":"..."}
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            timestamp: time
+
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+      - drop:
+          older_than: 168h
+
+      - output:
+          source: output
+
+      # Try to extract log level from the log line
+      - regex:
+          expression: '^\[?\d{4}[-/]\d{2}[-/]\d{2}[T ]?\d{2}:\d{2}[^\]]*\]?\s*\[?(?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL|WARN)\]?'
+
+      - labels:
+          stream:
+          level:
+
+      # Relabel: add container_name from filename path
+      - regex:
+          source: filename
+          expression: '/var/lib/docker/containers/(?P<container_id>[a-f0-9]{12})[a-f0-9]*/'
+
+      # Drop containers that are NOT part of our project
+      # (Promtail will add docker labels via the following relabel)
+
+  # ── API application log files ──
+  - job_name: api-files
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: api-files
+          service: api
+          __path__: /var/log/monkey/api/*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^\[(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2})\] \[(?P<level>\w+)\] - (?P<message>.*)'
+
+      - timestamp:
+          source: timestamp
+          format: "2006-01-02 15:04"
+          location: "Europe/Kaliningrad"
+
+      - drop:
+          older_than: 168h
+
+      - labels:
+          level:
+
+      - output:
+          source: message
+
+  # ── Bot application log files ──
+  - job_name: bot-files
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: bot-files
+          service: bot
+          __path__: /var/log/monkey/bot/*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^\[(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2})\] \[(?P<level>\w+)\] - (?P<message>.*)'
+
+      - timestamp:
+          source: timestamp
+          format: "2006-01-02 15:04"
+          location: "Europe/Kaliningrad"
+
+      - drop:
+          older_than: 168h
+
+      - labels:
+          level:
+
+      - output:
+          source: message
