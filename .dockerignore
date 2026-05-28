@@ -1,0 +1,67 @@
+# Git
+.git
+.git/
+.gitignore
+.gitattributes
+
+# Mini App
+node_modules
+dist
+npm-debug.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Logs and persistent data (mounted as volumes)
+logs/
+data/
+bot/logs/
+bot/data/
+api/logs/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+README.md
+*.md
+LICENSE
+
+# Tests
+tests/
+test_*.py
+*_test.py
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/
+
+# Temp / backup
+*.bak
+*.tmp
+*.swp
+*~
