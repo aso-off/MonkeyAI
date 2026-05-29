@@ -112,9 +112,7 @@ const updateLanguage = async (lang: string): Promise<void> => {
 </script>
 
 <style scoped>
-/* Make this page scrollable — global #root has overflow:hidden */
 #root {
-  overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
 }
 
