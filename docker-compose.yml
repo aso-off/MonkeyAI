@@ -350,6 +350,24 @@ services:
     networks:
       - monkey_network
 
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-v2.13.1
+    container_name: monkey_umami
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET}
+    ports:
+      - "127.0.0.1:3002:3000"
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
 networks:
   monkey_network:
     driver: bridge
