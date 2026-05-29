@@ -1681,7 +1681,8 @@ footer .input__text-wrapper {
 footer .footer__input {
   display: flex;
   align-items: flex-end;
-  gap: 12px
+  gap: 12px;
+  margin-bottom: 4px;
 }
 
 footer .footer__input svg {
@@ -1702,8 +1703,8 @@ footer .footer__input .input__submit {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background-color: var(--tg-theme-button-color, #007aff);
   color: var(--tg-theme-button-text-color, #fff);
@@ -1739,7 +1740,7 @@ footer .input__text {
 footer .input__text .input__text-placeholder {
   position: absolute;
   color: var(--icons-storke-color);
-  top: 6px;
+  top: 8px;
   left: 12px;
   pointer-events: none
 }
@@ -1786,7 +1787,7 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   appearance: none;
   outline: none;
   width: 100%;
-  padding: 5px 10px;
+  padding: px 10px;
   max-height: 120px;
   overflow-y: auto;
   overflow-x: hidden;
