@@ -376,7 +376,7 @@ const models = computed<ModelOption[]>(() => [
   },
   {
     id: 'gpt-4o',
-    name: 'GPT <span>4o</span>',
+    name: 'GPT 4 <span>Omni</span>',
     description: t('for_complex_tasks'),
   },
   {
@@ -386,7 +386,7 @@ const models = computed<ModelOption[]>(() => [
   },
   {
     id: 'gpt-image-1.5',
-    name: 'GPT Image <span>1.5</span>',
+    name: 'GPT Image 1.5',
     description: t('generate_images'),
   },
 ]);
