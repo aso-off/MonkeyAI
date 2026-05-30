@@ -1659,10 +1659,7 @@ body.dark .gpt-model-select-item.active {
 }
 
 footer {
-  background-color: var(--footer-bg-rgba);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(15px);
-
+  background-color: transparent;
   padding: 8px 10px;
   position: fixed;
   z-index: 100;
@@ -1734,14 +1731,17 @@ footer .input__text {
   display: flex;
   width: 100%;
   position: relative;
-  overflow-x: hidden
+  overflow-x: hidden;
+  border-radius: 14px;
+  border: 2px solid var(--border-color);
+  background-color: var(--second-bg-color);
 }
 
 footer .input__text .input__text-placeholder {
   position: absolute;
   color: var(--icons-storke-color);
-  top: 10px;
-  left: 12px;
+  top: 8px;
+  left: 10px;
   pointer-events: none
 }
 
@@ -1791,8 +1791,8 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   max-height: 120px;
   overflow-y: auto;
   overflow-x: hidden;
-  border-radius: 14px;
-  border: 2px solid var(--border-color);
+  border: none;
+  background: transparent;
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap
