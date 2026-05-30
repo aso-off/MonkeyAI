@@ -50,6 +50,7 @@ Thumbs.db
 # Cloudflared credentials (sensitive)
 deployment/cloudflared/*.json
 deployment/cloudflared/config.yml
+deployment/cloudflared/*.pem
 
 # Docker
 *.override.yml
