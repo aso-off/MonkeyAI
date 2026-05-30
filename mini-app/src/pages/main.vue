@@ -250,7 +250,6 @@
               dir="ltr"
               ref="editableDiv"
               @input="onInput"
-              @keydown="onKeydown"
             ></div>
             <span v-if="messageText.trim() === ''" class="input__text-placeholder">
               {{ inputPlaceholder }}
@@ -468,13 +467,6 @@ const remoteBotSlots = new Map<string, number>();
 
 function onInput(e: Event) {
   messageText.value = (e.target as HTMLElement).innerText;
-}
-
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    if (!isStreaming.value) sendMessage();
-  }
 }
 
 function scrollToBottom() {
