@@ -113,7 +113,16 @@ const updateLanguage = async (lang: string): Promise<void> => {
 
 <style scoped>
 #root {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#root::-webkit-scrollbar {
+  display: none;
 }
 
 .wrapper {
