@@ -246,39 +246,35 @@
         @click="scrollToBottomSmooth"
         aria-label="Scroll to bottom"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <img :src="downSvg" alt="" width="20" height="20" />
       </button>
     </Transition>
     <footer>
       <form class="footer__input" @submit.prevent="sendMessage">
-        <div class="input__text-wrapper">
-          <div class="input__text null">
-            <div
-              id="editable-message-text"
-              contenteditable="true"
-              role="textbox"
-              dir="ltr"
-              ref="editableDiv"
-              @input="onInput"
-            ></div>
-            <span v-if="messageText.trim() === ''" class="input__text-placeholder">
-              {{ inputPlaceholder }}
-            </span>
-          </div>
+        <div class="input__text null">
+          <div
+            id="editable-message-text"
+            contenteditable="true"
+            role="textbox"
+            dir="ltr"
+            ref="editableDiv"
+            @input="onInput"
+          ></div>
+          <span v-if="messageText.trim() === ''" class="input__text-placeholder">
+            {{ inputPlaceholder }}
+          </span>
+          <label class="input__submit" :class="{ disabled: isSubmitDisabled }" :style="isSubmitDisabled ? { pointerEvents: 'none' } : {}">
+            <button
+              :disabled="isSubmitDisabled"
+              id="chat__input-submitbutton"
+              type="submit"
+            ></button>
+            <!-- Инлайн SVG для СТРЕЛКИ ВВЕРХ -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </label>
         </div>
-        <label class="input__submit" :class="{ disabled: isSubmitDisabled }" :style="isSubmitDisabled ? { pointerEvents: 'none' } : {}">
-          <button
-            :disabled="isSubmitDisabled"
-            id="chat__input-submitbutton"
-            type="submit"
-          ></button>
-          <!-- Инлайн SVG для СТРЕЛКИ ВВЕРХ -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </label>
       </form>
     </footer>
 
@@ -308,6 +304,7 @@ import monkeyShock     from '@/components/img/monkey/shock.svg';
 import monkeyWork      from '@/components/img/monkey/work.svg';
 import monkeyWorkout   from '@/components/img/monkey/workout.svg';
 import model_logo      from '@/components/img/model_logo.svg';
+import downSvg         from '@/components/img/down.svg';
 
 interface ModelOption {
   id: string;
@@ -494,6 +491,7 @@ function scrollToBottom() {
 
 /** Smooth scroll to bottom — used by the scroll-to-bottom button. */
 function scrollToBottomSmooth() {
+  showScrollBtn.value = false;
   const el = chatContent.value;
   if (!el) return;
   el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
@@ -1262,9 +1260,9 @@ onBeforeUnmount(() => {
 .scroll-to-bottom-btn {
   position: fixed;
   right: 16px;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  width: 40px;
-  height: 40px;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: none;
   background: var(--third-bg-color, #3D3D3F);
@@ -1273,29 +1271,33 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
   z-index: 50;
   padding: 0;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: background-color 0.15s ease;
+}
+
+.scroll-to-bottom-btn img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(100%);
+  display: block;
 }
 
 .scroll-to-bottom-btn:hover {
-  opacity: 0.85;
+  background-color: color-mix(in srgb, var(--third-bg-color, #3D3D3F) 80%, #fff 20%);
 }
 
-.scroll-to-bottom-btn:active {
-  transform: scale(0.92);
-}
-
-.scroll-btn-fade-enter-active,
-.scroll-btn-fade-leave-active {
+.scroll-btn-fade-enter-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.scroll-btn-fade-enter-from,
-.scroll-btn-fade-leave-to {
+.scroll-btn-fade-leave-active {
+  transition: none;
+}
+
+.scroll-btn-fade-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(6px);
 }
 /* ─────────────────────────────────────────────────────────────────────────── */
 

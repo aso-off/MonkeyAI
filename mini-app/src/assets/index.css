@@ -1676,9 +1676,7 @@ footer .input__text-wrapper {
 }
 
 footer .footer__input {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
+  display: block;
   margin-bottom: 4px;
 }
 
@@ -1696,12 +1694,14 @@ footer .footer__input svg path {
 }
 
 footer .footer__input .input__submit {
-  flex-shrink: 0;
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background-color: var(--tg-theme-button-color, #007aff);
   color: var(--tg-theme-button-text-color, #fff);
@@ -1711,8 +1711,8 @@ footer .footer__input .input__submit {
 }
 
 footer .footer__input .input__submit svg {
-  width: 23px;
-  height: 23px;
+  width: 18px;
+  height: 18px;
 }
 
 footer .footer__input button {
@@ -1729,12 +1729,15 @@ footer .footer__input .input__submit.disabled {
 
 footer .input__text {
   display: flex;
+  flex-direction: column;
   width: 100%;
   position: relative;
   overflow-x: hidden;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 2px solid var(--border-color);
   background-color: var(--second-bg-color);
+  padding-bottom: 46px;
+  box-sizing: border-box;
 }
 
 footer .input__text .input__text-placeholder {
