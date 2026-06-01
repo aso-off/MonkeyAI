@@ -291,7 +291,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, onActivated, onDeactivated, nextTick, watch, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { retrieveLaunchParams } from '@tma.js/sdk-vue';
 import { api, wsClient, BASE_URL } from '@/services/api';
 import { useUserStore, dialogMessagesToChat, type ChatMessage } from '@/store/user';
 
@@ -609,8 +608,6 @@ async function loadChatHistory(forceScroll = false) {
     const hadCachedData = store.chatHistory.length > 0;
     if (hadCachedData) {
       applyChatHistory([...store.chatHistory]);
-      // Initial scroll: only on first mount (forceScroll). Background refresh
-      // (forceScroll=false from connection_ack) should not move the viewport.
       if (forceScroll) { await nextTick(); scrollToBottom(); }
     }
 
@@ -618,27 +615,14 @@ async function loadChatHistory(forceScroll = false) {
     store.setDialogId(dialog_id);
     // Re-check: a stream may have started while bootstrapDialog was in-flight.
     if (streamingBotIdx.value === -1) {
-      // Capture scroll position BEFORE replacing messages so we can restore it.
-      // If the user is near the bottom (or this is a fresh first load with no cache),
-      // we scroll to bottom as normal. If they scrolled up, we keep their position.
-      const el = chatContent.value;
-      const wasNearBottom = isNearBottom.value;
-      const distFromBottom = el ? (el.scrollHeight - el.scrollTop - el.clientHeight) : 0;
-
       applyChatHistory(dialogMessagesToChat(messages ?? []));
       cursorIdx.value = next_before_index;
       hasMoreToLoad.value = next_before_index > 0;
-
+      // Always go to bottom after API refresh — position saving removed.
+      // The ResizeObserver fix ensures no 10px jump from footer height changes.
       await nextTick();
-      if (el) {
-        if (!hadCachedData || wasNearBottom) {
-          // First load or user was at bottom — go to bottom.
-          el.scrollTop = el.scrollHeight;
-        } else {
-          // User scrolled up — restore their position after the DOM update.
-          el.scrollTop = Math.max(0, el.scrollHeight - el.clientHeight - distFromBottom);
-        }
-      }
+      const el = chatContent.value;
+      if (el) el.scrollTop = el.scrollHeight;
     }
   } catch (e: unknown) {
     // AbortError is normal (tab navigation/close) — don't log it as an error.
@@ -844,71 +828,25 @@ type ShowSaveFilePicker = (opts: {
 }) => Promise<FsHandle>;
 
 /**
- * Returns the Telegram platform string, or 'unknown' if launch params are unavailable.
- * Possible values: 'ios' | 'android' | 'macos' | 'tdesktop' | 'web' | 'weba' | 'webk' | 'unknown'
- */
-function getTgPlatform(): string {
-  try { return retrieveLaunchParams().tgWebAppPlatform ?? 'unknown'; }
-  catch { return 'unknown'; }
-}
-
-/**
  * Platform-aware universal file save.
+ * Order for ALL platforms:
+ *   1. showSaveFilePicker — native “Save As” dialog (Chromium: tdesktop, Chrome desktop)
+ *   2. navigator.share({files}) — system share sheet (iOS, Android, macOS, Chrome Win/Mac)
+ *   3. navigator.share({text}) — text-only fallback for TXT when file share is unavailable
+ *   4. a.download — last resort (tdesktop fallback, some Android WebViews)
  *
- * WebView platforms (ios / android / macos):
- *   1. navigator.share({files})  — system share sheet (Save to Files, AirDrop, etc.)
- *   2. navigator.share({text})   — text-only fallback for TXT
- *
- * Browser / Desktop platforms (tdesktop / web / weba / webk / unknown):
- *   1. showSaveFilePicker        — native "Save As" dialog
- *   2. window.open(_blank)       — opens blob in browser tab (Telegram Web iframe escape)
- *   3. a.download               — classic auto-download (last resort)
- *
- * AbortError (user dismissed) always stops the cascade.
+ * window.open(blob) is intentionally NOT used — opens a raw blob URL in browser, which
+ * is meaningless on macOS/Android and confusing everywhere else.
+ * AbortError (user dismissed) always stops the cascade immediately.
  */
 async function saveBlob(
   blob: Blob,
   filename: string,
   pickerTypes: { description: string; accept: Record<string, string[]> }[],
-  /** Plain text — enables share({text}) fallback for TXT on Android */
+  /** Plain text — enables share({text}) fallback for TXT */
   plainText?: string,
 ): Promise<void> {
-  const platform = getTgPlatform();
-  const isWebView = platform === 'ios' || platform === 'android' || platform === 'macos';
-
-  if (isWebView) {
-    // ── WebView path: share sheet first ────────────────────────────────────
-    if (typeof navigator.share === 'function') {
-      // 1. File share (iOS Files / Android / macOS)
-      const file = new File([blob], filename, { type: blob.type });
-      try {
-        await navigator.share({ files: [file] });
-        return;
-      } catch (err: unknown) {
-        if ((err as Error)?.name === 'AbortError') return;
-        // file share not available — try text
-      }
-
-      // 2. Text-only share — TXT fallback when file share unavailable
-      if (plainText) {
-        try {
-          await navigator.share({ title: filename, text: plainText });
-          return;
-        } catch (err: unknown) {
-          if ((err as Error)?.name === 'AbortError') return;
-        }
-      }
-    }
-
-    // 3. open in new tab — last resort for WebView
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    return;
-  }
-
-  // ── Desktop / Web path ─────────────────────────────────────────────────
-  // 1. Save As dialog (Chromium desktop, tdesktop)
+  // ── 1. Save As dialog (Chromium desktop, tdesktop) ─────────────────────────────
   const filePicker = (window as Window & { showSaveFilePicker?: ShowSaveFilePicker }).showSaveFilePicker;
   if (typeof filePicker === 'function') {
     try {
@@ -919,22 +857,39 @@ async function saveBlob(
       return;
     } catch (err: unknown) {
       if ((err as Error)?.name === 'AbortError') return;
-      // SecurityError in sandboxed iframe (Telegram Web) — fall through
+      // SecurityError (sandboxed iframe) or NotAllowedError (no gesture) — fall through
     }
   }
 
-  // 2. Open blob in new browser tab (Telegram Web iframe escape)
-  //    User sees the file and can Ctrl+S / right-click Save As from the browser
-  const url = URL.createObjectURL(blob);
-  try {
-    const w = window.open(url, '_blank');
-    if (w !== null) {
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  // ── 2. Web Share API with files (iOS, Android, macOS, Chrome on Windows/macOS) ─────
+  // No canShare() guard — it returns false on some Android WebViews even when
+  // navigator.share({files}) actually succeeds.
+  if (typeof navigator.share === 'function') {
+    const file = new File([blob], filename, { type: blob.type });
+    try {
+      await navigator.share({ files: [file] });
       return;
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') return;
+      // TypeError / NotAllowedError: file sharing not supported — try text
     }
-  } catch { /* popup blocked */ }
 
-  // 3. a.download — last resort
+    // ── 3. Text-only share — TXT fallback (Android when file share unavailable) ───
+    if (plainText) {
+      try {
+        await navigator.share({ title: filename, text: plainText });
+        return;
+      } catch (err: unknown) {
+        if ((err as Error)?.name === 'AbortError') return;
+      }
+    }
+  }
+
+  // ── 4. a.download — last resort ─────────────────────────────────────────────
+  // Works in tdesktop (shows Downloads panel), some Android WebViews.
+  // Blocked in sandboxed iframes (Telegram Web in browser) — acceptable
+  // since those platforms should be handled by share API above.
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
@@ -1093,7 +1048,15 @@ onMounted(async () => {
   const footerEl = document.querySelector('footer');
   if (footerEl) {
     const updateFooterHeight = () => {
+      const el = chatContent.value;
+      // Check proximity to bottom BEFORE layout changes
+      const atBottom = el ? (el.scrollHeight - el.scrollTop - el.clientHeight) < 4 : false;
       document.documentElement.style.setProperty('--footer-height', `${footerEl.getBoundingClientRect().height}px`);
+      // If user was at true bottom, keep them there after footer height change.
+      // This prevents the 10px jump caused by padding-bottom increasing scrollHeight.
+      if (atBottom && el) {
+        requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+      }
     };
     updateFooterHeight();
     footerResizeObs = new ResizeObserver(updateFooterHeight);
