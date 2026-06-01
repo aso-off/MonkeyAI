@@ -86,9 +86,9 @@ tr:
     error_message: "Bir hata oluştu: {}"
 
     # Model descriptions (models.yml)
-    model_description_gpt_5_mini: "GPT-5 mini, hassas ve mantıklı çözümler için tasarlanmış <b>yüksek hızlı</b> ve <b>uygun maliyetli</b> bir modeldir. Analitik görevler için mükemmeldir. Daha çok yönlü bir şeye ihtiyacın varsa <b>GPT-4o</b>'yu denemeyi düşün."
-    model_description_gpt_4o: "GPT-4o, optimum performans ve doğruluk sağlamak için tasarlanmış özel bir GPT-4 çeşididir. Karmaşık ve ayrıntılı görevler için uygundur."
-    model_description_gpt_5_nano: "GPT-5 Nano, sohbet botları için varsayılan asistan olarak güvenilir zeka sunan <b>en hızlı</b> ve <b>yüksek verimli</b> modeldir. Hızlı ve duyarlı etkileşimler için mükemmeldir. Daha karmaşık ihtiyaçlar için <b>GPT-4o</b>'yu düşün."
+    model_description_gpt_5_mini: "GPT-5 mini, hassas ve mantıklı çözümler için tasarlanmış <b>yüksek hızlı</b> ve <b>uygun maliyetli</b> bir modeldir. Analitik görevler için mükemmeldir. Daha çok yönlü bir şeye ihtiyacın varsa <b>GPT-4 Omni</b>'yi denemeyi düşün."
+    model_description_gpt_4o: "GPT-4 Omni, optimum performans ve doğruluk sağlamak için tasarlanmış özel bir GPT-4 çeşididir. Karmaşık ve ayrıntılı görevler için uygundur."
+    model_description_gpt_5_nano: "GPT-5 Nano, sohbet botları için varsayılan asistan olarak güvenilir zeka sunan <b>en hızlı</b> ve <b>yüksek verimli</b> modeldir. Hızlı ve duyarlı etkileşimler için mükemmeldir. Daha karmaşık ihtiyaçlar için <b>GPT-4 Omni</b>'yi düşün."
 
     # Model scores
     score_smart: "Akıllı"
