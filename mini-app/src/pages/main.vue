@@ -246,7 +246,9 @@
         @click="scrollToBottomSmooth"
         aria-label="Scroll to bottom"
       >
-        <img :src="downSvg" alt="" width="20" height="20" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;user-select:none;display:block;">
+          <path d="M12 5V19M19 12L12 19L5 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
     </Transition>
     <footer>
@@ -304,7 +306,6 @@ import monkeyShock     from '@/components/img/monkey/shock.svg';
 import monkeyWork      from '@/components/img/monkey/work.svg';
 import monkeyWorkout   from '@/components/img/monkey/workout.svg';
 import model_logo      from '@/components/img/model_logo.svg';
-import downSvg         from '@/components/img/down.svg';
 
 interface ModelOption {
   id: string;
@@ -1283,13 +1284,12 @@ onBeforeUnmount(() => {
   }
 }
 
-/* ── Scroll-to-bottom button ──────────────────────────────────────────────── */
 .scroll-to-bottom-btn {
   position: fixed;
   right: 16px;
   bottom: calc(var(--footer-height, 80px) + 12px);
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: none;
   background: var(--third-bg-color, #3D3D3F);
@@ -1301,13 +1301,6 @@ onBeforeUnmount(() => {
   z-index: 50;
   padding: 0;
   transition: background-color 0.15s ease;
-}
-
-.scroll-to-bottom-btn img {
-  width: 20px;
-  height: 20px;
-  filter: brightness(0) saturate(100%) invert(100%);
-  display: block;
 }
 
 /* Dark theme: lighten slightly on hover */
