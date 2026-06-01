@@ -33,7 +33,9 @@
   display: flex;
 }
 
-.btn-tip-wrap[data-tip]:hover::after {
+/* Shared tooltip bubble styles */
+.btn-tip-wrap[data-tip]:hover::after,
+.ios-gpt .btn-tip-wrap[data-tip].tip-active::after {
   content: attr(data-tip);
   position: absolute;
   top: calc(100% + 5px);
@@ -49,6 +51,14 @@
   pointer-events: none;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* iOS: :hover sticks after touch — disable it, use .tip-active instead */
+.ios-gpt .btn-tip-wrap[data-tip]:hover::after {
+  display: none;
+}
+.ios-gpt .btn-tip-wrap[data-tip].tip-active::after {
+  display: block;
 }
 
 /* Like / Dislike / More buttons */
@@ -1157,7 +1167,7 @@ body.dark .gpt-model-select-item.active {
 }
 
 .chat-content {
-  padding: 53px 16px 120px;
+  padding: 53px 16px calc(var(--footer-height, 80px) + 16px);
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
@@ -1804,7 +1814,10 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   background: transparent;
   word-break: break-word;
   overflow-wrap: break-word;
-  white-space: pre-wrap
+  white-space: pre-wrap;
+  /* 16px prevents iOS WebView auto-zoom on focus/paste */
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 .image-style #editable-message-text {
@@ -2520,9 +2533,13 @@ html,
 body {
   color: var(--text-color);
   background-color: var(--backgorund-color);
-  height: 100vh;
+  height: 100%;
+  overflow: hidden;
   scrollbar-width: none;
-  overscroll-behavior-x: none
+  overscroll-behavior-x: none;
+  /* Prevent iOS from scaling text on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 #root {
@@ -2530,7 +2547,8 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 .wrapper {
