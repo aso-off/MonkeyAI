@@ -86,9 +86,9 @@ pt:
     error_message: "Ocorreu um erro: {}"
 
     # Model descriptions (models.yml)
-    model_description_gpt_5_mini: "O GPT-5 mini é um modelo <b>rápido</b> e <b>económico</b>, concebido para soluções precisas e lógicas. Perfeito para tarefas analíticas. Se precisares de algo mais versátil, experimenta o <b>GPT-4o</b>."
-    model_description_gpt_4o: "O GPT-4o é uma variante especial do GPT-4 concebida para proporcionar desempenho e precisão ótimos. Adequado para tarefas complexas e detalhadas."
-    model_description_gpt_5_nano: "O GPT-5 Nano é o modelo <b>mais rápido</b> e <b>altamente eficiente</b>, oferecendo inteligência fiável como assistente predefinido para chatbots. Perfeito para interações rápidas e reativas. Para necessidades mais complexas, considera o <b>GPT-4o</b>."
+    model_description_gpt_5_mini: "O GPT-5 mini é um modelo <b>rápido</b> e <b>económico</b>, concebido para soluções precisas e lógicas. Perfeito para tarefas analíticas. Se precisares de algo mais versátil, experimenta o <b>GPT-4 Omni</b>."
+    model_description_gpt_4o: "O GPT-4 Omni é uma variante especial do GPT-4 concebida para proporcionar desempenho e precisão ótimos. Adequado para tarefas complexas e detalhadas."
+    model_description_gpt_5_nano: "O GPT-5 Nano é o modelo <b>mais rápido</b> e <b>altamente eficiente</b>, oferecendo inteligência fiável como assistente predefinido para chatbots. Perfeito para interações rápidas e reativas. Para necessidades mais complexas, considera o <b>GPT-4 Omni</b>."
 
     # Model scores
     score_smart: "Inteligente"
