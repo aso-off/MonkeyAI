@@ -48,6 +48,10 @@ async function main() {
     const { tgWebAppPlatform: platform } = launchParams;
     const debug = (launchParams.tgWebAppStartParam || '').includes('debug') || import.meta.env.DEV;
 
+    if (platform === 'ios') {
+      document.body.classList.add('ios-gpt');
+    }
+
     // init() throws if the Telegram client is too old to support the SDK.
     // Both this and the retrieveLaunchParams() throw are caught below.
     await init({
