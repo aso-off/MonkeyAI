@@ -239,6 +239,18 @@
     </div>
 
     <!-- Footer с полем ввода -->
+    <Transition name="scroll-btn-fade">
+      <button
+        v-if="showScrollBtn"
+        class="scroll-to-bottom-btn"
+        @click="scrollToBottomSmooth"
+        aria-label="Scroll to bottom"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </Transition>
     <footer>
       <form class="footer__input" @submit.prevent="sendMessage">
         <div class="input__text-wrapper">
@@ -324,6 +336,8 @@ let copyTimeout: ReturnType<typeof setTimeout> | null = null;
 
 /** True when the chat scroll is near the bottom (< 150px). Auto-scroll is only done here. */
 const isNearBottom = ref(true);
+/** True when user scrolled more than 100px from bottom — shows the scroll-to-bottom button. */
+const showScrollBtn = ref(false);
 /** Cursor for the next Load-more call (next_before_index from backend). 0 = no more. */
 const cursorIdx = ref(0);
 /** True once the user has loaded at least one older page. */
@@ -478,6 +492,13 @@ function scrollToBottom() {
   });
 }
 
+/** Smooth scroll to bottom — used by the scroll-to-bottom button. */
+function scrollToBottomSmooth() {
+  const el = chatContent.value;
+  if (!el) return;
+  el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+}
+
 /** Scroll to bottom only when the user is already near the bottom. */
 function scrollToBottomIfAtBottom() {
   if (isNearBottom.value) scrollToBottom();
@@ -487,7 +508,9 @@ function scrollToBottomIfAtBottom() {
 function onChatScroll() {
   const el = chatContent.value;
   if (!el) return;
-  isNearBottom.value = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+  const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+  isNearBottom.value = distFromBottom < 150;
+  showScrollBtn.value = distFromBottom > 100;
 }
 
 /* === Загрузка истории из API === */
@@ -1234,5 +1257,46 @@ onBeforeUnmount(() => {
     max-height: 35vh;
   }
 }
+
+/* ── Scroll-to-bottom button ──────────────────────────────────────────────── */
+.scroll-to-bottom-btn {
+  position: fixed;
+  right: 16px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--third-bg-color, #3D3D3F);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  padding: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.scroll-to-bottom-btn:hover {
+  opacity: 0.85;
+}
+
+.scroll-to-bottom-btn:active {
+  transform: scale(0.92);
+}
+
+.scroll-btn-fade-enter-active,
+.scroll-btn-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.scroll-btn-fade-enter-from,
+.scroll-btn-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 </style>

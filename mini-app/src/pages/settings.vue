@@ -78,8 +78,24 @@
               </div>
             </span>
             <div class="settings__divider"></div>
+            <span class="settings__container-button interactive" @click="openChannel">
+              <div class="settings__container-icon" style="background-color: rgb(60, 179, 113)">
+                <img :src="channelSvg" alt="Channel" />
+              </div>
+              <div class="settings__container-text">
+                <div class="settings__container-text-title">
+                  <div class="settings__container-title-text">{{ $t('telegram_channel') }}</div>
+                </div>
+                <div class="settings__container-text-value">
+                  <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <div class="settings__divider"></div>
             <span class="settings__container-button interactive" @click="shareApp">
-              <div class="settings__container-icon" style="background-color: rgb(50, 173, 230)">
+              <div class="settings__container-icon" style="background-color: rgb(30, 144, 255)">
                 <img :src="shareSvg" alt="Share" />
               </div>
               <div class="settings__container-text">
@@ -153,6 +169,7 @@ import profileSvg from '@/components/img/profile.svg';
 import languageSvg from '@/components/img/language.svg';
 import themeSvg from '@/components/img/theme.svg';
 import helpSvg from '@/components/img/help.svg';
+import channelSvg from '@/components/img/channel.svg';
 import shareSvg from '@/components/img/Share.svg';
 import versionSvg from '@/components/img/version.svg';
 import autor from '@/components/img/autor.svg';
@@ -198,6 +215,10 @@ const shareApp = () => {
 
 const openSupport = () => {
   openTelegramLink('https://t.me/MonkeyAI_Support');
+};
+
+const openChannel = () => {
+  openTelegramLink('https://t.me/telegram');
 };
 
 const openReleases = () => {
