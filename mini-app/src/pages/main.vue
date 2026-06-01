@@ -222,10 +222,10 @@
                   </div>
                   <!-- Три точки (экспорт) -->
                   <div class="btn-tip-wrap more-wrap">
-                    <button class="action-btn" @click.stop="toggleMoreMenu(index)">
+                    <button class="action-btn" @click.stop="toggleMoreMenu(index, $event)">
                       <svg viewBox="0 -960 960 960" fill="currentColor" width="16" height="16" style="transform:rotate(90deg)"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
                     </button>
-                    <div v-if="moreMenuIndex === index" class="more-menu" @click.stop>
+                    <div v-if="moreMenuIndex === index" class="more-menu" :class="{ upward: moreMenuUp }" @click.stop>
                       <button class="more-menu-item" @click="exportTxt(msg.text)">{{ t('export_txt') }}</button>
                       <button class="more-menu-item" @click="exportPdf(msg.text)">{{ t('export_pdf') }}</button>
                     </div>
@@ -318,6 +318,7 @@ const store = useUserStore();
 const copiedIndex = ref<number | null>(null);
 const reactionMap = reactive(new Map<number, 'like' | 'dislike'>());
 const moreMenuIndex = ref<number | null>(null);
+const moreMenuUp = ref(false);
 const streamingBotIdx = ref(-1);
 /** reqId of a request whose WS dropped mid-generation; null if none. */
 const pendingReconnectReqId = ref<string | null>(null);
@@ -750,8 +751,19 @@ function stripHtml(html: string): string {
   return (el.textContent ?? '').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function toggleMoreMenu(index: number) {
-  moreMenuIndex.value = moreMenuIndex.value === index ? null : index;
+function toggleMoreMenu(index: number, event: MouseEvent) {
+  if (moreMenuIndex.value === index) {
+    moreMenuIndex.value = null;
+    return;
+  }
+  moreMenuIndex.value = index;
+  const btn = event.currentTarget as HTMLElement;
+  const rect = btn.getBoundingClientRect();
+  const footerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--footer-height') || '80'
+  );
+  const spaceBelow = window.innerHeight - rect.bottom - footerHeight;
+  moreMenuUp.value = spaceBelow < 100;
 }
 
 function onReaction(index: number, reaction: 'like' | 'dislike', userMsg: string, botMsg: string) {
@@ -855,12 +867,26 @@ function copyToClipboard(text: string, index: number) {
 /* === Случайная обезьянка для пустого чата === */
 const emptyCardImage = ref('');
 
+let footerResizeObs: ResizeObserver | null = null;
+
 onMounted(async () => {
   const images = [
     monkeyChemistry, monkeyHacker, monkeyHappy, monkeyIdea,
     monkeyQuestion, monkeyRead, monkeyShock, monkeyWork, monkeyWorkout,
   ];
   emptyCardImage.value = images[Math.floor(Math.random() * images.length)];
+
+  // Track footer height for the scroll-to-bottom button positioning
+  await nextTick();
+  const footerEl = document.querySelector('footer');
+  if (footerEl) {
+    const updateFooterHeight = () => {
+      document.documentElement.style.setProperty('--footer-height', `${footerEl.getBoundingClientRect().height}px`);
+    };
+    updateFooterHeight();
+    footerResizeObs = new ResizeObserver(updateFooterHeight);
+    footerResizeObs.observe(footerEl);
+  }
 
   document.addEventListener('click', handleDocumentClick);
 
@@ -1113,6 +1139,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocumentClick);
   document.body.style.overflow = 'auto';
   if (copyTimeout) clearTimeout(copyTimeout);
+  footerResizeObs?.disconnect();
   // Remove type handlers so they don't fire after the component is gone.
   for (const type of [
     'user_message', 'generation_start', 'chat_token', 'chat_done', 'chat_error',
@@ -1260,7 +1287,7 @@ onBeforeUnmount(() => {
 .scroll-to-bottom-btn {
   position: fixed;
   right: 16px;
-  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--footer-height, 80px) + 12px);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -1283,8 +1310,14 @@ onBeforeUnmount(() => {
   display: block;
 }
 
+/* Dark theme: lighten slightly on hover */
 .scroll-to-bottom-btn:hover {
   background-color: color-mix(in srgb, var(--third-bg-color, #3D3D3F) 80%, #fff 20%);
+}
+
+/* Light theme: darken slightly on hover */
+body:not(.dark) .scroll-to-bottom-btn:hover {
+  background-color: color-mix(in srgb, var(--third-bg-color) 75%, #000 25%);
 }
 
 .scroll-btn-fade-enter-active {

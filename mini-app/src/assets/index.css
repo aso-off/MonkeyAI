@@ -97,6 +97,11 @@ body:not(.dark) .action-btn:hover {
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
 }
 
+.more-menu.upward {
+  top: auto;
+  bottom: calc(100% + 5px);
+}
+
 .more-menu-item {
   display: block;
   width: 100%;
@@ -1700,8 +1705,8 @@ footer .footer__input .input__submit {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background-color: var(--tg-theme-button-color, #007aff);
   color: var(--tg-theme-button-text-color, #fff);
@@ -1711,8 +1716,8 @@ footer .footer__input .input__submit {
 }
 
 footer .footer__input .input__submit svg {
-  width: 18px;
-  height: 18px;
+  width: 23px;
+  height: 23px;
 }
 
 footer .footer__input button {
@@ -1736,7 +1741,7 @@ footer .input__text {
   border-radius: 18px;
   border: 2px solid var(--border-color);
   background-color: var(--second-bg-color);
-  padding-bottom: 46px;
+  padding-bottom: 54px;
   box-sizing: border-box;
 }
 
