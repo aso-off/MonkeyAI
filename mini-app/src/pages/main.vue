@@ -261,6 +261,7 @@
             dir="ltr"
             ref="editableDiv"
             @input="onInput"
+            @paste.prevent="onPaste"
           ></div>
           <span v-if="messageText.trim() === ''" class="input__text-placeholder">
             {{ inputPlaceholder }}
@@ -480,6 +481,27 @@ const remoteBotSlots = new Map<string, number>();
 
 function onInput(e: Event) {
   messageText.value = (e.target as HTMLElement).innerText;
+}
+
+/**
+ * Paste only plain text into contenteditable.
+ * Uses Selection API (not deprecated execCommand) — works on iOS, Android, desktop.
+ * Prevents rich-text / HTML from clipboard importing foreign font-size/family styles.
+ */
+function onPaste(e: ClipboardEvent) {
+  const text = e.clipboardData?.getData('text/plain') ?? '';
+  if (!text) return;
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.deleteContents();               // delete any currently selected text
+  const node = document.createTextNode(text);
+  range.insertNode(node);
+  range.setStartAfter(node);            // move cursor to end of inserted text
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  messageText.value = (editableDiv.value as HTMLElement | null)?.innerText ?? '';
 }
 
 function scrollToBottom() {
@@ -785,11 +807,29 @@ function exportTxt(html: string) {
   moreMenuIndex.value = null;
   const text = stripHtml(html);
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'monkey-ai-response.txt';
-  a.click();
-  URL.revokeObjectURL(a.href);
+
+  // iOS WebView: a.download is ignored — use Web Share API if available
+  const isIOS = document.body.classList.contains('ios-gpt');
+  if (isIOS && typeof navigator.share === 'function') {
+    const file = new File([blob], 'monkey-ai-response.txt', { type: 'text/plain' });
+    if (navigator.canShare?.({ files: [file] })) {
+      navigator.share({ files: [file] }).catch(() => {});
+      return;
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
+  if (isIOS) {
+    // Fallback: open in new window so iOS shows its own share/save toolbar
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  } else {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'monkey-ai-response.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
 async function exportPdf(html: string) {
@@ -844,7 +884,22 @@ async function exportPdf(html: string) {
       }
     }
 
-    pdf.save('monkey-ai-response.pdf');
+    // iOS WebView: pdf.save() uses a.download which is ignored — use Web Share API
+    const isIOS = document.body.classList.contains('ios-gpt');
+    if (isIOS && typeof navigator.share === 'function') {
+      const pdfBlob = pdf.output('blob');
+      const file = new File([pdfBlob], 'monkey-ai-response.pdf', { type: 'application/pdf' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] });
+        return;
+      }
+      // Fallback: open blob URL in new window
+      const url = URL.createObjectURL(pdfBlob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } else {
+      pdf.save('monkey-ai-response.pdf');
+    }
   } catch (err) {
     console.error('[exportPdf]', err);
   } finally {
@@ -853,22 +908,69 @@ async function exportPdf(html: string) {
 }
 
 function copyToClipboard(text: string, index: number) {
-  navigator.clipboard.writeText(stripHtml(text))
-    .then(() => {
+  const plain = stripHtml(text);
+
+  const finish = (ok: boolean) => {
+    // Clear any text selection left by iOS touch
+    window.getSelection()?.removeAllRanges();
+    if (ok) {
       copiedIndex.value = index;
       if (copyTimeout) clearTimeout(copyTimeout);
       copyTimeout = setTimeout(() => { copiedIndex.value = null; }, 1200);
-    })
-    .catch(err => {
-      console.error('Ошибка копирования:', err);
+    } else {
       copiedIndex.value = null;
+    }
+  };
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(plain).then(() => finish(true)).catch(() => {
+      // iOS fallback: execCommand
+      const ta = document.createElement('textarea');
+      ta.value = plain;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      window.getSelection()?.removeAllRanges();
+      finish(ok);
     });
+  } else {
+    // No Clipboard API at all
+    const ta = document.createElement('textarea');
+    ta.value = plain;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    finish(ok);
+  }
 }
 
 /* === Случайная обезьянка для пустого чата === */
 const emptyCardImage = ref('');
 
 let footerResizeObs: ResizeObserver | null = null;
+
+// iOS: touch-triggered tooltip — briefly shows tooltip on tap, then removes it
+let tipActiveTimer: ReturnType<typeof setTimeout> | null = null;
+function handleTipTouch(e: TouchEvent) {
+  if (!document.body.classList.contains('ios-gpt')) return;
+  const wrap = (e.target as Element).closest<HTMLElement>('.btn-tip-wrap[data-tip]');
+  if (!wrap) return;
+  // Clear previous active tip
+  document.querySelectorAll<HTMLElement>('.tip-active').forEach(el => el.classList.remove('tip-active'));
+  if (tipActiveTimer) clearTimeout(tipActiveTimer);
+  wrap.classList.add('tip-active');
+  // Remove after 700ms — enough to read, gone before next interaction
+  tipActiveTimer = setTimeout(() => {
+    wrap.classList.remove('tip-active');
+    tipActiveTimer = null;
+  }, 700);
+}
 
 onMounted(async () => {
   const images = [
@@ -890,6 +992,7 @@ onMounted(async () => {
   }
 
   document.addEventListener('click', handleDocumentClick);
+  document.addEventListener('touchstart', handleTipTouch, { passive: true });
 
   // Proactively open WebSocket so the first message feels instant.
   wsClient.connect().catch(() => {});
@@ -1138,6 +1241,8 @@ onDeactivated(() => {});
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocumentClick);
+  document.removeEventListener('touchstart', handleTipTouch);
+  if (tipActiveTimer) clearTimeout(tipActiveTimer);
   document.body.style.overflow = 'auto';
   if (copyTimeout) clearTimeout(copyTimeout);
   footerResizeObs?.disconnect();
