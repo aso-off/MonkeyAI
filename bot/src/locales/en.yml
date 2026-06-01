@@ -86,9 +86,9 @@ en:
     error_message: "An error occurred: {}"
 
     # Model descriptions (models.yml)
-    model_description_gpt_5_mini: "GPT-5 mini is a <b>high-speed</b> and <b>cost-effective</b> model designed for precise and logical solutions. Perfect for analytical tasks. If you need something more versatile, consider trying <b>GPT-4o</b>."
-    model_description_gpt_4o: "GPT-4o is a special variant of GPT-4 designed to provide optimal performance and accuracy. Suitable for complex and detailed tasks."
-    model_description_gpt_5_nano: "GPT-5 Nano is the <b>fastest</b> and <b>highly efficient</b> model, delivering reliable intelligence as the default assistant for chatbots. Perfect for streamlined, responsive interactions. For more complex needs, consider <b>GPT-4o</b>."
+    model_description_gpt_5_mini: "GPT-5 mini is a <b>high-speed</b> and <b>cost-effective</b> model designed for precise and logical solutions. Perfect for analytical tasks. If you need something more versatile, consider trying <b>GPT-4 Omni</b>."
+    model_description_gpt_4o: "GPT-4 Omni is a special variant of GPT-4 designed to provide optimal performance and accuracy. Suitable for complex and detailed tasks."
+    model_description_gpt_5_nano: "GPT-5 Nano is the <b>fastest</b> and <b>highly efficient</b> model, delivering reliable intelligence as the default assistant for chatbots. Perfect for streamlined, responsive interactions. For more complex needs, consider <b>GPT-4 Omni</b>."
 
     # Model scores
     score_smart: "Smart"

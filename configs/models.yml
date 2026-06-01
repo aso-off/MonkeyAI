@@ -27,7 +27,7 @@ info:
 
   gpt-4o:
     type: chat_completion
-    name: GPT-4o
+    name: GPT-4 Omni
     description: "{model_description_gpt_4o}"
     price_per_1000_input_tokens: 0.0025
     price_per_1000_output_tokens: 0.0100
