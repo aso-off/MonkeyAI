@@ -1666,6 +1666,7 @@ body.dark .gpt-model-select-item.active {
 footer {
   background-color: transparent;
   padding: 8px 10px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
   position: fixed;
   z-index: 100;
   bottom: 0px;
@@ -1758,11 +1759,11 @@ footer .input__text .input__text-placeholder.active {
 }
 
 .ios-gpt footer {
-  bottom: 15px !important
+  padding-bottom: calc(15px + env(safe-area-inset-bottom));
 }
 
 .ios-gpt footer.focused {
-  bottom: 11px !important
+  padding-bottom: calc(11px + env(safe-area-inset-bottom));
 }
 
 /* AI thinking — три статичных точки разных цветов */
