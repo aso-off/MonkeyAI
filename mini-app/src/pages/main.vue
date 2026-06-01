@@ -803,40 +803,82 @@ function onReaction(index: number, reaction: 'like' | 'dislike', userMsg: string
   }).catch(err => console.warn('[reaction]', err));
 }
 
-function exportTxt(html: string) {
-  moreMenuIndex.value = null;
-  const text = stripHtml(html);
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+/**
+ * Universal file save — tries strategies in order:
+ * 1. showSaveFilePicker  → native "Save As" dialog (Chromium desktop)
+ * 2. navigator.share     → system share sheet (iOS, Android, macOS)
+ * 3. a.download          → auto-download fallback (Telegram Web / tdesktop)
+ *
+ * Stops at the first strategy that succeeds. AbortError (user dismissed)
+ * is treated as success (no fallback triggered).
+ */
 
-  // iOS WebView: a.download is ignored — use Web Share API if available
-  const isIOS = document.body.classList.contains('ios-gpt');
-  if (isIOS && typeof navigator.share === 'function') {
-    const file = new File([blob], 'monkey-ai-response.txt', { type: 'text/plain' });
-    if (navigator.canShare?.({ files: [file] })) {
-      navigator.share({ files: [file] }).catch(() => {});
+// Minimal typings for the File System Access API (not in lib.dom.d.ts yet in all TS versions)
+interface FsWritable { write(data: Blob): Promise<void>; close(): Promise<void>; }
+interface FsHandle { createWritable(): Promise<FsWritable>; }
+type ShowSaveFilePicker = (opts: {
+  suggestedName?: string;
+  types?: { description: string; accept: Record<string, string[]> }[];
+}) => Promise<FsHandle>;
+
+async function saveBlob(
+  blob: Blob,
+  filename: string,
+  pickerTypes: { description: string; accept: Record<string, string[]> }[],
+): Promise<void> {
+  // ── Strategy 1: File System Access API (Save As dialog) ─────────────────
+  const filePicker = (window as Window & { showSaveFilePicker?: ShowSaveFilePicker }).showSaveFilePicker;
+  if (typeof filePicker === 'function') {
+    try {
+      const handle = await filePicker({ suggestedName: filename, types: pickerTypes });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
       return;
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') return; // user clicked Cancel
+      // not supported or permission denied — fall through
     }
   }
 
-  const url = URL.createObjectURL(blob);
-  if (isIOS) {
-    // Fallback: open in new window so iOS shows its own share/save toolbar
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 30_000);
-  } else {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'monkey-ai-response.txt';
-    a.click();
-    URL.revokeObjectURL(url);
+  // ── Strategy 2: Web Share API with files (iOS, Android, macOS share sheet) ─
+  if (typeof navigator.share === 'function') {
+    const file = new File([blob], filename, { type: blob.type });
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch (err: unknown) {
+        if ((err as Error)?.name === 'AbortError') return; // user dismissed
+        // fall through
+      }
+    }
   }
+
+  // ── Strategy 3: a.download (Telegram Desktop / Telegram Web) ─────────────
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
+function exportTxt(html: string) {
+  moreMenuIndex.value = null;
+  const blob = new Blob([stripHtml(html)], { type: 'text/plain;charset=utf-8' });
+  saveBlob(blob, 'monkey-ai-response.txt', [
+    { description: 'Text file', accept: { 'text/plain': ['.txt'] } },
+  ]).catch(err => console.error('[exportTxt]', err));
 }
 
 async function exportPdf(html: string) {
   moreMenuIndex.value = null;
   const text = stripHtml(html);
 
-  // Чистый текст без HTML, рендерим через браузер — все символы Unicode работают корректно
+  // Render plain text via hidden div — all Unicode works, no HTML tags
   const el = document.createElement('div');
   el.style.cssText = [
     'position:fixed', 'left:-9999px', 'top:0',
@@ -846,7 +888,7 @@ async function exportPdf(html: string) {
     'color:#111111', 'background:#ffffff',
     'white-space:pre-wrap', 'word-break:break-word',
   ].join(';');
-  el.textContent = text; // textContent — чистый текст, никаких HTML-тегов
+  el.textContent = text;
   document.body.appendChild(el);
 
   try {
@@ -884,22 +926,10 @@ async function exportPdf(html: string) {
       }
     }
 
-    // iOS WebView: pdf.save() uses a.download which is ignored — use Web Share API
-    const isIOS = document.body.classList.contains('ios-gpt');
-    if (isIOS && typeof navigator.share === 'function') {
-      const pdfBlob = pdf.output('blob');
-      const file = new File([pdfBlob], 'monkey-ai-response.pdf', { type: 'application/pdf' });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file] });
-        return;
-      }
-      // Fallback: open blob URL in new window
-      const url = URL.createObjectURL(pdfBlob);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    } else {
-      pdf.save('monkey-ai-response.pdf');
-    }
+    const pdfBlob = pdf.output('blob');
+    await saveBlob(pdfBlob, 'monkey-ai-response.pdf', [
+      { description: 'PDF document', accept: { 'application/pdf': ['.pdf'] } },
+    ]);
   } catch (err) {
     console.error('[exportPdf]', err);
   } finally {
