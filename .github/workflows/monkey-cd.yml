@@ -84,21 +84,20 @@ jobs:
             REPO="git@github.com:${{ github.repository }}.git"
             cd "$PROJECT"
 
-            # .env is in .gitignore — git never touches it; no backup needed.
-
-            # Sync compose + configs + deployment (api/bot code comes from Docker Hub).
-            if [ ! -d "$PROJECT/.git" ]; then
-              echo "First deploy: git sparse-checkout in $PROJECT"
-              git init
-              git remote add origin "$REPO" 2>/dev/null || git remote set-url origin "$REPO"
-              git fetch --depth=1 origin main
-              git sparse-checkout init --cone
-              git sparse-checkout set docker-compose.yml configs deployment
-              git checkout -f main
-            else
-              echo "Updating docker-compose, configs, deployment from git..."
+            git_sync() {
+              git sparse-checkout init --no-cone
+              git sparse-checkout set '/*' '!api/' '!bot/' '!mini-app/'
               git fetch origin main
               git reset --hard origin/main
+            }
+
+            if [ ! -d "$PROJECT/.git" ]; then
+              git init
+              git remote add origin "$REPO" 2>/dev/null || git remote set-url origin "$REPO"
+              git fetch origin main
+              git_sync
+            else
+              git_sync
             fi
 
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -108,4 +107,17 @@ jobs:
 
             sleep 10
             docker compose exec -T api python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health'); print('OK API')"
-            docker compose exec -T bot python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health'); print('OK BOT')"
+
+            bot_ok=false
+            for _ in $(seq 1 16); do
+              if docker compose exec -T bot python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"; then
+                echo "OK BOT"
+                bot_ok=true
+                break
+              fi
+              sleep 15
+            done
+            if [ "$bot_ok" != "true" ]; then
+              docker compose logs --tail=80 bot
+              exit 1
+            fi
