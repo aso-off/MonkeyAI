@@ -1712,19 +1712,29 @@ onMounted(async () => {
   // scrollToBottom is now handled inside loadChatHistory based on position.
 });
 
-onActivated(async () => {
-  // Each time the user opens the mini-app, start fresh: show last 20 messages
-  // so the "Load more" button is available again (as if a new session).
-  // Reset scroll button immediately (sync) so it never shows as a square on Android
-  // due to compositing-layer border-radius delay.
-  showScrollBtn.value = false;
-  isNearBottom.value = true;
-  hasLoadedOlderPages.value = false;
-  store.chatHistoryPrefetchOk = false;
-  await loadChatHistory(true);
+let savedScrollTop = 0;
+
+onActivated(() => {
+  // Restore scroll position for the inner container when returning from Settings.
+  // We do NOT reload chat history here because KeepAlive perfectly preserves the state.
+  // This prevents the visual reload glitch (flash of old->new messages).
+  nextTick(() => {
+    const el = chatContent.value;
+    if (el) {
+      el.scrollTop = savedScrollTop;
+      // Re-evaluate scroll button state based on the restored position,
+      // avoiding any momentary flashes.
+      onChatScroll();
+    }
+  });
 });
 
-onDeactivated(() => {});
+onDeactivated(() => {
+  const el = chatContent.value;
+  if (el) {
+    savedScrollTop = el.scrollTop;
+  }
+});
 
 onBeforeUnmount(() => {
   document.removeEventListener("click", handleDocumentClick);
