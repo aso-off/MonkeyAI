@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 import importlib
 import importlib.util
+import logging
 import sys
 import types
 from pathlib import Path
@@ -11,8 +12,17 @@ import pytest
 from fastapi.testclient import TestClient
 
 
+def _install_ci_stubs() -> None:
+    """Avoid /app/logs setup during import on GitHub Actions runners."""
+    fake_logger = types.ModuleType("core.logger")
+    fake_logger.logger = logging.getLogger("api_test")
+    sys.modules["core.logger"] = fake_logger
+
+
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    _install_ci_stubs()
+
     fake_settings = types.SimpleNamespace(
         database_url="postgresql+asyncpg://u:p@localhost:5432/db",
         telegram_token=types.SimpleNamespace(get_secret_value=lambda: "token"),
