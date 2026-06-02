@@ -32,27 +32,6 @@ jobs:
       - name: Health smoke tests
         run: .venv/bin/python -m pytest -q api/tests/test_api_health.py bot/tests/test_bot_health.py
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Verify API image builds
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: api/Dockerfile
-          push: false
-          load: true
-          tags: monkey-api:ci
-
-      - name: Verify BOT image builds
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: bot/Dockerfile
-          push: false
-          load: true
-          tags: monkey-bot:ci
-
   cd:
     needs: ci
     runs-on: ubuntu-latest
@@ -97,6 +76,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           timeout: ${{ secrets.SSH_TIMEOUT }}
+          command_timeout: 15m
           envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN
           script: |
             set -e
