@@ -1739,6 +1739,13 @@ onMounted(async () => {
 });
 
 let savedScrollTop = 0;
+/**
+ * Distance from the bottom of the scroll container:
+ *   scrollHeight - scrollTop - clientHeight
+ * Preserves the visual viewport position even if container height changes
+ * during navigation (e.g. when opening Settings pages).
+ */
+let savedDistFromBottom = 0;
 let wasOnChat = false;
 
 onActivated(() => {
@@ -1751,7 +1758,10 @@ onActivated(() => {
     if (el) {
       suppressScrollEvents = true;
       showScrollBtn.value = false;
-      el.scrollTop = savedScrollTop;
+      // Prefer restoring by "distance from bottom" to handle layout/height changes.
+      const nextScrollTop =
+        el.scrollHeight - el.clientHeight - savedDistFromBottom;
+      el.scrollTop = Math.max(0, nextScrollTop);
       suppressScrollEvents = false;
       // Re-evaluate scroll button state based on the restored position,
       // avoiding any momentary flashes.
@@ -1765,6 +1775,7 @@ onDeactivated(() => {
   const el = chatContent.value;
   if (el) {
     savedScrollTop = el.scrollTop;
+    savedDistFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
   }
 });
 
