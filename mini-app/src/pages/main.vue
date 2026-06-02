@@ -224,7 +224,10 @@
     <div class="chat-wrapper">
       <div
         class="chat-content"
-        :class="{ empty: chatMessages.length === 0 }"
+        :class="{
+          empty: chatMessages.length === 0,
+          'chat-content--restoring': isReturningFromSettings,
+        }"
         ref="chatContent"
         @scroll="onChatScroll"
       >
@@ -1998,5 +2001,11 @@ body:not(.dark) .scroll-to-bottom-btn:hover {
   flex-shrink: 0;
   min-height: calc(var(--footer-height, 80px) + 16px);
   pointer-events: none;
+}
+
+/* Hide chat for a moment during Settings->Chat restore to prevent stale-frame flicker.
+   Visibility keeps layout metrics intact, unlike display:none. */
+.chat-content--restoring {
+  visibility: hidden;
 }
 </style>
