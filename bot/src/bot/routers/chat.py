@@ -191,7 +191,7 @@ async def generate_image(
     await bot.send_chat_action(message.chat.id, "upload_photo")
 
     try:
-        image_urls = await api.generate_images(
+        image_buffers, imgbb_urls = await api.generate_images(
             prompt,
             n_images=settings.return_n_generated_images,
             size=settings.image_size,
@@ -218,15 +218,17 @@ async def generate_image(
         logger.error("Image generation failed for user %d: %s", user_id, e)
         return
 
-    for img_buf in image_urls:
+    for img_buf in image_buffers:
         await bot.send_chat_action(message.chat.id, "upload_photo")
         await message.answer_photo(BufferedInputFile(img_buf.read(), filename="image.png"))
 
     # Persist prompt so /retry can regenerate (artist mode does not use /chat/complete).
+    # Use ImgBB URL if available so the image appears in the gallery alongside mini-app images.
+    saved_url = next((u for u in imgbb_urls if u), "[generated_image]")
     try:
         ensure = await api.ensure_dialog(user_id)
         messages = list(ensure.messages)
-        messages.append({"user": prompt, "bot": "[generated_image]"})
+        messages.append({"user": prompt, "bot": saved_url})
         await api.set_dialog_messages(user_id, messages, dialog_id=ensure.dialog_id)
     except Exception:
         logger.warning("Failed to save image prompt for /retry (user %d)", user_id, exc_info=True)

@@ -90,6 +90,7 @@ class UserFullResponse(msgspec.Struct, frozen=True):
 
 class ImageGenerateResponse(msgspec.Struct, frozen=True):
     images_b64: list[str]
+    imgbb_urls: list[str] = ()
 
 
 class TranscribeResponse(msgspec.Struct, frozen=True):
@@ -258,14 +259,16 @@ async def generate_images(
     size: str = "1024x1024",
     quality: str = "medium",
     user_id: int | None = None,
-) -> list[BytesIO]:
+) -> tuple[list[BytesIO], list[str]]:
+    """Returns (webp_buffers, imgbb_urls). imgbb_urls may contain empty strings if upload failed."""
     payload: dict = {"prompt": prompt, "n_images": n_images, "size": size, "quality": quality}
     if user_id is not None:
         payload["user_id"] = user_id
     r = await _request("POST", "/media/images/generate", json=payload)
     r.raise_for_status()
     resp = _decode(r.content, ImageGenerateResponse)
-    return [_b64_to_buf(b64, "image.png") for b64 in resp.images_b64]
+    buffers = [_b64_to_buf(b64, "image.png") for b64 in resp.images_b64]
+    return buffers, list(resp.imgbb_urls)
 
 
 async def transcribe_audio(audio_buf: BytesIO, user_id: int, lang: str = "ru") -> tuple[str, float]:

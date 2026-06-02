@@ -11,6 +11,7 @@ class ImageGenerateRequest(BaseModel):
 
 class ImageGenerateResponse(BaseModel):
     images_b64: list[str]
+    imgbb_urls: list[str] = []
 
 
 class TranscribeResponse(BaseModel):

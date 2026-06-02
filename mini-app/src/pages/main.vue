@@ -798,6 +798,10 @@ function onPaste(e: ClipboardEvent) {
 }
 
 function scrollToBottom() {
+  // Hide the scroll button immediately — prevents a brief flash (and square rendering
+  // artifact on Android) while the programmatic scroll is in-flight.
+  showScrollBtn.value = false;
+  isNearBottom.value = true;
   // requestAnimationFrame fires after layout is computed — more reliable than nextTick for scroll.
   requestAnimationFrame(() => {
     const el = chatContent.value;
@@ -1711,6 +1715,10 @@ onMounted(async () => {
 onActivated(async () => {
   // Each time the user opens the mini-app, start fresh: show last 20 messages
   // so the "Load more" button is available again (as if a new session).
+  // Reset scroll button immediately (sync) so it never shows as a square on Android
+  // due to compositing-layer border-radius delay.
+  showScrollBtn.value = false;
+  isNearBottom.value = true;
   hasLoadedOlderPages.value = false;
   store.chatHistoryPrefetchOk = false;
   await loadChatHistory(true);
@@ -1896,6 +1904,9 @@ onBeforeUnmount(() => {
   z-index: 50;
   padding: 0;
   transition: background-color 0.15s ease;
+  /* Force own GPU compositing layer so border-radius is applied from the very
+     first frame — prevents the brief "square" rendering artifact on Android. */
+  transform: translateZ(0);
 }
 
 /* Dark theme: lighten slightly on hover */
