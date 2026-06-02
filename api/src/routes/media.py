@@ -12,6 +12,7 @@ from db.db import get_session
 from db.repositories import users as user_repo
 from schemas.media import ImageGenerateRequest, ImageGenerateResponse, TranscribeResponse
 from services.image import generate_images
+from services.image_service import upload_to_imgbb
 from services.voice import transcribe_audio
 
 logger = logging.getLogger(__name__)
@@ -47,13 +48,25 @@ async def images_generate(
         buf.seek(0)
         images_b64.append(base64.b64encode(buf.read()).decode())
 
+    # Upload each PNG to ImgBB so bot-generated images appear in the gallery.
+    imgbb_urls: list[str] = []
+    if settings.imgbb_api_key:
+        for raw_b64 in images_b64:
+            try:
+                url = await upload_to_imgbb(raw_b64, settings.imgbb_api_key)
+                logger.info("Bot image uploaded to ImgBB: %s", url)
+            except Exception:
+                logger.warning("ImgBB upload failed for bot image")
+                url = ""
+            imgbb_urls.append(url)
+
     if req.user_id is not None:
         try:
             await user_repo.increment_n_generated_images(session, req.user_id, len(images_b64))
         except Exception:
             logger.warning("Could not update image counter for user %d", req.user_id)
 
-    return ImageGenerateResponse(images_b64=images_b64)
+    return ImageGenerateResponse(images_b64=images_b64, imgbb_urls=imgbb_urls)
 
 
 @router.post("/audio/transcribe", response_model=TranscribeResponse)
