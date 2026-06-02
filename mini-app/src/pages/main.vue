@@ -604,6 +604,7 @@ const initialLoadDone = ref(false);
 /** True while a bootstrapDialog fetch is in-flight — prevents concurrent duplicate calls. */
 let isLoadingHistory = false;
 let copyTimeout: ReturnType<typeof setTimeout> | null = null;
+let suppressScrollEvents = false;
 
 /** True when the chat scroll is near the bottom (< 150px). Auto-scroll is only done here. */
 const isNearBottom = ref(true);
@@ -798,15 +799,20 @@ function onPaste(e: ClipboardEvent) {
 }
 
 function scrollToBottom() {
-  // Hide the scroll button immediately — prevents a brief flash (and square rendering
-  // artifact on Android) while the programmatic scroll is in-flight.
+  // Hide the scroll button immediately — this is a programmatic autoscroll.
   showScrollBtn.value = false;
   isNearBottom.value = true;
+  suppressScrollEvents = true;
   // requestAnimationFrame fires after layout is computed — more reliable than nextTick for scroll.
   requestAnimationFrame(() => {
     const el = chatContent.value;
-    if (!el) return;
+    if (!el) {
+      suppressScrollEvents = false;
+      return;
+    }
     el.scrollTop = el.scrollHeight;
+    suppressScrollEvents = false;
+    onChatScroll();
   });
 }
 
@@ -825,6 +831,7 @@ function scrollToBottomIfAtBottom() {
 
 /** Chat scroll event — tracks isNearBottom + triggers lazy-load when near top. */
 function onChatScroll() {
+  if (suppressScrollEvents) return;
   const el = chatContent.value;
   if (!el) return;
   const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
@@ -927,7 +934,15 @@ async function loadChatHistory(forceScroll = false) {
       // The ResizeObserver fix ensures no 10px jump from footer height changes.
       await nextTick();
       const el = chatContent.value;
-      if (el) el.scrollTop = el.scrollHeight;
+      if (el) {
+        showScrollBtn.value = false;
+        suppressScrollEvents = true;
+        requestAnimationFrame(() => {
+          el.scrollTop = el.scrollHeight;
+          suppressScrollEvents = false;
+          onChatScroll();
+        });
+      }
     }
   } catch (e: unknown) {
     // AbortError is normal (tab navigation/close) — don't log it as an error.
@@ -1721,7 +1736,10 @@ onActivated(() => {
   nextTick(() => {
     const el = chatContent.value;
     if (el) {
+      suppressScrollEvents = true;
+      showScrollBtn.value = false;
       el.scrollTop = savedScrollTop;
+      suppressScrollEvents = false;
       // Re-evaluate scroll button state based on the restored position,
       // avoiding any momentary flashes.
       onChatScroll();
