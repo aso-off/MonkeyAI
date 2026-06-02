@@ -53,7 +53,7 @@ jobs:
           load: true
           tags: monkey-bot:ci
 
-  build-push-and-deploy:
+  cd:
     needs: ci
     runs-on: ubuntu-latest
 
