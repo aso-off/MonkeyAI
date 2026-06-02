@@ -830,8 +830,7 @@ function scrollToBottomSmooth() {
   // Keep button hidden during smooth scroll, then recalculate state when done
   setTimeout(() => {
     suppressScrollEvents = false;
-    onChatScroll();
-  }, 500);
+  }, 600);
 }
 
 /** Scroll to bottom only when the user is already near the bottom. */
