@@ -201,6 +201,7 @@ services:
       - monkey_network
 
   bot:
+    image: ${DOCKERHUB_USERNAME}/monkey-bot:${BACKEND_IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: bot/Dockerfile
@@ -238,6 +239,7 @@ services:
       - monkey_network
 
   api:
+    image: ${DOCKERHUB_USERNAME}/monkey-api:${BACKEND_IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: api/Dockerfile
@@ -278,27 +280,6 @@ services:
         max-file: "3"
     networks:
       - monkey_network
-
-  # mini-app: deploy to GitHub Pages (https://aso-off.github.io/mini-app/)
-  # mini-app:
-  #   build:
-  #     context: .
-  #     dockerfile: mini-app/Dockerfile
-  #     args:
-  #       - VITE_API_URL=${VITE_API_URL:-https://api.si881.ru}
-  #   container_name: monkey_mini_app
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/"]
-  #     interval: 30s
-  #     timeout: 5s
-  #     retries: 6
-  #     start_period: 10s
-  #   mem_limit: 256m
-  #   mem_reservation: 128m
-  #   cpus: "0.25"
-  #   networks:
-  #     - monkey_network
 
   cloudflared:
     image: cloudflare/cloudflared:latest

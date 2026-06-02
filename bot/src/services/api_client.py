@@ -1,6 +1,5 @@
 """\nThin HTTP client — bot talks to the API service.\nAll methods are async and raise on non-2xx responses.\n"""
 import base64
-import json
 import logging
 import os
 import time

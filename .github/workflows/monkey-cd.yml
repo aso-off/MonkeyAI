@@ -1,0 +1,114 @@
+name: Monkey Backend CD
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "mini-app/**"
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra api --extra bot --group dev --no-install-project
+
+      - name: Ruff lint
+        run: .venv/bin/ruff check api bot
+
+      - name: Health smoke tests
+        run: .venv/bin/python -m pytest -q api/tests/test_api_health.py bot/tests/test_bot_health.py
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify API image builds
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: api/Dockerfile
+          push: false
+          load: true
+          tags: monkey-api:ci
+
+      - name: Verify BOT image builds
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: bot/Dockerfile
+          push: false
+          load: true
+          tags: monkey-bot:ci
+
+  build-push-and-deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: api/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-api:${{ github.sha }}
+
+      - name: Build and push BOT image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: bot/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-bot:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-bot:${{ github.sha }}
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SSH_HOSTNAME }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          timeout: ${{ secrets.SSH_TIMEOUT }}
+          envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN
+          script: |
+            set -e
+            cd "${{ secrets.SSH_PROJECT_PATH }}"
+
+            git pull origin main
+
+            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            sleep 10
+            docker compose exec -T api python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health'); print('OK API')"
+            docker compose exec -T bot python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health'); print('OK BOT')"
