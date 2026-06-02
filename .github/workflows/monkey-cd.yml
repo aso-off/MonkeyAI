@@ -80,9 +80,26 @@ jobs:
           envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN
           script: |
             set -e
-            cd "${{ secrets.SSH_PROJECT_PATH }}"
+            PROJECT="${{ secrets.SSH_PROJECT_PATH }}"
+            REPO="git@github.com:${{ github.repository }}.git"
+            cd "$PROJECT"
 
-            git pull origin main
+            # .env is in .gitignore — git never touches it; no backup needed.
+
+            # Sync compose + configs + deployment (api/bot code comes from Docker Hub).
+            if [ ! -d "$PROJECT/.git" ]; then
+              echo "First deploy: git sparse-checkout in $PROJECT"
+              git init
+              git remote add origin "$REPO" 2>/dev/null || git remote set-url origin "$REPO"
+              git fetch --depth=1 origin main
+              git sparse-checkout init --cone
+              git sparse-checkout set docker-compose.yml configs deployment
+              git checkout -f main
+            else
+              echo "Updating docker-compose, configs, deployment from git..."
+              git fetch origin main
+              git reset --hard origin/main
+            fi
 
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
