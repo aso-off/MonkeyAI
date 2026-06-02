@@ -827,9 +827,10 @@ function scrollToBottomSmooth() {
     return;
   }
   el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  // Keep button hidden until smooth scroll truly finishes (~500ms typical)
+  // Keep button hidden during smooth scroll, then recalculate state when done
   setTimeout(() => {
     suppressScrollEvents = false;
+    onChatScroll();
   }, 500);
 }
 
@@ -950,6 +951,8 @@ async function loadChatHistory(forceScroll = false) {
         requestAnimationFrame(() => {
           el.scrollTop = el.scrollHeight;
           suppressScrollEvents = false;
+          // Recalculate button state after programmatic scroll
+          setTimeout(() => onChatScroll(), 0);
         });
       }
     }
