@@ -265,12 +265,6 @@
           <div
             v-for="(msg, index) in chatMessages"
             :key="index"
-            :data-user-msg-idx="msg.type === 'user' ? String(index) : undefined"
-            :data-bot-for-user="
-              msg.type === 'bot' && index > 0 && chatMessages[index - 1]?.type === 'user'
-                ? String(index - 1)
-                : undefined
-            "
             :class="[
               'message',
               msg.type === 'user' ? 'user-message' : 'bot-message',
@@ -1744,128 +1738,18 @@ onMounted(async () => {
   // scrollToBottom is now handled inside loadChatHistory based on position.
 });
 
-let savedScrollTop = 0;
-let savedScrollMode: "top" | "bottom" | "block" | "raw" = "raw";
-let savedUserBlockIndex = -1;
-let savedBlockProgress = 0;
 let wasOnChat = false;
 
-function restoreChatScrollAfterActivation() {
-  const el = chatContent.value;
-  if (!el) return;
-
-  suppressScrollEvents = true;
-  showScrollBtn.value = false;
-  const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
-
-  if (savedScrollMode === "top") {
-    el.scrollTop = 0;
-  } else if (savedScrollMode === "bottom") {
-    el.scrollTop = maxScrollTop;
-  } else if (savedScrollMode === "block") {
-    const userNode = el.querySelector<HTMLElement>(
-      `.message.user-message[data-user-msg-idx="${savedUserBlockIndex}"]`,
-    );
-    const botNode = el.querySelector<HTMLElement>(
-      `.message.bot-message[data-bot-for-user="${savedUserBlockIndex}"]`,
-    );
-
-    if (userNode) {
-      const blockTop = userNode.offsetTop;
-      const blockBottom = botNode
-        ? botNode.offsetTop + botNode.offsetHeight
-        : userNode.offsetTop + userNode.offsetHeight;
-      const blockHeight = Math.max(1, blockBottom - blockTop);
-      const target = blockTop + savedBlockProgress * blockHeight;
-      el.scrollTop = Math.max(0, Math.min(target, maxScrollTop));
-    } else {
-      el.scrollTop = Math.max(0, Math.min(savedScrollTop, maxScrollTop));
-    }
-  } else {
-    el.scrollTop = Math.max(0, Math.min(savedScrollTop, maxScrollTop));
-  }
-  suppressScrollEvents = false;
-  onChatScroll();
-}
-
 onActivated(() => {
-  // Restore scroll position for the inner container when returning from Settings.
-  // We do NOT reload chat history here because KeepAlive perfectly preserves the state.
-  // This prevents the visual reload glitch (flash of old->new messages).
-  if (!wasOnChat) return; // First time opening chat — use default scroll
+  // On return from Settings, always jump to latest messages.
+  if (!wasOnChat) return;
   nextTick(() => {
-    restoreChatScrollAfterActivation();
+    scrollToBottom();
   });
 });
 
 onDeactivated(() => {
   wasOnChat = true;
-  const el = chatContent.value;
-  if (el) {
-    savedScrollTop = el.scrollTop;
-    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-
-    if (el.scrollTop <= 2) {
-      savedScrollMode = "top";
-    } else if (distFromBottom <= 2) {
-      savedScrollMode = "bottom";
-    } else {
-      const userNodes = Array.from(
-        el.querySelectorAll<HTMLElement>(".message.user-message[data-user-msg-idx]"),
-      ).map((node) => ({
-        idx: Number(node.dataset.userMsgIdx ?? "-1"),
-        top: node.offsetTop,
-        height: node.offsetHeight,
-      }));
-      const botNodes = Array.from(
-        el.querySelectorAll<HTMLElement>(".message.bot-message[data-bot-for-user]"),
-      ).map((node) => ({
-        userIdx: Number(node.dataset.botForUser ?? "-1"),
-        top: node.offsetTop,
-        height: node.offsetHeight,
-      }));
-
-      if (userNodes.length > 0) {
-        type UserBotBlock = { userIdx: number; top: number; bottom: number };
-        const blocks: UserBotBlock[] = userNodes.map((user) => {
-          const bot = botNodes.find((b) => b.userIdx === user.idx);
-          const bottom = bot ? bot.top + bot.height : user.top + user.height;
-          return {
-            userIdx: user.idx,
-            top: user.top,
-            bottom: Math.max(user.top + 1, bottom),
-          };
-        });
-
-        let anchorBlock: UserBotBlock | null = null;
-        for (const block of blocks) {
-          if (el.scrollTop >= block.top && el.scrollTop < block.bottom) {
-            anchorBlock = block;
-            break;
-          }
-        }
-        if (!anchorBlock) {
-          // If exactly on boundary or below all blocks, use the nearest previous block.
-          anchorBlock = blocks[0];
-          for (const block of blocks) {
-            if (block.top <= el.scrollTop) anchorBlock = block;
-          }
-        }
-
-        if (anchorBlock) {
-          savedScrollMode = "block";
-          savedUserBlockIndex = anchorBlock.userIdx;
-          savedBlockProgress =
-            (el.scrollTop - anchorBlock.top) /
-            Math.max(1, anchorBlock.bottom - anchorBlock.top);
-        } else {
-          savedScrollMode = "raw";
-        }
-      } else {
-        savedScrollMode = "raw";
-      }
-    }
-  }
 });
 
 onBeforeUnmount(() => {
