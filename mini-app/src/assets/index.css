@@ -1167,10 +1167,10 @@ body.dark .gpt-model-select-item.active {
 }
 
 .chat-content {
-  padding: 53px 16px calc(var(--footer-height, 80px) + 16px);
+  padding: 53px 16px 0;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   height: calc(100% - 15px);
   display: flex;
   flex-direction: column;

@@ -27,7 +27,7 @@
             </div>
             <div class="sidebar__item-text">{{ $t('new_chat') }}</div>
           </button>
-          <router-link to="/settings" class="sidebar__item">
+          <button class="sidebar__item" @click="router.push('/settings')">
             <div class="sidebar__item-icon">
               <!-- Инлайн SVG для settings -->
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -36,7 +36,7 @@
               </svg>
             </div>
             <div class="sidebar__item-text">{{ $t('settings') }}</div>
-          </router-link>
+          </button>
         </div>
       </div>
       <div class="sidebar__close-wrapper">
@@ -235,6 +235,8 @@
             </div>
           </div>
         </template>
+        <!-- Spacer: replaces padding-bottom — fixes iOS Safari not including padding in scrollHeight -->
+        <div class="chat-end-spacer"></div>
       </div>
     </div>
 
@@ -291,6 +293,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, onActivated, onDeactivated, nextTick, watch, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { retrieveLaunchParams } from '@tma.js/sdk-vue';
 import { api, wsClient, BASE_URL } from '@/services/api';
 import { useUserStore, dialogMessagesToChat, type ChatMessage } from '@/store/user';
@@ -316,6 +319,7 @@ interface ModelOption {
 }
 
 const { t } = useI18n();
+const router = useRouter();
 const store = useUserStore();
 
 const copiedIndex = ref<number | null>(null);
@@ -647,6 +651,8 @@ async function loadChatHistory(forceScroll = false) {
 async function clearCurrentChat() {
   // Clear UI immediately — don't wait for API round-trip
   chatMessages.value = [];
+  showScrollBtn.value = false;
+  isNearBottom.value = true;
   store.clearChatHistory();
   cursorIdx.value = 0;
   hasLoadedOlderPages.value = false;
@@ -856,7 +862,7 @@ async function saveBlob(
   /** Plain text — enables share({text}) fallback for TXT */
   plainText?: string,
 ): Promise<void> {
-  // ── 1. Save As dialog (Chromium desktop, tdesktop) ─────────────────────────────
+  // ── 1. Save As dialog (Chromium desktop, tdesktop)
   const filePicker = (window as Window & { showSaveFilePicker?: ShowSaveFilePicker }).showSaveFilePicker;
   if (typeof filePicker === 'function') {
     try {
@@ -895,7 +901,7 @@ async function saveBlob(
     }
   }
 
-  // ── 4. a.download — last resort ─────────────────────────────────────────────
+  // ── 4. a.download — last resort
   // Works in tdesktop (shows Downloads panel), some Android WebViews.
   // Blocked in sandboxed iframes (Telegram Web in browser) — acceptable
   // since those platforms should be handled by share API above.
@@ -1079,7 +1085,7 @@ onMounted(async () => {
   // Proactively open WebSocket so the first message feels instant.
   wsClient.connect().catch(() => {});
 
-  // ── Multi-device sync: type handlers ──────────────────────────────────────
+  // ── Multi-device sync: type handlers
   // These fire when a broadcast arrives from ANOTHER device (no matching id-handler).
 
   // Another device sent a user message → add it + an empty bot slot.
@@ -1296,7 +1302,6 @@ onMounted(async () => {
       loadChatHistory();
     }
   });
-  // ──────────────────────────────────────────────────────────────────────────
 
   if (store.chatHistoryPrefetchOk) {
     await loadChatHistory(true);
@@ -1348,7 +1353,7 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-/* ── Load more button ──────────────────────────────────────────────────── */
+/* Load more button */
 .load-more-row {
   display: flex;
   justify-content: center;
@@ -1398,7 +1403,6 @@ onBeforeUnmount(() => {
 @keyframes lm-spin {
   to { transform: rotate(360deg); }
 }
-/* ─────────────────────────────────────────────────────────────────────────── */
 
 /* Skeleton shimmer shown while the WebP image is loading */
 .image-skeleton {
@@ -1510,6 +1514,13 @@ body:not(.dark) .scroll-to-bottom-btn:hover {
   opacity: 0;
   transform: translateY(6px);
 }
-/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* Bottom spacer — replaces padding-bottom on .chat-content.
+   Fixes iOS Safari flex+overflow not scrolling into CSS padding area. */
+.chat-end-spacer {
+  flex-shrink: 0;
+  min-height: calc(var(--footer-height, 80px) + 16px);
+  pointer-events: none;
+}
 
 </style>
