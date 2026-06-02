@@ -1757,6 +1757,10 @@ let wasOnChat = false;
 onActivated(() => {
   // On return from Settings, always jump to latest messages.
   if (!wasOnChat) return;
+  // Apply bottom state immediately to avoid one-frame flash of old scroll/button state.
+  showScrollBtn.value = false;
+  isNearBottom.value = true;
+  jumpToBottomSilent();
   nextTick(() => {
     jumpToBottomSilent();
   });
