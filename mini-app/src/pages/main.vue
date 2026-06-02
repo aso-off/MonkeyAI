@@ -1739,14 +1739,38 @@ onMounted(async () => {
 });
 
 let savedScrollTop = 0;
-/**
- * Distance from the bottom of the scroll container:
- *   scrollHeight - scrollTop - clientHeight
- * Preserves the visual viewport position even if container height changes
- * during navigation (e.g. when opening Settings pages).
- */
-let savedDistFromBottom = 0;
+let savedScrollMode: "top" | "bottom" | "anchor" | "raw" = "raw";
+let savedAnchorMessageIdx = -1;
+let savedAnchorOffset = 0;
 let wasOnChat = false;
+
+function restoreChatScrollAfterActivation() {
+  const el = chatContent.value;
+  if (!el) return;
+
+  suppressScrollEvents = true;
+  showScrollBtn.value = false;
+  const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
+
+  if (savedScrollMode === "top") {
+    el.scrollTop = 0;
+  } else if (savedScrollMode === "bottom") {
+    el.scrollTop = maxScrollTop;
+  } else if (savedScrollMode === "anchor") {
+    const messages = el.querySelectorAll<HTMLElement>(".message");
+    const anchor = messages[savedAnchorMessageIdx];
+    if (anchor) {
+      const target = anchor.offsetTop + savedAnchorOffset;
+      el.scrollTop = Math.max(0, Math.min(target, maxScrollTop));
+    } else {
+      el.scrollTop = Math.max(0, Math.min(savedScrollTop, maxScrollTop));
+    }
+  } else {
+    el.scrollTop = Math.max(0, Math.min(savedScrollTop, maxScrollTop));
+  }
+  suppressScrollEvents = false;
+  onChatScroll();
+}
 
 onActivated(() => {
   // Restore scroll position for the inner container when returning from Settings.
@@ -1754,26 +1778,7 @@ onActivated(() => {
   // This prevents the visual reload glitch (flash of old->new messages).
   if (!wasOnChat) return; // First time opening chat — use default scroll
   nextTick(() => {
-    const el = chatContent.value;
-    if (el) {
-      suppressScrollEvents = true;
-      showScrollBtn.value = false;
-      // Prefer restoring by "distance from bottom" to handle layout/height changes,
-      // but fall back to savedScrollTop if the saved distance is unreliable (0).
-      const canUseDist =
-        savedDistFromBottom > 0 && el.scrollHeight > 0 && el.clientHeight > 0;
-      if (canUseDist) {
-        const nextScrollTop =
-          el.scrollHeight - el.clientHeight - savedDistFromBottom;
-        el.scrollTop = Math.max(0, nextScrollTop);
-      } else {
-        el.scrollTop = Math.max(0, savedScrollTop);
-      }
-      suppressScrollEvents = false;
-      // Re-evaluate scroll button state based on the restored position,
-      // avoiding any momentary flashes.
-      onChatScroll();
-    }
+    restoreChatScrollAfterActivation();
   });
 });
 
@@ -1782,13 +1787,29 @@ onDeactivated(() => {
   const el = chatContent.value;
   if (el) {
     savedScrollTop = el.scrollTop;
-    // During route transitions KeepAlive may collapse the element (0 heights).
-    // In that case do NOT overwrite the previously saved distance with 0.
-    if (el.scrollHeight > 0 && el.clientHeight > 0) {
-      savedDistFromBottom = Math.max(
-        0,
-        el.scrollHeight - el.scrollTop - el.clientHeight,
-      );
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    if (el.scrollTop <= 2) {
+      savedScrollMode = "top";
+    } else if (distFromBottom <= 2) {
+      savedScrollMode = "bottom";
+    } else {
+      const messages = el.querySelectorAll<HTMLElement>(".message");
+      let anchorIdx = -1;
+      for (let i = 0; i < messages.length; i += 1) {
+        const msg = messages[i];
+        if (msg.offsetTop + msg.offsetHeight > el.scrollTop) {
+          anchorIdx = i;
+          break;
+        }
+      }
+      if (anchorIdx >= 0) {
+        savedScrollMode = "anchor";
+        savedAnchorMessageIdx = anchorIdx;
+        savedAnchorOffset = el.scrollTop - messages[anchorIdx].offsetTop;
+      } else {
+        savedScrollMode = "raw";
+      }
     }
   }
 });
