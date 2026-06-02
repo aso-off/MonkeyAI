@@ -1758,10 +1758,17 @@ onActivated(() => {
     if (el) {
       suppressScrollEvents = true;
       showScrollBtn.value = false;
-      // Prefer restoring by "distance from bottom" to handle layout/height changes.
-      const nextScrollTop =
-        el.scrollHeight - el.clientHeight - savedDistFromBottom;
-      el.scrollTop = Math.max(0, nextScrollTop);
+      // Prefer restoring by "distance from bottom" to handle layout/height changes,
+      // but fall back to savedScrollTop if the saved distance is unreliable (0).
+      const canUseDist =
+        savedDistFromBottom > 0 && el.scrollHeight > 0 && el.clientHeight > 0;
+      if (canUseDist) {
+        const nextScrollTop =
+          el.scrollHeight - el.clientHeight - savedDistFromBottom;
+        el.scrollTop = Math.max(0, nextScrollTop);
+      } else {
+        el.scrollTop = Math.max(0, savedScrollTop);
+      }
       suppressScrollEvents = false;
       // Re-evaluate scroll button state based on the restored position,
       // avoiding any momentary flashes.
@@ -1775,7 +1782,14 @@ onDeactivated(() => {
   const el = chatContent.value;
   if (el) {
     savedScrollTop = el.scrollTop;
-    savedDistFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    // During route transitions KeepAlive may collapse the element (0 heights).
+    // In that case do NOT overwrite the previously saved distance with 0.
+    if (el.scrollHeight > 0 && el.clientHeight > 0) {
+      savedDistFromBottom = Math.max(
+        0,
+        el.scrollHeight - el.scrollTop - el.clientHeight,
+      );
+    }
   }
 });
 
