@@ -816,6 +816,20 @@ function scrollToBottom() {
   });
 }
 
+/**
+ * Immediate non-animated jump to bottom used after returning from Settings.
+ * Avoids scroll-button flash and visual reflow jitter.
+ */
+function jumpToBottomSilent() {
+  const el = chatContent.value;
+  if (!el) return;
+  suppressScrollEvents = true;
+  el.scrollTop = el.scrollHeight;
+  isNearBottom.value = true;
+  showScrollBtn.value = false;
+  suppressScrollEvents = false;
+}
+
 /** Smooth scroll to bottom — used by the scroll-to-bottom button. */
 function scrollToBottomSmooth() {
   showScrollBtn.value = false;
@@ -1744,7 +1758,7 @@ onActivated(() => {
   // On return from Settings, always jump to latest messages.
   if (!wasOnChat) return;
   nextTick(() => {
-    scrollToBottom();
+    jumpToBottomSilent();
   });
 });
 
