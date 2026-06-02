@@ -463,7 +463,7 @@
     <!-- Footer с полем ввода -->
     <Transition name="scroll-btn-fade">
       <button
-        v-if="showScrollBtn"
+        v-if="showScrollBtn && !isReturningFromSettings"
         class="scroll-to-bottom-btn"
         @click="scrollToBottomSmooth"
         aria-label="Scroll to bottom"
@@ -610,6 +610,8 @@ let suppressScrollEvents = false;
 const isNearBottom = ref(true);
 /** True when user scrolled more than 100px from bottom — shows the scroll-to-bottom button. */
 const showScrollBtn = ref(false);
+/** True during first frame after returning from Settings to prevent stale button flash. */
+const isReturningFromSettings = ref(false);
 /** True for platforms that support file export (iOS, macOS, tdesktop). */
 const canExport = computed(() => {
   try {
@@ -1757,17 +1759,25 @@ let wasOnChat = false;
 onActivated(() => {
   // On return from Settings, always jump to latest messages.
   if (!wasOnChat) return;
+  isReturningFromSettings.value = true;
   // Apply bottom state immediately to avoid one-frame flash of old scroll/button state.
   showScrollBtn.value = false;
   isNearBottom.value = true;
   jumpToBottomSilent();
   nextTick(() => {
     jumpToBottomSilent();
+    // Release the guard only after DOM/layout settles on the restored bottom state.
+    requestAnimationFrame(() => {
+      isReturningFromSettings.value = false;
+    });
   });
 });
 
 onDeactivated(() => {
   wasOnChat = true;
+  // Hide cached scroll button before KeepAlive stores the inactive DOM snapshot.
+  showScrollBtn.value = false;
+  isReturningFromSettings.value = true;
 });
 
 onBeforeUnmount(() => {
