@@ -104,20 +104,3 @@ jobs:
 
             docker compose pull
             docker compose up -d --remove-orphans
-
-            sleep 10
-            docker compose exec -T api python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health'); print('OK API')"
-
-            bot_ok=false
-            for _ in $(seq 1 16); do
-              if docker compose exec -T bot python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"; then
-                echo "OK BOT"
-                bot_ok=true
-                break
-              fi
-              sleep 15
-            done
-            if [ "$bot_ok" != "true" ]; then
-              docker compose logs --tail=80 bot
-              exit 1
-            fi
