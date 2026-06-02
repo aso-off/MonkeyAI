@@ -819,9 +819,18 @@ function scrollToBottom() {
 /** Smooth scroll to bottom — used by the scroll-to-bottom button. */
 function scrollToBottomSmooth() {
   showScrollBtn.value = false;
+  isNearBottom.value = true;
+  suppressScrollEvents = true;
   const el = chatContent.value;
-  if (!el) return;
+  if (!el) {
+    suppressScrollEvents = false;
+    return;
+  }
   el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  // Keep button hidden until smooth scroll truly finishes (~500ms typical)
+  setTimeout(() => {
+    suppressScrollEvents = false;
+  }, 500);
 }
 
 /** Scroll to bottom only when the user is already near the bottom. */
@@ -936,11 +945,11 @@ async function loadChatHistory(forceScroll = false) {
       const el = chatContent.value;
       if (el) {
         showScrollBtn.value = false;
+        isNearBottom.value = true;
         suppressScrollEvents = true;
         requestAnimationFrame(() => {
           el.scrollTop = el.scrollHeight;
           suppressScrollEvents = false;
-          onChatScroll();
         });
       }
     }
@@ -1728,11 +1737,13 @@ onMounted(async () => {
 });
 
 let savedScrollTop = 0;
+let wasOnChat = false;
 
 onActivated(() => {
   // Restore scroll position for the inner container when returning from Settings.
   // We do NOT reload chat history here because KeepAlive perfectly preserves the state.
   // This prevents the visual reload glitch (flash of old->new messages).
+  if (!wasOnChat) return; // First time opening chat — use default scroll
   nextTick(() => {
     const el = chatContent.value;
     if (el) {
@@ -1748,6 +1759,7 @@ onActivated(() => {
 });
 
 onDeactivated(() => {
+  wasOnChat = true;
   const el = chatContent.value;
   if (el) {
     savedScrollTop = el.scrollTop;
