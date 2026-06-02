@@ -265,6 +265,7 @@
           <div
             v-for="(msg, index) in chatMessages"
             :key="index"
+            :data-user-msg-idx="msg.type === 'user' ? String(index) : undefined"
             :class="[
               'message',
               msg.type === 'user' ? 'user-message' : 'bot-message',
@@ -1739,9 +1740,10 @@ onMounted(async () => {
 });
 
 let savedScrollTop = 0;
-let savedScrollMode: "top" | "bottom" | "anchor" | "raw" = "raw";
-let savedAnchorMessageIdx = -1;
-let savedAnchorOffset = 0;
+let savedScrollMode: "top" | "bottom" | "between" | "raw" = "raw";
+let savedPrevUserMsgIndex = -1;
+let savedNextUserMsgIndex = -1;
+let savedBetweenProgress = 0;
 let wasOnChat = false;
 
 function restoreChatScrollAfterActivation() {
@@ -1756,12 +1758,24 @@ function restoreChatScrollAfterActivation() {
     el.scrollTop = 0;
   } else if (savedScrollMode === "bottom") {
     el.scrollTop = maxScrollTop;
-  } else if (savedScrollMode === "anchor") {
-    const messages = el.querySelectorAll<HTMLElement>(".message");
-    const anchor = messages[savedAnchorMessageIdx];
-    if (anchor) {
-      const target = anchor.offsetTop + savedAnchorOffset;
+  } else if (savedScrollMode === "between") {
+    const users = Array.from(
+      el.querySelectorAll<HTMLElement>(".message.user-message[data-user-msg-idx]"),
+    ).map((node) => ({
+      idx: Number(node.dataset.userMsgIdx ?? "-1"),
+      top: node.offsetTop,
+    }));
+
+    const prev = users.find((u) => u.idx === savedPrevUserMsgIndex);
+    const next = users.find((u) => u.idx === savedNextUserMsgIndex);
+    if (prev && next && next.top > prev.top) {
+      const target =
+        prev.top + savedBetweenProgress * (next.top - prev.top);
       el.scrollTop = Math.max(0, Math.min(target, maxScrollTop));
+    } else if (prev) {
+      el.scrollTop = Math.max(0, Math.min(prev.top, maxScrollTop));
+    } else if (next) {
+      el.scrollTop = Math.max(0, Math.min(next.top, maxScrollTop));
     } else {
       el.scrollTop = Math.max(0, Math.min(savedScrollTop, maxScrollTop));
     }
@@ -1794,19 +1808,33 @@ onDeactivated(() => {
     } else if (distFromBottom <= 2) {
       savedScrollMode = "bottom";
     } else {
-      const messages = el.querySelectorAll<HTMLElement>(".message");
-      let anchorIdx = -1;
-      for (let i = 0; i < messages.length; i += 1) {
-        const msg = messages[i];
-        if (msg.offsetTop + msg.offsetHeight > el.scrollTop) {
-          anchorIdx = i;
-          break;
+      const users = Array.from(
+        el.querySelectorAll<HTMLElement>(".message.user-message[data-user-msg-idx]"),
+      ).map((node) => ({
+        idx: Number(node.dataset.userMsgIdx ?? "-1"),
+        top: node.offsetTop,
+      }));
+
+      if (users.length >= 2) {
+        let prev = users[0];
+        let next: { idx: number; top: number } | null = null;
+        for (const u of users) {
+          if (u.top <= el.scrollTop) prev = u;
+          if (u.top > el.scrollTop) {
+            next = u;
+            break;
+          }
         }
-      }
-      if (anchorIdx >= 0) {
-        savedScrollMode = "anchor";
-        savedAnchorMessageIdx = anchorIdx;
-        savedAnchorOffset = el.scrollTop - messages[anchorIdx].offsetTop;
+
+        if (next && next.top > prev.top) {
+          savedScrollMode = "between";
+          savedPrevUserMsgIndex = prev.idx;
+          savedNextUserMsgIndex = next.idx;
+          savedBetweenProgress =
+            (el.scrollTop - prev.top) / (next.top - prev.top);
+        } else {
+          savedScrollMode = "raw";
+        }
       } else {
         savedScrollMode = "raw";
       }
