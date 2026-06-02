@@ -5,7 +5,7 @@ from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
-from schemas.dialog import DialogMessagesSet, MessageAppend
+from schemas.dialog import DialogMessagesSet
 
 router = APIRouter(prefix="/dialogs", tags=["dialogs"])
 

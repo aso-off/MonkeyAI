@@ -7,7 +7,6 @@ from aiogram.filters import Command, StateFilter
 from aiogram.types import FSInputFile, Message, CallbackQuery
 
 from src.core.config import settings
-from src.services import api_client as api
 from src.utils.localization import t
 
 _VIDEO_PATH = Path("/app/static/help_group_chat.mp4")

@@ -6,7 +6,7 @@ without having a direct Redis connection, using the API service as a gateway.
 import logging
 
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from core.config import settings

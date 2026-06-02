@@ -5,7 +5,6 @@ from aiogram.filters import StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.core.config import settings
-from src.services import api_client as api
 from src.utils.admin import require_admin
 from src.utils.localization import t
 

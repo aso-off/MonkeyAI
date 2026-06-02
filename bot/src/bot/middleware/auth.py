@@ -6,6 +6,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Update, User
 
 from src.core import auth_state
+from src.core.config import settings
 from src.services import api_client as api
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,6 @@ class AuthMiddleware(BaseMiddleware):
         if is_admin:
             return await handler(event, data)
 
-        from src.core.config import settings
         if not settings.whitelist_mode:
             return await handler(event, data)
 
