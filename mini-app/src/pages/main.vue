@@ -953,14 +953,10 @@ async function loadChatHistory(forceScroll = false) {
     const { dialog_id, messages, next_before_index } =
       await api.bootstrapDialog();
     store.setDialogId(dialog_id);
-    // Re-check: a stream may have started while bootstrapDialog was in-flight.
     if (streamingBotIdx.value === -1) {
       applyChatHistory(dialogMessagesToChat(messages ?? []));
       cursorIdx.value = next_before_index;
       hasMoreToLoad.value = next_before_index > 0;
-      // Scroll to bottom only if the user hasn't already scrolled away while the API was loading.
-      // This prevents the UI from jumping the user back to bottom when they scrolled up
-      // during the initial bootstrapDialog fetch (which can take 1-3 seconds).
       await nextTick();
       const el = chatContent.value;
       if (el) {
