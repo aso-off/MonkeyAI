@@ -1556,27 +1556,41 @@ function handleTipTouch(e: TouchEvent) {
 }
 
 /**
- * Force a one-frame repaint of the chat area after the Mini App returns from the
- * background. Telegram's mobile WebView (Android/iOS) restores a STALE composited layer
- * on resume — leftover theme-coloured tiles sit over the messages, and old frames appear
- * "stacked" until the user touches the screen. Nudging opacity invalidates that cached
- * layer. We target .chat-content because it is NOT an ancestor of the fixed header/footer,
- * so the repaint can't shift them, and opacity does not reset its scroll position.
+ * Recompose the chat scroll layer after the Mini App is reopened from the Telegram dock.
+ *
+ * Root cause: on initial load we set the scroll position to the bottom PROGRAMMATICALLY
+ * (jumpToBottomSilent). Telegram's mobile WebView keeps the accelerated scroll layer
+ * (-webkit-overflow-scrolling: touch) "uncommitted" until a REAL scroll happens, so when
+ * the app is minimised to the dock it snapshots a stale layer — reopening overlaps/stacks
+ * the messages. A genuine scroll fixes it (hence: no bug once the user has scrolled).
+ *
+ * Fix: imitate a real scroll with a 1px nudge + forced layout, then restore the exact
+ * position. All synchronous within one frame, so no intermediate paint is visible. We also
+ * nudge opacity to clear any leftover stale colour tiles. Targets .chat-content only, which
+ * is not an ancestor of the fixed header/footer, so nothing shifts.
  */
+function recomposeScrollLayer() {
+  const node = chatContent.value;
+  if (!node) return;
+  const top = node.scrollTop;
+  node.scrollTop = top > 0 ? top - 1 : 1;
+  void node.offsetHeight; // flush the scroll change so the layer actually recomposes
+  node.scrollTop = top;
+  node.style.opacity = "0.999";
+  void node.offsetHeight;
+  node.style.opacity = "";
+}
+
+/** Run the recompose once the resume/expand settles (twice: next frame + short delay). */
+function scheduleRecompose() {
+  requestAnimationFrame(recomposeScrollLayer);
+  setTimeout(recomposeScrollLayer, 250);
+}
+
+/** OS-level background→foreground (belt-and-suspenders alongside the viewport-expand hook). */
 function handleResumeRepaint() {
   if (document.visibilityState !== "visible") return;
-  // Let Telegram's resume layout / viewport settle first, then repaint.
-  requestAnimationFrame(() => {
-    const el = chatContent.value;
-    if (!el) return;
-    el.style.opacity = "0.999";
-    // Force the style change to flush as its own paint before reverting.
-    void el.offsetHeight;
-    requestAnimationFrame(() => {
-      const node = chatContent.value;
-      if (node) node.style.opacity = "";
-    });
-  });
+  scheduleRecompose();
 }
 
 onMounted(async () => {
@@ -1626,6 +1640,20 @@ onMounted(async () => {
     try {
       viewportUnsub.push(viewport.stableHeight.sub(updateFooterHeight));
       viewportUnsub.push(viewport.safeAreaInsetBottom.sub(updateFooterHeight));
+      // Reopened from the Telegram dock → the viewport expands (isExpanded flips to true).
+      // This is the reliable signal for dock-reopen (visibilitychange may not fire), so
+      // recompose the scroll layer here to kill the stale-snapshot overlap.
+      viewportUnsub.push(
+        viewport.isExpanded.sub(() => {
+          let expanded = true;
+          try {
+            expanded = (viewport.isExpanded as unknown as () => boolean)();
+          } catch {
+            expanded = true;
+          }
+          if (expanded) scheduleRecompose();
+        }),
+      );
     } catch {
       // Non-TMA / desktop mock env — viewport signals unavailable; ignore.
     }
