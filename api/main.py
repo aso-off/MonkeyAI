@@ -16,13 +16,13 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from core.logger import logger
+from core.redis import init_redis, close_redis
 from db.db import init_db, engine
 from routes.health import router as health_router
 from routes.users import router as users_router
 from routes.dialogs import router as dialogs_router
 from routes.chat import router as chat_router
 from routes.media import router as media_router
-from routes.redis_cache import router as redis_router
 from routes.webapp import router as webapp_router
 from routes.ws import router as ws_router
 from monitoring.prometheus import (
@@ -84,9 +84,15 @@ class PrometheusMiddleware:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import os
+    if not os.environ.get("API_SERVICE_TOKEN"):
+        raise RuntimeError("API_SERVICE_TOKEN is not set — refusing to start")
+
     logger.info("API starting...")
     await init_db()
     logger.info("DB initialized")
+
+    await init_redis()
 
     # Sync admin/whitelist flags from user-ids.yml into DB
     from db.db import Session
@@ -98,6 +104,7 @@ async def lifespan(app: FastAPI):
 
     yield
     await engine.dispose()
+    await close_redis()
     logger.info("API stopped")
 
 
@@ -114,14 +121,9 @@ def create_app() -> FastAPI:
             {"name": "dialogs", "description": "🔒 `Bearer <API_SERVICE_TOKEN>`"},
             {"name": "chat",    "description": "🔒 `Bearer <API_SERVICE_TOKEN>`"},
             {"name": "media",   "description": "🔒 `Bearer <API_SERVICE_TOKEN>`"},
-            {"name": "redis",   "description": "🔒 `Bearer <API_SERVICE_TOKEN>`"},
             {
                 "name": "webapp",
-                "description": (
-                    "Telegram Mini App. Auth: `Authorization: tma <initData>`.\n\n"
-                    "**Dev mode** (`SKIP_WEBAPP_AUTH=true`): без заголовка → user `id=1`; "
-                    "передай `X-Dev-User-Id: <id>` чтобы тестировать от конкретного пользователя."
-                ),
+                "description": "Telegram Mini App. Auth: `Authorization: tma <initData>`.",
             },
         ],
         swagger_ui_parameters={
@@ -138,7 +140,6 @@ def create_app() -> FastAPI:
     app.include_router(dialogs_router)
     app.include_router(chat_router)
     app.include_router(media_router)
-    app.include_router(redis_router)
     app.include_router(webapp_router)
     app.include_router(ws_router)
 
