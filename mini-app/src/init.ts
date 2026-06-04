@@ -77,6 +77,10 @@ export async function init(options: {
   if (viewport.mount.isAvailable()) {
     viewport.mount().then(() => {
       viewport.bindCssVars();
+      // Expand to the maximum available height immediately. Without this the layout
+      // viewport can start shorter than the screen, so the position:fixed footer floats
+      // a few px above the device nav bar until the viewport settles on its own.
+      viewport.expand.ifAvailable();
     });
   }
 }
