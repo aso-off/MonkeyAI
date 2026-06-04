@@ -55,17 +55,15 @@ import base64
 import contextlib
 import json
 import logging
-import os
 import secrets
 import time
 import uuid
 from collections import defaultdict
 
-import redis.asyncio as aioredis
-
 from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
 
 from core.config import settings
+from core.redis import get_redis_binary
 from core.security import _verify_init_data
 from db.db import Session
 from db.repositories import dialogs as dialog_repo
@@ -77,8 +75,6 @@ from services.openai import ChatGPT
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webapp")
-
-_SKIP_WEBAPP_AUTH: bool = os.environ.get("SKIP_WEBAPP_AUTH", "").lower() in ("1", "true", "yes")
 
 # user_id → set of active WebSocket connections (one per device).
 _WS_POOL: dict[int, set[WebSocket]] = defaultdict(set)
@@ -101,11 +97,6 @@ _IMAGE_STORE: dict[str, bytes] = {}
 _IMAGE_TS: dict[str, float] = {}
 _IMAGE_TTL = 3_600      # 1 h in-memory  (warm cache)
 _IMAGE_REDIS_TTL = 86_400  # 24 h in Redis  (survives server restart)
-
-
-def _get_redis_binary() -> aioredis.Redis:
-    """Return a binary-mode Redis client (decode_responses=False for raw bytes)."""
-    return aioredis.from_url(settings.redis_url, decode_responses=False)
 
 
 # Server-initiated ping interval (keeps Cloudflare tunnel alive).
@@ -137,11 +128,7 @@ async def _store_image(b64_data: str) -> str:
         _IMAGE_TS.pop(k, None)
     # Persist to Redis — survives server restarts for 24 h.
     try:
-        r = _get_redis_binary()
-        try:
-            await r.setex(f"webapp:image:{image_id}", _IMAGE_REDIS_TTL, img_bytes)
-        finally:
-            await r.aclose()
+        await get_redis_binary().setex(f"webapp:image:{image_id}", _IMAGE_REDIS_TTL, img_bytes)
     except Exception:
         logger.warning("Failed to persist image %s to Redis; in-memory only", image_id)
     return image_id
@@ -154,11 +141,7 @@ async def get_image(image_id: str) -> Response:
     if img_bytes is None:
         # Memory miss — try Redis (e.g. after server restart).
         try:
-            r = _get_redis_binary()
-            try:
-                img_bytes = await r.get(f"webapp:image:{image_id}")
-            finally:
-                await r.aclose()
+            img_bytes = await get_redis_binary().get(f"webapp:image:{image_id}")
         except Exception:
             pass
         if not img_bytes:
@@ -227,13 +210,6 @@ async def _auth_handshake(ws: WebSocket) -> int | None:
     if frame.get("type") != "auth":
         await _send(ws, {"type": "auth_error", "error": "first frame must be {type: 'auth'}"})
         return None
-
-    # Dev mode: skip HMAC, use user_id from the frame (default 1).
-    if _SKIP_WEBAPP_AUTH:
-        try:
-            return int(frame.get("user_id", 1))
-        except (TypeError, ValueError):
-            return 1
 
     init_data = str(frame.get("init_data", ""))
     # Strip optional "tma " prefix.

@@ -97,11 +97,6 @@ class TranscribeResponse(msgspec.Struct, frozen=True):
     duration_seconds: float
 
 
-class RedisGetResponse(msgspec.Struct, frozen=True):
-    key: str
-    value: str | None
-
-
 # HTTP client
 
 def get_client() -> httpx.AsyncClient:
@@ -354,24 +349,3 @@ async def get_user_full(user_id: int) -> UserFullResponse | None:
         return None
     r.raise_for_status()
     return _decode(r.content, UserFullResponse)
-
-
-# Redis proxy
-
-async def redis_get(key: str) -> str | None:
-    r = await _request("GET", f"/redis/{key}")
-    r.raise_for_status()
-    return _decode(r.content, RedisGetResponse).value
-
-
-async def redis_set(key: str, value: str, ttl: int | None = None) -> None:
-    payload: dict = {"value": value}
-    if ttl is not None:
-        payload["ttl"] = ttl
-    r = await _request("PUT", f"/redis/{key}", json=payload)
-    r.raise_for_status()
-
-
-async def redis_delete(key: str) -> None:
-    r = await _request("DELETE", f"/redis/{key}")
-    r.raise_for_status()
