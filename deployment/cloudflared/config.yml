@@ -7,13 +7,13 @@ ingress:
   - hostname: api.si881.ru
     service: http://api:8000
   - hostname: postgres.si881.ru
-    service: http://postgres_admin:8080
+    service: http://nginx-proxy-manager:80
   - hostname: grafana.si881.ru
-    service: http://grafana:3000
+    service: http://nginx-proxy-manager:80
   - hostname: status.si881.ru
     service: http://uptime-kuma:3001
   - hostname: analytics.si881.ru
-    service: http://umami:3000
+    service: http://nginx-proxy-manager:80
   - hostname: redis.si881.ru
     service: http://nginx-proxy-manager:80
   - hostname: npm.si881.ru
