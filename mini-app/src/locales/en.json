@@ -73,5 +73,9 @@
       "Monkey AI is available any time of day or night",
       "Monkey AI can explain complex things in simple words",
       "Monkey AI loves interesting and unusual tasks"
-    ]
+    ],
+  "privacy_policy": "Privacy Policy",
+  "terms_of_service": "Terms of Service",
+  "page_in_development": "Page under development",
+  "page_in_development_desc": "This section will be available soon. For questions, contact"
   }

@@ -114,6 +114,38 @@
         <!-- Четвёртый блок -->
         <div class="settings__container">
           <div class="settings__container-buttons">
+            <span class="settings__container-button interactive" @click="router.push('/settings/privacy')">
+              <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
+                <img :src="privacySvg" alt="Privacy" />
+              </div>
+              <div class="settings__container-text">
+                <div class="settings__container-text-title">
+                  <div class="settings__container-title-text">{{ $t('privacy_policy') }}</div>
+                </div>
+                <div class="settings__container-text-value">
+                  <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <div class="settings__divider"></div>
+            <span class="settings__container-button interactive" @click="router.push('/settings/terms')">
+              <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
+                <img :src="termsSvg" alt="Terms" />
+              </div>
+              <div class="settings__container-text">
+                <div class="settings__container-text-title">
+                  <div class="settings__container-title-text">{{ $t('terms_of_service') }}</div>
+                </div>
+                <div class="settings__container-text-value">
+                  <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <div class="settings__divider"></div>
             <span class="settings__container-button interactive" @click="openReleases">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
                 <img :src="versionSvg" alt="Version" />
@@ -173,6 +205,8 @@ import channelSvg from '@/components/img/channel.svg';
 import shareSvg from '@/components/img/Share.svg';
 import versionSvg from '@/components/img/version.svg';
 import autor from '@/components/img/autor.svg';
+import privacySvg from '@/components/img/privacy.svg';
+import termsSvg from '@/components/img/terms.svg';
 
 defineOptions({ name: 'SettingsPage' });
 
