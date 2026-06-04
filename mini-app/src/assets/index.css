@@ -2414,6 +2414,20 @@ a {
   text-decoration: none;
 }
 
+/* Root-level background so the <html> element itself is always painted with the
+   theme colour. CSS variables defined on <body> do NOT inherit up to <html>, so
+   without this the html element is transparent — and during Telegram's resume/expand
+   animation (when body's height:100% briefly doesn't cover the growing viewport) the
+   transparent strip flashes the native background. Defining it here removes that flicker.
+   The `dark` class is mirrored onto <html> in useTheme.applyClass(). */
+:root {
+  --backgorund-color: #F2F2F7;
+  background-color: var(--backgorund-color);
+}
+:root.dark {
+  --backgorund-color: #1C1C1C;
+}
+
 body {
   --backgorund-color: #F2F2F7;
   --header-bg-rgba: rgba(242, 242, 247, 0);
