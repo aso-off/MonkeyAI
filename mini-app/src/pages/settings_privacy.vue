@@ -1,23 +1,19 @@
 <template>
   <div id="root">
-    <div
-      class="wrapper legal-page-wrapper"
-      style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); transition: padding 100ms;"
-    >
-      <div class="legal-content">
-        <h1 class="legal-title">{{ $t('privacy_policy') }}</h1>
-
-        <div class="legal-section">
-          <p class="legal-section-heading">{{ $t('page_in_development') }}</p>
-          <p class="legal-section-body">
-            {{ $t('page_in_development_desc') }}
-            <span class="legal-support-link" @click="openSupport">@MonkeyAI_Support</span>
-          </p>
+    <div class="wrapper">
+      <div class="settingschange-wrapper">
+        <div class="settingschange-container">
+          <div class="settingschange-title">{{ $t('privacy_policy') }}</div>
+          <div class="settingschange-select legal-section">
+            <div class="legal-section-heading">{{ $t('page_in_development') }}</div>
+            <div class="legal-section-body">
+              {{ $t('page_in_development_desc') }}
+              <span class="legal-support-link" @click="openSupport">@MonkeyAI_Support</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div id="veepn-guard-alert"></div>
-    <div id="veepn-breach-alert"></div>
   </div>
 </template>
 
@@ -32,46 +28,35 @@ function openSupport() {
 </script>
 
 <style scoped>
-.legal-page-wrapper {
-  height: var(--tg-viewport-stable-height, 100vh);
+#root {
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.legal-page-wrapper::-webkit-scrollbar {
+#root::-webkit-scrollbar {
   display: none;
 }
 
-.legal-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 24px 16px 32px;
-}
-
-.legal-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1.2;
-  margin: 0;
+.wrapper {
+  min-height: 100%;
+  padding-bottom: 24px;
 }
 
 .legal-section {
-  background-color: var(--second-bg-color);
-  border-radius: 16px;
-  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 16px !important;
 }
 
 .legal-section-heading {
   font-size: 17px;
   font-weight: 600;
   color: var(--text-color);
-  margin: 0;
 }
 
 .legal-section-body {
@@ -79,7 +64,6 @@ function openSupport() {
   font-weight: 400;
   color: var(--icons-storke-color);
   line-height: 1.5;
-  margin: 0;
 }
 
 .legal-support-link {
