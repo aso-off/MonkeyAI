@@ -945,7 +945,7 @@ async function loadChatHistory(forceScroll = false) {
       hasMoreToLoad.value = store.chatHistoryNextCursor > 0;
       if (forceScroll) {
         await nextTick();
-        scrollToBottom();
+        jumpToBottomSilent();
       }
       return;
     }
@@ -956,7 +956,7 @@ async function loadChatHistory(forceScroll = false) {
       applyChatHistory([...store.chatHistory]);
       if (forceScroll) {
         await nextTick();
-        scrollToBottom();
+        jumpToBottomSilent();
       }
     }
 
@@ -1768,18 +1768,22 @@ onMounted(async () => {
 });
 
 let wasOnChat = false;
+let savedScrollTop: number | null = null;
 
 onActivated(() => {
-  // On return from Settings, always jump to latest messages.
   if (!wasOnChat) return;
   isReturningFromSettings.value = true;
-  // Apply bottom state immediately to avoid one-frame flash of old scroll/button state.
-  showScrollBtn.value = false;
-  isNearBottom.value = true;
-  jumpToBottomSilent();
   nextTick(() => {
-    jumpToBottomSilent();
-    // Release the guard only after DOM/layout settles on the restored bottom state.
+    const el = chatContent.value;
+    if (el && savedScrollTop !== null) {
+      suppressScrollEvents = true;
+      el.scrollTop = savedScrollTop;
+      suppressScrollEvents = false;
+      savedScrollTop = null;
+      onChatScroll();
+    } else {
+      jumpToBottomSilent();
+    }
     requestAnimationFrame(() => {
       isReturningFromSettings.value = false;
     });
@@ -1788,6 +1792,7 @@ onActivated(() => {
 
 onDeactivated(() => {
   wasOnChat = true;
+  savedScrollTop = chatContent.value?.scrollTop ?? null;
   // Hide cached scroll button before KeepAlive stores the inactive DOM snapshot.
   showScrollBtn.value = false;
   isReturningFromSettings.value = true;
