@@ -1555,6 +1555,30 @@ function handleTipTouch(e: TouchEvent) {
   }, 700);
 }
 
+/**
+ * Force a one-frame repaint of the chat area after the Mini App returns from the
+ * background. Telegram's mobile WebView (Android/iOS) restores a STALE composited layer
+ * on resume — leftover theme-coloured tiles sit over the messages, and old frames appear
+ * "stacked" until the user touches the screen. Nudging opacity invalidates that cached
+ * layer. We target .chat-content because it is NOT an ancestor of the fixed header/footer,
+ * so the repaint can't shift them, and opacity does not reset its scroll position.
+ */
+function handleResumeRepaint() {
+  if (document.visibilityState !== "visible") return;
+  // Let Telegram's resume layout / viewport settle first, then repaint.
+  requestAnimationFrame(() => {
+    const el = chatContent.value;
+    if (!el) return;
+    el.style.opacity = "0.999";
+    // Force the style change to flush as its own paint before reverting.
+    void el.offsetHeight;
+    requestAnimationFrame(() => {
+      const node = chatContent.value;
+      if (node) node.style.opacity = "";
+    });
+  });
+}
+
 onMounted(async () => {
   const images = [
     monkeyChemistry,
@@ -1609,6 +1633,7 @@ onMounted(async () => {
 
   document.addEventListener("click", handleDocumentClick);
   document.addEventListener("touchstart", handleTipTouch, { passive: true });
+  document.addEventListener("visibilitychange", handleResumeRepaint);
 
   // Proactively open WebSocket so the first message feels instant.
   wsClient.connect().catch(() => {});
@@ -1901,6 +1926,7 @@ onDeactivated(() => {
 onBeforeUnmount(() => {
   document.removeEventListener("click", handleDocumentClick);
   document.removeEventListener("touchstart", handleTipTouch);
+  document.removeEventListener("visibilitychange", handleResumeRepaint);
   if (tipActiveTimer) clearTimeout(tipActiveTimer);
   document.body.style.overflow = "auto";
   if (copyTimeout) clearTimeout(copyTimeout);
