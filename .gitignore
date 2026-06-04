@@ -62,7 +62,6 @@ api/images/
 
 # Cloudflared (sensitive)
 deployment/cloudflared/*.json
-deployment/cloudflared/config.yml
 deployment/cloudflared/*.pem
 
 # IDE & editor

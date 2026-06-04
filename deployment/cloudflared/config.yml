@@ -1,0 +1,22 @@
+tunnel: b32af5a9-dede-4b09-ae0c-2934cfbfe7b6
+credentials-file: /etc/cloudflared/b32af5a9-dede-4b09-ae0c-2934cfbfe7b6.json
+
+ingress:
+  - hostname: monkey.si881.ru
+    service: http://bot:5000
+  - hostname: api.si881.ru
+    service: http://api:8000
+  - hostname: postgres.si881.ru
+    service: http://postgres_admin:8080
+  - hostname: grafana.si881.ru
+    service: http://grafana:3000
+  - hostname: status.si881.ru
+    service: http://uptime-kuma:3001
+  - hostname: analytics.si881.ru
+    service: http://umami:3000
+  - hostname: redis.si881.ru
+    service: http://redisinsight:5540
+#  - hostname: prometheus.si881.ru
+#    service: http://prometheus:9090
+
+  - service: http_status:404
