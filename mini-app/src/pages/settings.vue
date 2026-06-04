@@ -155,7 +155,7 @@
                   <div class="settings__container-title-text">{{ $t('version') }}</div>
                 </div>
                 <div class="settings__container-text-value">
-                  <span class="settings__current-val">2.2.3</span>
+                  <span class="settings__current-val">2.4.0</span>
                   <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -265,6 +265,24 @@ const openAuthor = () => {
 </script>
 
 <style scoped>
+#root {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#root::-webkit-scrollbar {
+  display: none;
+}
+
+.wrapper {
+  min-height: 100%;
+  padding-bottom: 24px;
+}
+
 img[src$=".svg"]:not(.line) {
   filter: brightness(0) saturate(100%) invert(100%);
 }
