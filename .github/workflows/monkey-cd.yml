@@ -93,5 +93,6 @@ jobs:
 
             docker compose pull
             docker compose up -d --remove-orphans
+            docker compose restart cloudflared
 
             docker system prune -af
