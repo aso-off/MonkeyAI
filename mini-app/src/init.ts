@@ -10,6 +10,7 @@ import {
   miniApp,
   backButton,
   settingsButton,
+  swipeBehavior,
 } from '@tma.js/sdk-vue';
 
 /**
@@ -82,5 +83,14 @@ export async function init(options: {
       // a few px above the device nav bar until the viewport settles on its own.
       viewport.expand.ifAvailable();
     });
+  }
+
+  // Disable vertical swipes (Telegram Mini Apps v7.7+). This is the officially
+  // recommended fix for the "collapse / flicker on minimise & reopen" behaviour: it stops
+  // the BottomSheet from reacting to in-content vertical drags, which keeps the viewport
+  // stable and avoids the repaint glitch when the app is expanded back from the dock.
+  if (swipeBehavior.mount.isAvailable()) {
+    swipeBehavior.mount();
+    swipeBehavior.disableVertical.ifAvailable();
   }
 }
