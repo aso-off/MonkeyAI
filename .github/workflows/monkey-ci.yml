@@ -1,0 +1,39 @@
+name: Monkey Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "mini-app/**"
+  pull_request:
+    paths-ignore:
+      - "mini-app/**"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra api --extra bot --group dev --no-install-project
+
+      - name: Ruff lint
+        run: .venv/bin/ruff check api bot
+
+      - name: Health smoke tests
+        run: .venv/bin/python -m pytest -q api/tests/test_api_health.py bot/tests/test_bot_health.py

@@ -1,4 +1,4 @@
-name: Deploy Mini App to GitHub Pages repo
+name: Mini App CI/CD
 
 on:
   push:
@@ -6,9 +6,16 @@ on:
     paths:
       - "mini-app/**"
 
+concurrency:
+  group: mini-app-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mini-app
 
     steps:
       - name: Checkout
@@ -18,21 +25,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: mini-app/package-lock.json
 
       - name: Install dependencies
-        run: |
-          cd mini-app && npm ci
+        run: npm ci
 
-      - name: Build mini-app
-        run: |
-          cd mini-app && npm run build
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
 
       - name: Deploy dist to public repo
+        working-directory: mini-app/dist
         run: |
-          cd mini-app/dist
-
           git init
           git config user.name "github-actions"
           git config user.email "actions@github.com"

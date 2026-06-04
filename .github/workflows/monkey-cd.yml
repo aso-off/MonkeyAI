@@ -1,44 +1,36 @@
 name: Monkey Backend CD
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Monkey Backend CI"]
     branches: [main]
-    paths-ignore:
-      - "mini-app/**"
+    types: [completed]
   workflow_dispatch:
 
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
 jobs:
-  ci:
+  build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - service: api
+            file: api/Dockerfile
+            image: monkey-api
+          - service: bot
+            file: bot/Dockerfile
+            image: monkey-bot
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v3
-
-      - name: Install dependencies
-        run: uv sync --frozen --extra api --extra bot --group dev --no-install-project
-
-      - name: Ruff lint
-        run: .venv/bin/ruff check api bot
-
-      - name: Health smoke tests
-        run: .venv/bin/python -m pytest -q api/tests/test_api_health.py bot/tests/test_bot_health.py
-
-  cd:
-    needs: ci
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4
@@ -46,26 +38,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push API image
+      - name: Build and push ${{ matrix.service }}
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: api/Dockerfile
+          file: ${{ matrix.file }}
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-api:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
 
-      - name: Build and push BOT image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: bot/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-bot:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/monkey-bot:${{ github.sha }}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
+    steps:
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1
         env:
@@ -104,3 +93,5 @@ jobs:
 
             docker compose pull
             docker compose up -d --remove-orphans
+
+            docker system prune -af
