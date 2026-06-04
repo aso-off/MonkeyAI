@@ -41,7 +41,6 @@ webapp_url: 'https://aso-off.github.io/mini-app/'
 container_names:
   - monkey_api
   - monkey_bot
-#  - monkey_mini_app
   - monkey_postgres
   - monkey_redis
   - monkey_cloudflared
@@ -51,3 +50,5 @@ container_names:
   - monkey_promtail
   - monkey_cadvisor
   - monkey_grafana
+  - monkey_redisinsight
+  - monkey_npm
