@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     # Redis
     redis_host: str = "redis"
     redis_port: int = 6379
+    redis_password: SecretStr | None = None
 
     # Auth - список admin-id из user-ids.yml
     admin_ids: list[int] = []
@@ -93,6 +94,9 @@ class Settings(BaseSettings):
 
     @property
     def redis_url(self) -> str:
+        if self.redis_password:
+            pwd = self.redis_password.get_secret_value()
+            return f"redis://:{pwd}@{self.redis_host}:{self.redis_port}"
         return f"redis://{self.redis_host}:{self.redis_port}"
 
 
