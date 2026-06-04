@@ -3,6 +3,8 @@ import Main from '../pages/main.vue'
 import Settings from '@/pages/settings.vue'
 import SettingsTheme from '@/pages/settings_theme.vue'
 import SettingsLang from '@/pages/settings_lang.vue'
+import SettingsPrivacy from '@/pages/settings_privacy.vue'
+import SettingsTerms from '@/pages/settings_terms.vue'
 
 const routes = [
   {
@@ -24,6 +26,16 @@ const routes = [
     path: '/settings/theme',
     name: 'theme',
     component: SettingsTheme
+  },
+  {
+    path: '/settings/privacy',
+    name: 'privacy',
+    component: SettingsPrivacy
+  },
+  {
+    path: '/settings/terms',
+    name: 'terms',
+    component: SettingsTerms
   }
 ]
 

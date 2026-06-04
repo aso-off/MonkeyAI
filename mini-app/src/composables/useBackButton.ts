@@ -7,6 +7,8 @@ const PARENT_ROUTE: Record<string, string> = {
   settings: 'index',
   language: 'settings',
   theme: 'settings',
+  privacy: 'settings',
+  terms: 'settings',
 };
 
 export function useBackButton() {
