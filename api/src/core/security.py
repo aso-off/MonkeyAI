@@ -11,9 +11,6 @@ from core.config import settings
 
 _SERVICE_TOKEN = os.environ.get("API_SERVICE_TOKEN", "")
 
-# Set SKIP_WEBAPP_AUTH=true in .env to bypass initData validation in development.
-_SKIP_WEBAPP_AUTH = os.environ.get("SKIP_WEBAPP_AUTH", "").lower() in ("1", "true", "yes")
-
 # Shown in Swagger UI as a lock icon — click "Authorize" and enter the token value.
 _bearer_scheme = HTTPBearer(
     auto_error=False,
@@ -72,27 +69,7 @@ async def verify_webapp_init_data(request: Request) -> dict:
     FastAPI dependency for Telegram Mini App routes.
     Reads initData from Authorization header: 'tma <initData>'.
     Returns the parsed initData fields.
-
-    In development, set SKIP_WEBAPP_AUTH=true to bypass HMAC validation.
     """
-    if _SKIP_WEBAPP_AUTH:
-        # Dev bypass: skip HMAC check but still parse the actual initData from the header.
-        # This lets mock data from mockEnv.ts (see mini-app/src/mockEnv.ts) pass through as-is.
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("tma "):
-            params = dict(parse_qsl(auth_header[4:]))
-            params.pop("hash", None)
-            params.pop("signature", None)
-            return params
-        # Dev fallback: use X-Dev-User-Id header to impersonate any user, default to 1.
-        # In Swagger: send this header in "Try it out" to test as a specific user.
-        import json as _json
-        try:
-            uid = int(request.headers.get("X-Dev-User-Id", "1"))
-        except ValueError:
-            uid = 1
-        return {"user": _json.dumps({"id": uid, "first_name": "Dev", "language_code": "ru"})}
-
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("tma "):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Telegram initData")

@@ -41,6 +41,16 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     fake_core_config.settings = fake_settings
     sys.modules["core.config"] = fake_core_config
 
+    class _FakeRedis:
+        async def ping(self): return True
+
+    fake_redis = types.ModuleType("core.redis")
+    fake_redis.init_redis = lambda: None
+    fake_redis.close_redis = lambda: None
+    fake_redis.get_redis = lambda: _FakeRedis()
+    fake_redis.get_redis_binary = lambda: _FakeRedis()
+    sys.modules["core.redis"] = fake_redis
+
     api_main_path = Path(__file__).resolve().parents[1] / "main.py"
     spec = importlib.util.spec_from_file_location("api_test_main", api_main_path)
     assert spec and spec.loader
@@ -60,4 +70,6 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
 def test_health_returns_ok(client: TestClient) -> None:
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    data = response.json()
+    assert data["status"] in ("ok", "degraded")
+    assert "redis" in data

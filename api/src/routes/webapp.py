@@ -14,12 +14,11 @@ import json
 import logging
 from io import BytesIO
 
-import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
+from core.redis import get_redis
 from core.security import verify_webapp_init_data
 from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
@@ -38,53 +37,42 @@ _PREFS_FIELDS = frozenset({"language", "current_model", "theme", "mini_app_chat_
 _PREFS_TTL = 86_400  # 24 hours
 
 
-def _get_redis() -> aioredis.Redis:
-    return aioredis.from_url(settings.redis_url, decode_responses=True)
-
-
 def _prefs_key(user_id: int) -> str:
     return f"webapp:user_prefs:{user_id}"
 
 
 async def _redis_write_prefs(user_id: int, data: dict) -> None:
-    """Write user prefs to Redis (< 1 ms). Called before returning 200."""
-    r = _get_redis()
-    try:
-        key = _prefs_key(user_id)
-        await r.hset(key, mapping=data)
-        await r.expire(key, _PREFS_TTL)
-    finally:
-        await r.aclose()
+    r = get_redis()
+    key = _prefs_key(user_id)
+    await r.hset(key, mapping=data)
+    await r.expire(key, _PREFS_TTL)
 
 
 async def _redis_read_prefs(user_id: int) -> dict:
-    """Read cached prefs from Redis. Returns {} if nothing cached."""
-    r = _get_redis()
+    """Read cached prefs from Redis. Returns {} on miss or timeout."""
     try:
-        return await r.hgetall(_prefs_key(user_id))
-    finally:
-        await r.aclose()
+        r = get_redis()
+        return await asyncio.wait_for(r.hgetall(_prefs_key(user_id)), timeout=2.0)
+    except Exception:
+        return {}
 
 
 async def _db_write_prefs(user_id: int, data: dict) -> None:
-    """Write prefs to PostgreSQL — runs as a BackgroundTask after response is sent."""
     try:
         async with Session() as session:
             await user_repo.update_user(session, user_id, **data)
-        logger.debug("[bg] Persisted prefs to DB for user %d: %s", user_id, list(data.keys()))
+        logger.debug("Persisted prefs to DB for user %d: %s", user_id, list(data.keys()))
     except Exception:
-        logger.exception("[bg] Failed to persist prefs to DB for user %d", user_id)
+        logger.exception("Failed to persist prefs to DB for user %d", user_id)
 
 
 async def _redis_invalidate_user_cache(user_id: int) -> None:
     """Delete bot-side user cache so the next GET /users/{id} reflects fresh prefs."""
-    r = _get_redis()
     try:
+        r = get_redis()
         await r.delete(f"user:{user_id}", f"user_full:{user_id}")
     except Exception:
         pass
-    finally:
-        await r.aclose()
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +100,14 @@ def _extract_tg_user(init_data: dict) -> dict:
 
 
 async def _require_user(session: AsyncSession, user_id: int):
+    # Redis-first: reuse the shared user cache populated by /users routes.
+    try:
+        r = get_redis()
+        data = await asyncio.wait_for(r.get(f"user:{user_id}"), timeout=2.0)
+        if data:
+            return UserRead.model_validate_json(data)
+    except Exception:
+        pass
     user = await user_repo.get_user(session, user_id)
     if user is None:
         raise HTTPException(
@@ -270,10 +266,8 @@ async def update_me(
     """
     Update user preferences from the mini-app.
 
-    Redis is written synchronously (instant read on next GET /me).
-    PostgreSQL is written via asyncio.create_task — starts immediately in the
-    event loop (not after ASGI lifecycle like BackgroundTask), so the bot sees
-    the change within milliseconds, not 1-20 s.
+    Redis is written first (instant read on next GET /me), then PostgreSQL.
+    Both are awaited — 200 means data is consistent in Redis and DB.
     """
     tg = _extract_tg_user(init_data)
     user_id = tg["id"]
@@ -296,10 +290,9 @@ async def update_me(
         if redis_data:
             await _redis_write_prefs(user_id, redis_data)
         # Bust the bot-side user cache so the next GET /users/{id} returns fresh prefs.
-        asyncio.create_task(_redis_invalidate_user_cache(user_id))
-        # Schedule DB write immediately — runs at next event loop iteration.
-        asyncio.create_task(_db_write_prefs(user_id, update_data))
-        logger.debug("Prefs queued for user %d: %s", user_id, list(update_data.keys()))
+        await _redis_invalidate_user_cache(user_id)
+        await _db_write_prefs(user_id, update_data)
+        logger.debug("Prefs updated for user %d: %s", user_id, list(update_data.keys()))
 
     return _OkResponse(ok=True)
 

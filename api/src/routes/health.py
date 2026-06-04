@@ -1,6 +1,9 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
+from core.redis import get_redis
 from core.security import verify_service_token
 
 router = APIRouter(tags=["health"])
@@ -8,7 +11,14 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health")
 async def health() -> JSONResponse:
-    return JSONResponse({"status": "ok"})
+    redis_status = "ok"
+    try:
+        await asyncio.wait_for(get_redis().ping(), timeout=1.0)
+    except Exception:
+        redis_status = "down"
+
+    overall = "ok" if redis_status == "ok" else "degraded"
+    return JSONResponse({"status": overall, "redis": redis_status})
 
 
 @router.get("/health/debug/500", include_in_schema=False)
