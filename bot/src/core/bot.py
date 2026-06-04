@@ -21,7 +21,7 @@ def create_bot() -> Bot:
 
 
 def create_dispatcher() -> Dispatcher:
-    redis = Redis.from_url("redis://redis:6379/0")
+    redis = Redis.from_url(settings.redis_url)
     storage = RedisStorage(redis=redis)
     return Dispatcher(storage=storage)
 

@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_password: SecretStr
 
+    # Redis
+    redis_host: str = "redis"
+    redis_port: int = 6379
+    redis_password: SecretStr | None = None
+
     # SSH для сбора системной инфо (.env, опционально)
     ssh_hostname: str | None = None
     ssh_username: str | None = None
@@ -135,6 +140,13 @@ class Settings(BaseSettings):
             f":{self.postgres_password.get_secret_value()}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
+
+    @property
+    def redis_url(self) -> str:
+        if self.redis_password:
+            pwd = self.redis_password.get_secret_value()
+            return f"redis://:{pwd}@{self.redis_host}:{self.redis_port}/0"
+        return f"redis://{self.redis_host}:{self.redis_port}/0"
 
     @property
     def webhook_url(self) -> str:
