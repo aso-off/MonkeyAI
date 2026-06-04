@@ -13,7 +13,7 @@ ingress:
   - hostname: status.si881.ru
     service: http://uptime-kuma:3001
   - hostname: analytics.si881.ru
-    service: http://nginx-proxy-manager:80
+    service: http://umami:3000
   - hostname: redis.si881.ru
     service: http://nginx-proxy-manager:80
   - hostname: npm.si881.ru
