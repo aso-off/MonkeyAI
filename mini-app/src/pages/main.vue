@@ -807,14 +807,23 @@ function scrollToBottom() {
   // Hide the scroll button immediately — this is a programmatic autoscroll.
   showScrollBtn.value = false;
   isNearBottom.value = true;
-  suppressScrollEvents = true;
-  // requestAnimationFrame fires after layout is computed — more reliable than nextTick for scroll.
+  // Do NOT set suppressScrollEvents here: on mobile/Telegram WebView, rAF can be
+  // delayed by seconds during initialisation. Suppressing scroll events for that
+  // whole window would silently ignore the user's manual scroll and then forcibly
+  // throw them back to the bottom when the frame finally fires.
   requestAnimationFrame(() => {
     const el = chatContent.value;
-    if (!el) {
-      suppressScrollEvents = false;
+    if (!el) return;
+    // Check actual DOM position — the user may have scrolled up while this frame
+    // was pending (isNearBottom is stale because events were not suppressed).
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (distFromBottom > 150) {
+      // User scrolled away — respect their position instead of overriding it.
+      isNearBottom.value = false;
+      showScrollBtn.value = true;
       return;
     }
+    suppressScrollEvents = true;
     el.scrollTop = el.scrollHeight;
     suppressScrollEvents = false;
     onChatScroll();
