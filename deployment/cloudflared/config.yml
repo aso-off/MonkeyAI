@@ -15,7 +15,9 @@ ingress:
   - hostname: analytics.si881.ru
     service: http://umami:3000
   - hostname: redis.si881.ru
-    service: http://redisinsight:5540
+    service: http://nginx-proxy-manager:80
+  - hostname: npm.si881.ru
+    service: http://nginx-proxy-manager:81
 #  - hostname: prometheus.si881.ru
 #    service: http://prometheus:9090
 

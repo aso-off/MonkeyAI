@@ -318,6 +318,23 @@ services:
     networks:
       - monkey_network
 
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: monkey_npm
+    depends_on:
+      - redisinsight
+    ports:
+      - "127.0.0.1:81:81"
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
   postgres_admin:
     image: adminer
     container_name: monkey_postgres_admin
@@ -381,3 +398,5 @@ volumes:
   promtail_data:
   uptime-kuma-data:
   redisinsight_data:
+  npm_data:
+  npm_letsencrypt:

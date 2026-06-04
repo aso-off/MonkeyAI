@@ -114,7 +114,7 @@ async def _require_user(session: AsyncSession, user_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not registered — call GET /webapp/me first",
         )
-    return user
+    return UserRead.model_validate(user)
 
 
 async def _require_whitelisted(session: AsyncSession, user_id: int):
