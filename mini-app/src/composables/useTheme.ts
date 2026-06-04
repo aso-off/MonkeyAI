@@ -18,7 +18,15 @@ import { useUserStore } from '@/store/user'
 export type ThemeOverride = 'system' | 'light' | 'dark'
 
 function applyClass(scheme: 'light' | 'dark'): void {
-  document.body.classList.toggle('dark', scheme === 'dark')
+  const isDark = scheme === 'dark'
+  document.body.classList.toggle('dark', isDark)
+  // Mirror onto <html> so the root element gets a solid themed background (see :root.dark
+  // in index.css). Prevents the native-background flash during Telegram resume/expand.
+  document.documentElement.classList.toggle('dark', isDark)
+  // Keep the browser/OS chrome colour in sync with the theme so the resume/expand
+  // transition doesn't flash a fixed black bar on the light theme.
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', isDark ? '#1C1C1C' : '#F2F2F7')
 }
 
 /**
