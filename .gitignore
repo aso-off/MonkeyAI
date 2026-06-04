@@ -1,4 +1,7 @@
-*.txt
+# Secrets & environment
+.env
+.env.*
+!.env.example
 
 # Python
 __pycache__/
@@ -6,73 +9,73 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node / mini-app
+node_modules/
+*.tsbuildinfo
+*.local
+/mini-app/cypress/videos/
+/mini-app/cypress/screenshots/
+
+# Build outputs
 build/
 dist/
+dist-ssr/
 *.egg-info/
 .eggs/
 wheels/
 
-# Virtual environments
-venv/
-env/
-ENV/
-.venv/
-.env/
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+.tox/
+.hypothesis/
 
-# Environment variables
-.env
-.env.*
-!.env.example
-
-# Logs
+# Logs & runtime
 logs/
 *.log
 *.log.*
-
-# Runtime / persistent data
 data/
 *.db
 *.sqlite3
 *.pid
 
-# Generated images (can be large; regenerated on demand)
+# Generated files
 api/images/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-
-# Cloudflared credentials (sensitive)
-deployment/cloudflared/*.json
-deployment/cloudflared/config.yml
-deployment/cloudflared/*.pem
-
-# Docker
-*.override.yml
-
-# Test / coverage
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.hypothesis/
+*.txt
 
 # Tool caches
 .mypy_cache/
 .ruff_cache/
 
-# Node / mini-app
-node_modules/
-dist/
-dist-ssr/
-coverage/
-*.local
-*.tsbuildinfo
-/mini-app/cypress/videos/
-/mini-app/cypress/screenshots/
+# Docker
+*.override.yml
+
+# Cloudflared (sensitive)
+deployment/cloudflared/*.json
+deployment/cloudflared/config.yml
+deployment/cloudflared/*.pem
+
+# IDE & editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude AI
+.claudeignore
+CLAUDE.md
