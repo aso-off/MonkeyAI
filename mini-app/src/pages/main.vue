@@ -615,6 +615,13 @@ const isNearBottom = ref(true);
 const showScrollBtn = ref(false);
 /** True during first frame after returning from Settings to prevent stale button flash. */
 const isReturningFromSettings = ref(false);
+/**
+ * Last scroll position recorded on a real user scroll. Captured continuously
+ * (NOT in onDeactivated) because KeepAlive detaches the chat DOM on navigation,
+ * which resets scrollTop to 0 before onDeactivated runs. null = user never
+ * scrolled → fall back to bottom on return from Settings.
+ */
+let savedScrollTop: number | null = null;
 /** True for platforms that support file export (iOS, macOS, tdesktop). */
 const canExport = computed(() => {
   try {
@@ -875,6 +882,8 @@ function onChatScroll() {
   const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
   isNearBottom.value = distFromBottom < 150;
   showScrollBtn.value = distFromBottom > 100;
+  // Record the user's real position so we can restore it on return from Settings.
+  savedScrollTop = el.scrollTop;
 }
 
 /* === Загрузка истории из API === */
@@ -1768,23 +1777,26 @@ onMounted(async () => {
 });
 
 let wasOnChat = false;
-let savedScrollTop: number | null = null;
 
 onActivated(() => {
   if (!wasOnChat) return;
+  // Snapshot the target now — onChatScroll could overwrite savedScrollTop mid-restore.
+  const target = savedScrollTop;
   isReturningFromSettings.value = true;
-  nextTick(() => {
+  const restore = () => {
     const el = chatContent.value;
-    if (el && savedScrollTop !== null) {
-      suppressScrollEvents = true;
-      el.scrollTop = savedScrollTop;
-      suppressScrollEvents = false;
-      savedScrollTop = null;
-      onChatScroll();
-    } else {
-      jumpToBottomSilent();
-    }
+    if (!el) return;
+    suppressScrollEvents = true;
+    // null = user never scrolled this session → land at the bottom.
+    el.scrollTop = target ?? el.scrollHeight;
+    suppressScrollEvents = false;
+  };
+  nextTick(() => {
+    restore();
+    // Re-apply after reattach paint: KeepAlive can reset scrollTop to 0 post-restore.
     requestAnimationFrame(() => {
+      restore();
+      onChatScroll();
       isReturningFromSettings.value = false;
     });
   });
@@ -1792,7 +1804,8 @@ onActivated(() => {
 
 onDeactivated(() => {
   wasOnChat = true;
-  savedScrollTop = chatContent.value?.scrollTop ?? null;
+  // NOTE: do NOT read scrollTop here — KeepAlive has already detached the DOM and
+  // reset it to 0. The real position is captured live in onChatScroll (savedScrollTop).
   // Hide cached scroll button before KeepAlive stores the inactive DOM snapshot.
   showScrollBtn.value = false;
   isReturningFromSettings.value = true;
