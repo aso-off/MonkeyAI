@@ -52,6 +52,7 @@ data/
 # Generated files
 api/images/
 *.txt
+docs/
 
 # Tool caches
 .mypy_cache/
