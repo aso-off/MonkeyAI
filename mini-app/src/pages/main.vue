@@ -973,13 +973,22 @@ async function loadChatHistory(forceScroll = false) {
       await api.bootstrapDialog();
     store.setDialogId(dialog_id);
     if (streamingBotIdx.value === -1) {
+      // Measure the REAL distance from bottom BEFORE swapping content. A background
+      // refresh (e.g. first connection_ack after WS connect) must not yank a user who
+      // deliberately scrolled up even slightly — the 150px isNearBottom flag is too
+      // lenient for that. Only re-pin to bottom on the initial load (forceScroll) or
+      // when the user is genuinely pinned to the bottom (< 8px).
+      const elBefore = chatContent.value;
+      const wasAtBottom = elBefore
+        ? elBefore.scrollHeight - elBefore.scrollTop - elBefore.clientHeight < 8
+        : true;
       applyChatHistory(dialogMessagesToChat(messages ?? []));
       cursorIdx.value = next_before_index;
       hasMoreToLoad.value = next_before_index > 0;
       await nextTick();
       const el = chatContent.value;
       if (el) {
-        if (isNearBottom.value) {
+        if (forceScroll || wasAtBottom) {
           showScrollBtn.value = false;
           suppressScrollEvents = true;
           requestAnimationFrame(() => {
@@ -988,7 +997,7 @@ async function loadChatHistory(forceScroll = false) {
             setTimeout(() => onChatScroll(), 0);
           });
         } else {
-          // User scrolled up while API was loading — preserve their position.
+          // User scrolled up — preserve their position.
           setTimeout(() => onChatScroll(), 0);
         }
       }
