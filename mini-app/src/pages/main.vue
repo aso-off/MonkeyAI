@@ -559,7 +559,7 @@ import {
 } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { retrieveLaunchParams } from "@tma.js/sdk-vue";
+import { retrieveLaunchParams, viewport } from "@tma.js/sdk-vue";
 import { api, wsClient, BASE_URL } from "@/services/api";
 import {
   useUserStore,
@@ -1531,6 +1531,8 @@ function copyToClipboard(text: string, index: number) {
 const emptyCardImage = ref("");
 
 let footerResizeObs: ResizeObserver | null = null;
+/** Unsubscribe callbacks for Telegram viewport signal subscriptions. */
+const viewportUnsub: Array<() => void> = [];
 
 // iOS: touch-triggered tooltip — briefly shows tooltip on tap, then removes it
 let tipActiveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1592,6 +1594,17 @@ onMounted(async () => {
     updateFooterHeight();
     footerResizeObs = new ResizeObserver(updateFooterHeight);
     footerResizeObs.observe(footerEl);
+
+    // The ResizeObserver only fires when the footer ELEMENT resizes. The launch gap is
+    // caused by the Telegram viewport / bottom safe-area settling AFTER mount, which does
+    // not resize the footer — so the layout used to fix itself only "over time". Recompute
+    // as soon as the stable height or bottom inset actually changes.
+    try {
+      viewportUnsub.push(viewport.stableHeight.sub(updateFooterHeight));
+      viewportUnsub.push(viewport.safeAreaInsetBottom.sub(updateFooterHeight));
+    } catch {
+      // Non-TMA / desktop mock env — viewport signals unavailable; ignore.
+    }
   }
 
   document.addEventListener("click", handleDocumentClick);
@@ -1893,6 +1906,8 @@ onBeforeUnmount(() => {
   if (copyTimeout) clearTimeout(copyTimeout);
   if (smoothScrollWatchdog !== null) clearTimeout(smoothScrollWatchdog);
   footerResizeObs?.disconnect();
+  for (const unsub of viewportUnsub) unsub();
+  viewportUnsub.length = 0;
   // Remove type handlers so they don't fire after the component is gone.
   for (const type of [
     "user_message",
