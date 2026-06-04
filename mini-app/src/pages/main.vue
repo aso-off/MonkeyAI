@@ -958,20 +958,24 @@ async function loadChatHistory(forceScroll = false) {
       applyChatHistory(dialogMessagesToChat(messages ?? []));
       cursorIdx.value = next_before_index;
       hasMoreToLoad.value = next_before_index > 0;
-      // Always go to bottom after API refresh — position saving removed.
-      // The ResizeObserver fix ensures no 10px jump from footer height changes.
+      // Scroll to bottom only if the user hasn't already scrolled away while the API was loading.
+      // This prevents the UI from jumping the user back to bottom when they scrolled up
+      // during the initial bootstrapDialog fetch (which can take 1-3 seconds).
       await nextTick();
       const el = chatContent.value;
       if (el) {
-        showScrollBtn.value = false;
-        isNearBottom.value = true;
-        suppressScrollEvents = true;
-        requestAnimationFrame(() => {
-          el.scrollTop = el.scrollHeight;
-          suppressScrollEvents = false;
-          // Recalculate button state after programmatic scroll
+        if (isNearBottom.value) {
+          showScrollBtn.value = false;
+          suppressScrollEvents = true;
+          requestAnimationFrame(() => {
+            el.scrollTop = el.scrollHeight;
+            suppressScrollEvents = false;
+            setTimeout(() => onChatScroll(), 0);
+          });
+        } else {
+          // User scrolled up while API was loading — preserve their position.
           setTimeout(() => onChatScroll(), 0);
-        });
+        }
       }
     }
   } catch (e: unknown) {
