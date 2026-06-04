@@ -608,6 +608,14 @@ const initialLoadDone = ref(false);
 let isLoadingHistory = false;
 let copyTimeout: ReturnType<typeof setTimeout> | null = null;
 let suppressScrollEvents = false;
+/**
+ * True while the scroll-to-bottom button is animating a programmatic smooth scroll.
+ * While active, onChatScroll keeps the button hidden so intermediate frames of a long
+ * smooth scroll can't toggle it back on (the flicker bug).
+ */
+let smoothScrollActive = false;
+/** Watchdog timer that drives the smooth-scroll completion check. */
+let smoothScrollWatchdog: ReturnType<typeof setTimeout> | null = null;
 
 /** True when the chat scroll is near the bottom (< 150px). Auto-scroll is only done here. */
 const isNearBottom = ref(true);
@@ -851,22 +859,72 @@ function jumpToBottomSilent() {
   suppressScrollEvents = false;
 }
 
-/** Smooth scroll to bottom — used by the scroll-to-bottom button. */
+/** Finish a programmatic smooth scroll: stop the watchdog and recompute button state. */
+function endSmoothScroll() {
+  if (smoothScrollWatchdog !== null) {
+    clearTimeout(smoothScrollWatchdog);
+    smoothScrollWatchdog = null;
+  }
+  smoothScrollActive = false;
+  // Recompute final button/isNearBottom state from the real DOM position.
+  onChatScroll();
+}
+
+/**
+ * Smooth scroll to bottom — used by the scroll-to-bottom button.
+ *
+ * Instead of a fixed 600 ms timer (which fires mid-animation on long scrolls and makes
+ * the button flicker back on), we keep the button hidden via smoothScrollActive and poll
+ * until the scroll genuinely reaches the bottom, settles, the user grabs it, or we time out.
+ */
 function scrollToBottomSmooth() {
+  const el = chatContent.value;
+  if (!el) return;
   showScrollBtn.value = false;
   isNearBottom.value = true;
-  suppressScrollEvents = true;
-  const el = chatContent.value;
-  if (!el) {
-    suppressScrollEvents = false;
-    return;
+
+  // Restart cleanly if a previous smooth scroll was still in flight.
+  if (smoothScrollWatchdog !== null) {
+    clearTimeout(smoothScrollWatchdog);
+    smoothScrollWatchdog = null;
   }
+  smoothScrollActive = true;
   el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  // Keep button hidden during smooth scroll, then recalculate state when done
-  setTimeout(() => {
-    suppressScrollEvents = false;
-    onChatScroll();
-  }, 600);
+
+  const startedAt = Date.now();
+  let lastDist = Number.POSITIVE_INFINITY;
+  let stable = 0;
+  const poll = () => {
+    const node = chatContent.value;
+    if (!node) {
+      smoothScrollActive = false;
+      smoothScrollWatchdog = null;
+      return;
+    }
+    const dist = node.scrollHeight - node.scrollTop - node.clientHeight;
+    // Reached the bottom, or safety timeout — done.
+    if (dist < 4 || Date.now() - startedAt > 3000) {
+      endSmoothScroll();
+      return;
+    }
+    // Moving AWAY from the bottom → the user grabbed the scroll. Respect them.
+    if (dist > lastDist + 8) {
+      endSmoothScroll();
+      return;
+    }
+    // Position stopped changing but isn't exactly at the bottom (spacer/rounding) — settled.
+    if (Math.abs(dist - lastDist) < 2) {
+      if (++stable >= 3) {
+        endSmoothScroll();
+        return;
+      }
+    } else {
+      stable = 0;
+    }
+    lastDist = dist;
+    smoothScrollWatchdog = setTimeout(poll, 100);
+  };
+  smoothScrollWatchdog = setTimeout(poll, 100);
 }
 
 /** Scroll to bottom only when the user is already near the bottom. */
@@ -881,7 +939,14 @@ function onChatScroll() {
   if (!el) return;
   const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
   isNearBottom.value = distFromBottom < 150;
-  showScrollBtn.value = distFromBottom > 100;
+  // While a programmatic smooth scroll is animating, keep the button hidden — don't let
+  // intermediate frames toggle it back on (flicker fix). It's finalised in endSmoothScroll.
+  if (!smoothScrollActive) {
+    // Hysteresis: separate show (>120) and hide (<60) thresholds stop the button from
+    // jittering on/off when the scroll position hovers around a single boundary.
+    if (distFromBottom > 120) showScrollBtn.value = true;
+    else if (distFromBottom < 60) showScrollBtn.value = false;
+  }
   // Record the user's real position so we can restore it on return from Settings.
   savedScrollTop = el.scrollTop;
 }
@@ -1826,6 +1891,7 @@ onBeforeUnmount(() => {
   if (tipActiveTimer) clearTimeout(tipActiveTimer);
   document.body.style.overflow = "auto";
   if (copyTimeout) clearTimeout(copyTimeout);
+  if (smoothScrollWatchdog !== null) clearTimeout(smoothScrollWatchdog);
   footerResizeObs?.disconnect();
   // Remove type handlers so they don't fire after the component is gone.
   for (const type of [
