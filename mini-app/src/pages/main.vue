@@ -500,6 +500,8 @@
             ref="editableDiv"
             @input="onInput"
             @paste.prevent="onPaste"
+            @focus="onKeyboardTransition"
+            @blur="onKeyboardTransition"
           ></div>
           <span
             v-if="messageText.trim() === ''"
@@ -616,6 +618,13 @@ let suppressScrollEvents = false;
 let smoothScrollActive = false;
 /** Watchdog timer that drives the smooth-scroll completion check. */
 let smoothScrollWatchdog: ReturnType<typeof setTimeout> | null = null;
+/**
+ * True during the ~400 ms keyboard open/close animation. Suppresses the scroll-button
+ * show path in onChatScroll: when the keyboard opens the chat container shrinks, making
+ * distFromBottom spike > 120 even though the user is still at the bottom.
+ */
+let keyboardTransition = false;
+let keyboardTransitionTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** True when the chat scroll is near the bottom (< 150px). Auto-scroll is only done here. */
 const isNearBottom = ref(true);
@@ -941,7 +950,7 @@ function onChatScroll() {
   isNearBottom.value = distFromBottom < 150;
   // While a programmatic smooth scroll is animating, keep the button hidden — don't let
   // intermediate frames toggle it back on (flicker fix). It's finalised in endSmoothScroll.
-  if (!smoothScrollActive) {
+  if (!smoothScrollActive && !keyboardTransition) {
     // Hysteresis: separate show (>120) and hide (<60) thresholds stop the button from
     // jittering on/off when the scroll position hovers around a single boundary.
     if (distFromBottom > 120) showScrollBtn.value = true;
@@ -1583,8 +1592,37 @@ function recomposeScrollLayer() {
 
 /** Run the recompose once the resume/expand settles (twice: next frame + short delay). */
 function scheduleRecompose() {
+  // Treat the resume as a keyboard transition too: if the keyboard was open when the app
+  // was docked, clientHeight is still small on reopen and distFromBottom spikes > 120.
+  onKeyboardTransition();
   requestAnimationFrame(recomposeScrollLayer);
   setTimeout(recomposeScrollLayer, 250);
+}
+
+/**
+ * Called when the soft keyboard opens (input focused) or closes (input blurred).
+ * Suppresses the scroll-button show path for the duration of the keyboard animation
+ * (~400 ms), then re-evaluates state from the settled DOM so the button only appears
+ * when the user has genuinely scrolled up — not because clientHeight shrank.
+ * If the user was already at the bottom, re-pins there after the keyboard settles.
+ */
+function onKeyboardTransition() {
+  if (keyboardTransitionTimer !== null) clearTimeout(keyboardTransitionTimer);
+  keyboardTransition = true;
+  keyboardTransitionTimer = setTimeout(() => {
+    keyboardTransition = false;
+    keyboardTransitionTimer = null;
+    const el = chatContent.value;
+    if (!el) return;
+    if (isNearBottom.value) {
+      suppressScrollEvents = true;
+      el.scrollTop = el.scrollHeight;
+      suppressScrollEvents = false;
+      showScrollBtn.value = false;
+    } else {
+      onChatScroll();
+    }
+  }, 400);
 }
 
 /** OS-level background→foreground (belt-and-suspenders alongside the viewport-expand hook). */
@@ -1959,6 +1997,7 @@ onBeforeUnmount(() => {
   document.body.style.overflow = "auto";
   if (copyTimeout) clearTimeout(copyTimeout);
   if (smoothScrollWatchdog !== null) clearTimeout(smoothScrollWatchdog);
+  if (keyboardTransitionTimer !== null) clearTimeout(keyboardTransitionTimer);
   footerResizeObs?.disconnect();
   for (const unsub of viewportUnsub) unsub();
   viewportUnsub.length = 0;
