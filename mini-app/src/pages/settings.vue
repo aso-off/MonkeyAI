@@ -1,5 +1,5 @@
 <template>
-  <div id="root">
+  <div id="root" ref="rootEl">
     <div
       class="wrapper"
       style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); transition: padding 100ms;"
@@ -193,7 +193,7 @@
 
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, onActivated, onDeactivated, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { openLink, openTelegramLink } from '@tma.js/sdk-vue';
@@ -211,6 +211,19 @@ import privacySvg from '@/components/img/privacy.svg';
 import termsSvg from '@/components/img/terms.svg';
 
 defineOptions({ name: 'SettingsPage' });
+
+const rootEl = ref<HTMLElement | null>(null);
+let savedScroll = 0;
+
+onDeactivated(() => {
+  savedScroll = rootEl.value?.scrollTop ?? 0;
+});
+
+onActivated(() => {
+  nextTick(() => {
+    if (rootEl.value) rootEl.value.scrollTop = savedScroll;
+  });
+});
 
 const appVersion = ref('');
 const appAuthor = ref('');
