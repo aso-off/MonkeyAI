@@ -68,7 +68,7 @@ jobs:
           git add configs/version.yml mini-app/public/version.json \
                   pyproject.toml mini-app/package.json mini-app/package-lock.json
           git diff --staged --quiet || \
-            git commit -m "chore: release v${{ steps.meta.outputs.version }} [skip ci]"
+            git commit -m "release v${{ steps.meta.outputs.version }}"
           git push origin HEAD:main
 
   build:

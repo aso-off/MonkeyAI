@@ -268,7 +268,7 @@ const openChannel = () => {
 };
 
 const openReleases = () => {
-  openLink('https://github.com/aso-off/MonkeyAI');
+  openLink('https://github.com/aso-off/MonkeyAI/releases/');
 };
 
 const openAuthor = () => {
