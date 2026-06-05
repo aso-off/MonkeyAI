@@ -155,9 +155,8 @@
                   <div class="settings__container-title-text">{{ $t('version') }}</div>
                 </div>
                 <div class="settings__container-text-value">
-                  <span class="settings__version-skeleton" style="position:relative">
-                    <span class="settings__current-val" style="position:absolute;right:0;top:50%;transform:translateY(-50%);white-space:nowrap">{{ appVersion }}</span>
-                  </span>
+                  <span v-if="appVersion !== ''" class="settings__current-val">{{ appVersion }}</span>
+                  <span v-else class="settings__version-skeleton"></span>
                   <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -174,9 +173,8 @@
                   <div class="settings__container-title-text">{{ $t('author') }}</div>
                 </div>
                 <div class="settings__container-text-value">
-                  <span class="settings__version-skeleton" style="position:relative">
-                    <span class="settings__current-val" style="position:absolute;right:0;top:50%;transform:translateY(-50%);white-space:nowrap">{{ appAuthor }}</span>
-                  </span>
+                  <span v-if="appAuthor !== ''" class="settings__current-val">{{ appAuthor }}</span>
+                  <span v-else class="settings__version-skeleton"></span>
                   <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -214,7 +212,7 @@ import termsSvg from '@/components/img/terms.svg';
 
 defineOptions({ name: 'SettingsPage' });
 
-const appVersion = ref('...');
+const appVersion = ref('');
 const appAuthor = ref('');
 
 onMounted(async () => {
@@ -316,13 +314,15 @@ body.dark .settings-chevron {
   font-size: 17px;
   color: var(--icons-storke-color);
   white-space: nowrap;
+  min-width: 5em;
+  text-align: right;
 }
 
 .settings__version-skeleton {
   display: inline-block;
-  width: 8em;
+  width: 5em;
   height: 1.5em;
-  border-radius: 8px;
+  border-radius: 6px;
   background-color: #6b6f7438;
   vertical-align: middle;
 }
