@@ -4,19 +4,19 @@
 .gitignore
 .gitattributes
 
-# CI/CD (не нужно в образах)
+# CI/CD
 .github/
 
-# Mini-App (деплоится через GitHub Pages, не Docker)
+# Mini-App
 mini-app/
 
-# Infrastructure configs (монтируются как volume, не копируются в образ)
+# Infrastructure configs
 configs/
 
 # Monitoring / deployment configs
 deployment/
 
-# Secrets (CRITICAL: никогда не должны попасть в build context)
+# Secrets
 .env
 .env.*
 secrets.env
