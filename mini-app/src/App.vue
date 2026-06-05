@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useBackButton } from '@/composables/useBackButton';
 import { useTheme } from '@/composables/useTheme';
 import { useUserStore } from '@/store/user';
@@ -15,7 +15,6 @@ useTheme();
 const router = useRouter();
 
 onMounted(() => {
-  settingsButton.show.ifAvailable();
   settingsButton.onClick.ifAvailable(() => {
     router.push('/settings');
   });
@@ -23,6 +22,15 @@ onMounted(() => {
 
 const store = useUserStore();
 const { t } = useI18n();
+
+watch(
+  () => store.user?.is_whitelisted,
+  (whitelisted) => {
+    if (whitelisted) settingsButton.show.ifAvailable();
+    else settingsButton.hide.ifAvailable();
+  },
+  { immediate: true },
+);
 
 const showLoading = ref(true);
 
