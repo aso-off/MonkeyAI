@@ -56,6 +56,12 @@ class Settings(BaseSettings):
     n_chat_modes_per_page: int = 5
     enable_message_streaming: bool = True
     enable_content_moderation: bool = True
+    dialog_context_limit: int = 20
+    message_max_length: int = 4096
+    draft_throttle_seconds: float = 0.4
+    busy_lock_ttl_seconds: int = 300
+    api_request_timeout_seconds: float = 120.0
+    throttle_rate_ms: int = 1000
     openai_api_base: str | None = None
     return_n_generated_images: int = 1
     image_size: str = "1024x1024"
@@ -100,6 +106,12 @@ class Settings(BaseSettings):
         self.n_chat_modes_per_page       = cfg.get("n_chat_modes_per_page", self.n_chat_modes_per_page)
         self.enable_message_streaming    = cfg.get("enable_message_streaming", self.enable_message_streaming)
         self.enable_content_moderation   = cfg.get("enable_content_moderation", self.enable_content_moderation)
+        self.dialog_context_limit        = cfg.get("dialog_context_limit", self.dialog_context_limit)
+        self.message_max_length          = cfg.get("message_max_length", self.message_max_length)
+        self.draft_throttle_seconds      = cfg.get("draft_throttle_seconds", self.draft_throttle_seconds)
+        self.busy_lock_ttl_seconds       = cfg.get("busy_lock_ttl_seconds", self.busy_lock_ttl_seconds)
+        self.api_request_timeout_seconds = cfg.get("api_request_timeout_seconds", self.api_request_timeout_seconds)
+        self.throttle_rate_ms            = cfg.get("throttle_rate_ms", self.throttle_rate_ms)
         self.openai_api_base             = cfg.get("openai_api_base") or None
         self.return_n_generated_images   = cfg.get("return_n_generated_images", self.return_n_generated_images)
         self.image_size                  = cfg.get("image_size", self.image_size)

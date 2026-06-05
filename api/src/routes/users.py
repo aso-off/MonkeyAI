@@ -235,6 +235,14 @@ async def update_user(
     # sees the bot's change right away (not a stale cached value).
     await _redis_sync_webapp_prefs(user_id, updates)
 
+    if "is_whitelisted" in updates:
+        from services import whitelist
+
+        if updates["is_whitelisted"]:
+            await whitelist.add(user_id)
+        else:
+            await whitelist.remove(user_id)
+
     await _db_update_user(user_id, **updates)
 
     logger.debug("User %d updated: %s", user_id, list(updates.keys()))
