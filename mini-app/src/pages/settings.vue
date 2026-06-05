@@ -1,5 +1,5 @@
 <template>
-  <div id="root" ref="rootEl">
+  <div id="root" ref="rootEl" @scroll="onRootScroll">
     <div
       class="wrapper"
       style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); transition: padding 100ms;"
@@ -193,7 +193,7 @@
 
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onActivated, onDeactivated, nextTick } from 'vue';
+import { computed, ref, onMounted, onActivated, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { openLink, openTelegramLink } from '@tma.js/sdk-vue';
@@ -213,15 +213,22 @@ import termsSvg from '@/components/img/terms.svg';
 defineOptions({ name: 'SettingsPage' });
 
 const rootEl = ref<HTMLElement | null>(null);
+// Captured live on every scroll — NOT in onDeactivated, because KeepAlive detaches
+// the DOM and resets scrollTop to 0 before onDeactivated runs (same as MainPage).
 let savedScroll = 0;
 
-onDeactivated(() => {
-  savedScroll = rootEl.value?.scrollTop ?? 0;
-});
+function onRootScroll() {
+  if (rootEl.value) savedScroll = rootEl.value.scrollTop;
+}
 
 onActivated(() => {
+  const target = savedScroll;
   nextTick(() => {
-    if (rootEl.value) rootEl.value.scrollTop = savedScroll;
+    if (rootEl.value) rootEl.value.scrollTop = target;
+    // Re-apply after reattach paint: KeepAlive can reset scrollTop to 0 post-restore.
+    requestAnimationFrame(() => {
+      if (rootEl.value) rootEl.value.scrollTop = target;
+    });
   });
 });
 
