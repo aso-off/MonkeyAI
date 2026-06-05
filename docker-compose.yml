@@ -209,6 +209,9 @@ services:
     build:
       context: .
       dockerfile: bot/Dockerfile
+      args:
+        VERSION: ${APP_VERSION:-dev}
+        BUILD_TIME: ${BUILD_TIME:-}
     container_name: monkey_bot
     depends_on:
       redis:
@@ -217,10 +220,10 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - secrets.env
     environment:
       - TZ=Europe/Kaliningrad
       - API_URL=http://api:8000
-      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
       - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
       - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME_BOT:-Monkey AI Bot}
       - NEW_RELIC_HOST=${NEW_RELIC_HOST:-collector.newrelic.com}
@@ -247,6 +250,9 @@ services:
     build:
       context: .
       dockerfile: api/Dockerfile
+      args:
+        VERSION: ${APP_VERSION:-dev}
+        BUILD_TIME: ${BUILD_TIME:-}
     container_name: monkey_api
     ports:
       - "127.0.0.1:8000:8000"
@@ -257,10 +263,10 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - secrets.env
     environment:
       - TZ=Europe/Kaliningrad
       - PYTHONPATH=/app/src
-      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
       - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
       - NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME_API:-Monkey AI API}
       - NEW_RELIC_HOST=${NEW_RELIC_HOST:-collector.newrelic.com}
