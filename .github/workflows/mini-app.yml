@@ -31,7 +31,7 @@ jobs:
 
       - name: Generate public/version.json
         run: |
-          printf '{"version":"%s","buildTime":"%s"}\n' \
+          printf '{"version":"%s","buildTime":"%s","author":"aso_off"}\n' \
             "${{ steps.meta.outputs.version }}" \
             "${{ steps.meta.outputs.build_time }}" \
             > public/version.json
