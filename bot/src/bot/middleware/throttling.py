@@ -10,12 +10,10 @@ from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_RATE_MS = 1000  # 1 message per second per user
-
 
 class ThrottlingMiddleware(BaseMiddleware):
-    def __init__(self, rate_ms: int = _RATE_MS) -> None:
-        self.rate_ms = rate_ms
+    def __init__(self, rate_ms: int | None = None) -> None:
+        self.rate_ms = rate_ms or settings.throttle_rate_ms
         if settings.redis_password:
             pwd = settings.redis_password.get_secret_value()
             url = f"redis://:{pwd}@{settings.redis_host}:{settings.redis_port}/1"

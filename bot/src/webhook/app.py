@@ -31,6 +31,11 @@ async def lifespan(app: FastAPI):
     )
     logger.info(f"Webhook set: {settings.webhook_url}")
 
+    me = await bot.get_me()
+    from src.bot.routers.chat import set_bot_meta
+
+    set_bot_meta(me.username, me.id)
+
     redis = dp.storage.redis
     await redis.set(REDIS_KEY_START_TIME, str(time.time()))
     await redis.set(REDIS_KEY_ALIVE, "1", ex=ALIVE_TTL)

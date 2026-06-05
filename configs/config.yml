@@ -1,12 +1,20 @@
 # Доступ
 whitelist_mode: true
+busy_lock_ttl_seconds: 300  # анти-дубль
 
 # Диалог
 n_chat_modes_per_page: 5
+dialog_context_limit: 20  # контекст
 
 # Стриминг и модерация
 enable_message_streaming: true
 enable_content_moderation: true
+draft_throttle_seconds: 0.4  # троттлинг
+message_max_length: 4096  # лимит TG
+
+# Сеть
+api_request_timeout_seconds: 120  # таймаут API
+throttle_rate_ms: 1000  # троттл
 
 # OpenAI
 openai_api_base: null
