@@ -195,7 +195,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onActivated, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { openLink, openTelegramLink } from '@tma.js/sdk-vue';
 import { useUserStore } from '@/store/user';
 // Импорт изображений
@@ -220,6 +220,12 @@ let savedScroll = 0;
 function onRootScroll() {
   if (rootEl.value) savedScroll = rootEl.value.scrollTop;
 }
+
+// Reset scroll when leaving to chat; preserve it when going into a sub-page.
+const SETTINGS_SUB_ROUTES = new Set(['language', 'theme', 'privacy', 'terms']);
+onBeforeRouteLeave((to) => {
+  if (!SETTINGS_SUB_ROUTES.has(to.name as string)) savedScroll = 0;
+});
 
 onActivated(() => {
   const target = savedScroll;
