@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to deploy (e.g. 1.5.3). Leave empty for "dev".'
+        description: 'Version override (e.g. 2.5.1), empty = dev'
         required: false
         default: 'dev'
 

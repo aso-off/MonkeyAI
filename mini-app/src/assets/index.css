@@ -2230,6 +2230,11 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   flex-shrink: 0;
 }
 
+.settings__wrapper .settings__container .settings__container-buttons .settings__container-button .settings__container-icon img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
 .settings__wrapper .settings__container .settings__container-buttons .settings__container-button .settings__container-icon svg {
   width: 23px;
   height: 23px

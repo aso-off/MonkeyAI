@@ -259,7 +259,7 @@
             </div>
             <div style="width: 112px; height: 112px">
               <!-- Здесь показ случайной обезьянки -->
-              <img :src="emptyCardImage" alt="Пустой чат" />
+              <img :src="emptyCardImage" alt="Пустой чат" draggable="false" class="empty-card-img" />
             </div>
           </div>
         </template>
@@ -500,6 +500,8 @@
             ref="editableDiv"
             @input="onInput"
             @paste.prevent="onPaste"
+            @dragover.prevent
+            @drop.prevent
           ></div>
           <span
             v-if="messageText.trim() === ''"
@@ -2203,5 +2205,10 @@ body:not(.dark) .scroll-to-bottom-btn:hover {
    Visibility keeps layout metrics intact, unlike display:none. */
 .chat-content--restoring {
   visibility: hidden;
+}
+
+.empty-card-img {
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
 </style>
