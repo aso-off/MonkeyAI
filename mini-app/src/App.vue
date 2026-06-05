@@ -65,7 +65,7 @@ function onLoadingDone() {
     <!-- Normal flow (user must be loaded to prevent null-access in child routes) -->
     <!-- KeepAlive keeps MainPage alive during navigation so chat/generation state is preserved -->
     <RouterView v-else-if="store.user" v-slot="{ Component }">
-      <KeepAlive include="MainPage">
+      <KeepAlive include="MainPage,SettingsPage">
         <component :is="Component" />
       </KeepAlive>
     </RouterView>
