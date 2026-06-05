@@ -55,6 +55,7 @@ data/
 api/images/
 *.txt
 docs/
+major-minor-patch.png
 
 # Tool caches
 .mypy_cache/
