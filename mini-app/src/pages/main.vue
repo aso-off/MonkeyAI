@@ -1044,9 +1044,12 @@ async function loadChatHistory(forceScroll = false) {
       // lenient for that. Only re-pin to bottom on the initial load (forceScroll) or
       // when the user is genuinely pinned to the bottom (< 8px).
       const elBefore = chatContent.value;
-      const wasAtBottom = elBefore
+      // scrollHeight/clientHeight are 0 on a KeepAlive-detached element — treat as "not at bottom"
+      // to avoid spuriously scrolling the user down when they return from Settings.
+      const attached = elBefore && elBefore.scrollHeight > 0;
+      const wasAtBottom = attached
         ? elBefore.scrollHeight - elBefore.scrollTop - elBefore.clientHeight < 8
-        : true;
+        : false;
       applyChatHistory(dialogMessagesToChat(messages ?? []));
       cursorIdx.value = next_before_index;
       hasMoreToLoad.value = next_before_index > 0;
@@ -1936,7 +1939,15 @@ onActivated(() => {
     // Re-apply after reattach paint: KeepAlive can reset scrollTop to 0 post-restore.
     requestAnimationFrame(() => {
       restore();
-      onChatScroll();
+      // Recalculate scroll state directly — onChatScroll's hysteresis would leave
+      // showScrollBtn=false (set by onDeactivated) when restoring into the 60–120px zone.
+      const el = chatContent.value;
+      if (el) {
+        const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+        isNearBottom.value = dist < 150;
+        showScrollBtn.value = dist > 60;
+        savedScrollTop = el.scrollTop;
+      }
       isReturningFromSettings.value = false;
     });
   });
@@ -1949,6 +1960,12 @@ onDeactivated(() => {
   // Hide cached scroll button before KeepAlive stores the inactive DOM snapshot.
   showScrollBtn.value = false;
   isReturningFromSettings.value = true;
+  // Cancel any in-flight smooth scroll so onChatScroll correctly updates the button on return.
+  if (smoothScrollWatchdog !== null) {
+    clearTimeout(smoothScrollWatchdog);
+    smoothScrollWatchdog = null;
+  }
+  smoothScrollActive = false;
 });
 
 onBeforeUnmount(() => {
