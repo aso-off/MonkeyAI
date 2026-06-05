@@ -1,12 +1,12 @@
 import asyncio
 import base64
 import logging
+import time
 from io import BytesIO
 
 import httpx
 from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.types import BufferedInputFile, Message
 
@@ -25,6 +25,7 @@ user_tasks: dict[int, asyncio.Task] = {}
 
 _VISION_MODELS = {"gpt-4o", "gpt-5-nano", "gpt-5-mini"}
 _PARSE_MODE_MAP = {"html": "HTML", "markdown": "Markdown", "markdown_v2": "MarkdownV2"}
+_DRAFT_THROTTLE_SECONDS = 0.4
 
 # Cached bot meta (username / id) — populated on first group message
 _bot_username: str | None = None
@@ -235,6 +236,7 @@ async def generate_image(
 
     await monkey.send(bot, message.chat.id, "happy")
 
+
 async def _handle_text_or_vision(
     message: Message,
     bot: Bot,
@@ -281,29 +283,22 @@ async def _handle_text_or_vision(
     n_first_removed = 0
     answer = ""
     is_flagged = False
-    streaming_msg = None
 
     try:
         if settings.enable_message_streaming:
-            # SSE stream from API
+            # sendMessageDraft streams an ephemeral animated preview; restricted to private chats by Telegram.
             is_private = message.chat.type == ChatType.PRIVATE
-            streaming_msg = None
-            prev_edit_len = 0
-
-            if is_private:
-                # If a processing sticker is already shown, do not send the ⏳ emoji
-                if not monkey._processing.get(message.chat.id):
-                    try:
-                        streaming_msg = await message.answer(
-                            '<tg-emoji emoji-id="5841359499146825803">⏳</tg-emoji>',
-                            parse_mode="HTML"
-                        )
-                    except Exception as exc:
-                        logger.debug("Could not send streaming placeholder (user %d): %s", user_id, exc)
+            draft_id = message.message_id
+            last_draft = 0.0
 
             async for chunk in api.chat_stream(
-                user_id=user_id, dialog_id=dialog_id, message=text, dialog_messages=dialog_messages,
-                chat_mode=chat_mode, model=current_model, image_b64=image_b64,
+                user_id=user_id,
+                dialog_id=dialog_id,
+                message=text,
+                dialog_messages=dialog_messages,
+                chat_mode=chat_mode,
+                model=current_model,
+                image_b64=image_b64,
             ):
                 if chunk.is_flagged:
                     is_flagged = True
@@ -313,30 +308,27 @@ async def _handle_text_or_vision(
                 n_output_tokens = chunk.n_output_tokens
                 n_first_removed = chunk.n_first_removed
 
-                if chunk.status == "not_finished":
-                    if streaming_msg is None and is_private and answer.strip():
+                if chunk.status == "not_finished" and is_private and answer.strip():
+                    now = time.monotonic()
+                    if now - last_draft >= _DRAFT_THROTTLE_SECONDS:
                         try:
-                            streaming_msg = await message.answer(answer)
-                            prev_edit_len = len(answer)
+                            await bot.send_message_draft(
+                                chat_id=message.chat.id,
+                                draft_id=draft_id,
+                                text=answer[:4096],
+                            )
+                            last_draft = now
                         except Exception as exc:
-                            logger.debug("Could not send initial streaming message (user %d): %s", user_id, exc)
-                    elif streaming_msg is not None:
-                        if abs(len(answer) - prev_edit_len) >= 50:
-                            try:
-                                await bot.edit_message_text(
-                                    chat_id=message.chat.id,
-                                    message_id=streaming_msg.message_id,
-                                    text=answer,
-                                )
-                                prev_edit_len = len(answer)
-                            except Exception as exc:
-                                logger.debug("edit_message_text stream error (user %d): %s", user_id, exc)
+                            logger.debug("send_message_draft stream error (user %d): %s", user_id, exc)
         else:
-            # Non-streaming
-            streaming_msg = None
             result = await api.chat_complete(
-                user_id=user_id, dialog_id=dialog_id, message=text, dialog_messages=dialog_messages,
-                chat_mode=chat_mode, model=current_model, image_b64=image_b64,
+                user_id=user_id,
+                dialog_id=dialog_id,
+                message=text,
+                dialog_messages=dialog_messages,
+                chat_mode=chat_mode,
+                model=current_model,
+                image_b64=image_b64,
             )
             is_flagged = result.is_flagged
             answer = result.answer
@@ -356,58 +348,17 @@ async def _handle_text_or_vision(
         else:
             final_text = final_raw
 
-        if streaming_msg is not None:
-            try:
-                await bot.edit_message_text(
-                    chat_id=message.chat.id,
-                    message_id=streaming_msg.message_id,
-                    text=final_text,
-                    parse_mode=parse_mode,
-                )
-            except TelegramBadRequest as e:
-                if "message is not modified" in str(e):
-                    pass
-                else:
-                    try:
-                        await bot.edit_message_text(
-                            chat_id=message.chat.id,
-                            message_id=streaming_msg.message_id,
-                            text=final_raw,
-                        )
-                    except TelegramBadRequest as e2:
-                        if "message is not modified" not in str(e2):
-                            try:
-                                await bot.delete_message(message.chat.id, streaming_msg.message_id)
-                            except Exception:
-                                pass
-                            await message.answer(final_raw)
-            except Exception:
-                try:
-                    await bot.delete_message(message.chat.id, streaming_msg.message_id)
-                except Exception:
-                    pass
-                await message.answer(final_raw)
-        else:
-            try:
-                await message.answer(final_text, parse_mode=parse_mode)
-            except Exception:
-                await message.answer(final_raw, parse_mode=None)
+        # Persist the final message; this also replaces the ephemeral streamed draft.
+        try:
+            await message.answer(final_text, parse_mode=parse_mode)
+        except Exception:
+            await message.answer(final_raw, parse_mode=None)
 
     except asyncio.CancelledError:
-        if streaming_msg is not None:
-            try:
-                await bot.delete_message(message.chat.id, streaming_msg.message_id)
-            except Exception:
-                pass
         await monkey.send(bot, message.chat.id, "sad")
         raise
 
     except Exception as exc:
-        if streaming_msg is not None:
-            try:
-                await bot.delete_message(message.chat.id, streaming_msg.message_id)
-            except Exception:
-                pass
         await monkey.send(bot, message.chat.id, "error")
         await message.answer(t("error_message", language).format(exc), parse_mode="HTML")
         logger.error("Message handle error for user %d: %s", user_id, exc, exc_info=True)
@@ -438,7 +389,12 @@ async def _run_handle(
         user_tasks[user_id] = asyncio.current_task()
         try:
             await _handle_text_or_vision(
-                message, bot, language, user_id, text, image_buffer,
+                message,
+                bot,
+                language,
+                user_id,
+                text,
+                image_buffer,
             )
         except asyncio.CancelledError:
             await message.answer(t("operation_cancelled", language), parse_mode="HTML")
@@ -448,6 +404,7 @@ async def _run_handle(
             sem_obj = user_semaphores.get(user_id)
             if sem_obj is not None and not sem_obj._waiters:  # type: ignore[attr-defined]
                 user_semaphores.pop(user_id, None)
+
 
 @router.message(F.text & ~F.text.startswith("/"), StateFilter(None))
 async def msg_text(message: Message, language: str, bot: Bot) -> None:
