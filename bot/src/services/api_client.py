@@ -105,7 +105,7 @@ def get_client() -> httpx.AsyncClient:
         _client = httpx.AsyncClient(
             base_url=_API_URL,
             headers={"Authorization": f"Bearer {_SERVICE_TOKEN}"},
-            timeout=120.0,
+            timeout=settings.api_request_timeout_seconds,
         )
     return _client
 

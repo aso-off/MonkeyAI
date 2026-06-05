@@ -34,6 +34,14 @@ class AuthMiddleware(BaseMiddleware):
         if user is None:
             return await handler(event, data)
 
+        # отказ чужим до похода в БД
+        if settings.whitelist_mode:
+            cached = await auth_state.is_allowed_cached(user.id)
+            allowed = cached if cached is not None else auth_state.is_allowed(user.id)
+            if not allowed:
+                logger.debug("Access denied: user_id=%d username=@%s", user.id, user.username)
+                return None
+
         try:
             db_user = await api.get_or_create_user(
                 user_id=user.id,
@@ -48,17 +56,4 @@ class AuthMiddleware(BaseMiddleware):
             db_user = None
 
         data["db_user"] = db_user
-
-        is_admin = (db_user is not None and db_user.is_admin) or auth_state.is_admin(user.id)
-        if is_admin:
-            return await handler(event, data)
-
-        if not settings.whitelist_mode:
-            return await handler(event, data)
-
-        is_allowed = (db_user is not None and db_user.is_whitelisted) or auth_state.is_allowed(user.id)
-        if is_allowed:
-            return await handler(event, data)
-
-        logger.debug("Access denied: user_id=%d username=@%s", user.id, user.username)
-        return None
+        return await handler(event, data)

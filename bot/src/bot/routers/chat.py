@@ -9,6 +9,7 @@ from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
 from aiogram.types import BufferedInputFile, Message
+from redis.asyncio import Redis
 
 from src.core.config import settings
 from src.services import api_client as api
@@ -19,17 +20,22 @@ from src.utils.stickers import monkey
 logger = logging.getLogger(__name__)
 router = Router()
 
-# Per-user concurrency control
-user_semaphores: dict[int, asyncio.Semaphore] = {}
+# отмена — только в своём воркере
 user_tasks: dict[int, asyncio.Task] = {}
 
-_VISION_MODELS = {"gpt-4o", "gpt-5-nano", "gpt-5-mini"}
-_PARSE_MODE_MAP = {"html": "HTML", "markdown": "Markdown", "markdown_v2": "MarkdownV2"}
-_DRAFT_THROTTLE_SECONDS = 0.4
+# распределённый лок «занят»
+_BUSY_LOCK_PREFIX = "chat:busy:"
 
-# Cached bot meta (username / id) — populated on first group message
+_PARSE_MODE_MAP = {"html": "HTML", "markdown": "Markdown", "markdown_v2": "MarkdownV2"}
+
 _bot_username: str | None = None
 _bot_id: int | None = None
+
+
+def set_bot_meta(username: str | None, bot_id: int | None) -> None:
+    global _bot_username, _bot_id
+    _bot_username = username
+    _bot_id = bot_id
 
 
 async def _get_bot_meta(bot: Bot) -> tuple[str | None, int | None]:
@@ -41,14 +47,14 @@ async def _get_bot_meta(bot: Bot) -> tuple[str | None, int | None]:
     return _bot_username, _bot_id
 
 
-def _get_semaphore(user_id: int) -> asyncio.Semaphore:
-    if user_id not in user_semaphores:
-        user_semaphores[user_id] = asyncio.Semaphore(1)
-    return user_semaphores[user_id]
+def _redis() -> Redis:
+    from src.core.bot import dp
+
+    return dp.storage.redis
 
 
 async def _is_busy(user_id: int, message: Message, language: str) -> bool:
-    if _get_semaphore(user_id).locked():
+    if await _redis().exists(f"{_BUSY_LOCK_PREFIX}{user_id}"):
         await message.reply(t("wait_for_previous", language), parse_mode="HTML")
         return True
     return False
@@ -68,13 +74,6 @@ async def _is_bot_mentioned(message: Message, bot: Bot) -> bool:
     except Exception:
         return True
     return False
-
-
-def _mode_name(chat_mode: str, lang: str) -> str:
-    template = settings.chat_modes.get(chat_mode, {}).get("name", chat_mode)
-    if isinstance(template, str) and template.startswith("{") and template.endswith("}"):
-        return t(template.strip("{}"), lang)
-    return template or chat_mode
 
 
 def _last_user_text_from_dialog_entry(user_msg) -> str:
@@ -223,8 +222,7 @@ async def generate_image(
         await bot.send_chat_action(message.chat.id, "upload_photo")
         await message.answer_photo(BufferedInputFile(img_buf.read(), filename="image.png"))
 
-    # Persist prompt so /retry can regenerate (artist mode does not use /chat/complete).
-    # Use ImgBB URL if available so the image appears in the gallery alongside mini-app images.
+    # чтобы работал /retry; ImgBB-URL — для галереи
     saved_url = next((u for u in imgbb_urls if u), "[generated_image]")
     try:
         ensure = await api.ensure_dialog(user_id)
@@ -245,7 +243,6 @@ async def _handle_text_or_vision(
     text: str,
     image_buffer: BytesIO | None = None,
 ) -> None:
-    # Parallel: fetch user (Redis cache) and ensure dialog + load messages simultaneously.
     user, ensure_result = await asyncio.gather(
         api.get_user(user_id),
         api.ensure_dialog(user_id),
@@ -258,8 +255,7 @@ async def _handle_text_or_vision(
         chat_mode = "assistant"
     current_model = user.current_model
     dialog_id = ensure_result.dialog_id
-    # Limit context to last 20 messages to prevent token overflow
-    dialog_messages = ensure_result.messages[-20:]
+    dialog_messages = ensure_result.messages[-settings.dialog_context_limit :]
 
     if chat_mode == "artist":
         await generate_image(message, bot, language, user_id, text)
@@ -286,7 +282,7 @@ async def _handle_text_or_vision(
 
     try:
         if settings.enable_message_streaming:
-            # sendMessageDraft streams an ephemeral animated preview; restricted to private chats by Telegram.
+            # черновик только в ЛС
             is_private = message.chat.type == ChatType.PRIVATE
             draft_id = message.message_id
             last_draft = 0.0
@@ -310,12 +306,12 @@ async def _handle_text_or_vision(
 
                 if chunk.status == "not_finished" and is_private and answer.strip():
                     now = time.monotonic()
-                    if now - last_draft >= _DRAFT_THROTTLE_SECONDS:
+                    if now - last_draft >= settings.draft_throttle_seconds:
                         try:
                             await bot.send_message_draft(
                                 chat_id=message.chat.id,
                                 draft_id=draft_id,
-                                text=answer[:4096],
+                                text=answer[: settings.message_max_length],
                             )
                             last_draft = now
                         except Exception as exc:
@@ -339,7 +335,7 @@ async def _handle_text_or_vision(
             await message.answer(t("content_moderation_failed", language), parse_mode="HTML")
             return
 
-        answer = answer[:4096]
+        answer = answer[: settings.message_max_length]
         final_raw = answer.strip()
         if parse_mode == "MarkdownV2":
             final_text = convert_to_markdownv2(final_raw)
@@ -348,7 +344,7 @@ async def _handle_text_or_vision(
         else:
             final_text = final_raw
 
-        # Persist the final message; this also replaces the ephemeral streamed draft.
+        # финал заменяет черновик
         try:
             await message.answer(final_text, parse_mode=parse_mode)
         except Exception:
@@ -383,27 +379,29 @@ async def _run_handle(
     text: str,
     image_buffer: BytesIO | None = None,
 ) -> None:
-    """Acquire per-user semaphore, store task ref, run core handler."""
-    sem = _get_semaphore(user_id)
-    async with sem:
-        user_tasks[user_id] = asyncio.current_task()
-        try:
-            await _handle_text_or_vision(
-                message,
-                bot,
-                language,
-                user_id,
-                text,
-                image_buffer,
-            )
-        except asyncio.CancelledError:
-            await message.answer(t("operation_cancelled", language), parse_mode="HTML")
-        finally:
-            user_tasks.pop(user_id, None)
-            # Удаляем семафор если никто больше не ждёт на нём — иначе dict растёт вечно
-            sem_obj = user_semaphores.get(user_id)
-            if sem_obj is not None and not sem_obj._waiters:  # type: ignore[attr-defined]
-                user_semaphores.pop(user_id, None)
+    """Acquire the distributed busy lock, store task ref, run core handler."""
+    lock_key = f"{_BUSY_LOCK_PREFIX}{user_id}"
+    # TTL — страховка от зависания
+    acquired = await _redis().set(lock_key, "1", nx=True, ex=settings.busy_lock_ttl_seconds)
+    if not acquired:
+        await message.reply(t("wait_for_previous", language), parse_mode="HTML")
+        return
+
+    user_tasks[user_id] = asyncio.current_task()
+    try:
+        await _handle_text_or_vision(
+            message,
+            bot,
+            language,
+            user_id,
+            text,
+            image_buffer,
+        )
+    except asyncio.CancelledError:
+        await message.answer(t("operation_cancelled", language), parse_mode="HTML")
+    finally:
+        user_tasks.pop(user_id, None)
+        await _redis().delete(lock_key)
 
 
 @router.message(F.text & ~F.text.startswith("/"), StateFilter(None))

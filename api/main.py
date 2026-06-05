@@ -98,8 +98,10 @@ async def lifespan(app: FastAPI):
     from db.db import Session
     from db.repositories.users import sync_auth_from_yaml
     from core.config import settings as s
+    from services import whitelist
     async with Session() as session:
         await sync_auth_from_yaml(session, admin_ids=s.admin_ids, allowed_ids=s.allowed_user_ids)
+    await whitelist.rebuild(set(s.admin_ids) | set(s.allowed_user_ids))
     logger.info("Auth flags synced from user-ids.yml")
 
     yield

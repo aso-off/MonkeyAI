@@ -12,6 +12,7 @@ import asyncio
 import base64
 import json
 import logging
+from datetime import datetime, timezone
 from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -20,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.redis import get_redis
 from core.security import verify_webapp_init_data
+from services import whitelist
 from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
@@ -118,7 +120,16 @@ async def _require_user(session: AsyncSession, user_id: int):
 
 
 async def _require_whitelisted(session: AsyncSession, user_id: int):
-    """Get user and raise 403 if not whitelisted."""
+    """Raise 403 if not whitelisted. Общий Redis-сет первым, БД-флаг — fallback."""
+    cached = await whitelist.is_allowed(user_id)
+    if cached is False:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access restricted — account not whitelisted",
+        )
+    if cached is True:
+        return None
+
     user = await _require_user(session, user_id)
     if not user.is_whitelisted:
         raise HTTPException(
@@ -126,6 +137,31 @@ async def _require_whitelisted(session: AsyncSession, user_id: int):
             detail="Access restricted — account not whitelisted",
         )
     return user
+
+
+def _unwhitelisted_profile(tg: dict) -> UserRead:
+    """Синтетический профиль для не-whitelist — без записи в БД; фронт покажет «Доступ ограничен»."""
+    now = datetime.now(timezone.utc)
+    return UserRead(
+        id=tg["id"],
+        chat_id=tg["id"],
+        username=tg.get("username"),
+        first_name=tg.get("first_name", ""),
+        last_name=tg.get("last_name"),
+        language=tg.get("language_code", "system"),
+        is_admin=False,
+        is_whitelisted=False,
+        first_seen=now,
+        last_interaction=now,
+        current_dialog_id=None,
+        current_chat_mode="assistant",
+        mini_app_chat_mode="mini_app_assistant",
+        current_model="",
+        theme="system",
+        n_used_tokens={},
+        n_generated_images=0,
+        n_transcribed_seconds=0.0,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -229,6 +265,10 @@ async def get_me(
     consistency with changes made via PATCH /me.
     """
     tg = _extract_tg_user(init_data)
+
+    # не-whitelist отсекаем до БД: синтетический профиль, без записи
+    if await whitelist.is_allowed(tg["id"]) is False:
+        return _unwhitelisted_profile(tg)
 
     user, created = await user_repo.get_or_create_user(
         session,
