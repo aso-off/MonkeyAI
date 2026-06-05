@@ -2,9 +2,8 @@ name: Mini App CI/CD
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "mini-app/**"
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 concurrency:
   group: mini-app-deploy-${{ github.ref }}
@@ -20,6 +19,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Extract version and build time
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
+        working-directory: .
+
+      - name: Generate public/version.json
+        run: |
+          printf '{"version":"%s","buildTime":"%s"}\n' \
+            "${{ steps.meta.outputs.version }}" \
+            "${{ steps.meta.outputs.build_time }}" \
+            > public/version.json
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -50,6 +65,6 @@ jobs:
           git checkout -B main
 
           git add .
-          git commit -m "Deploy: ${{ github.event.head_commit.message }}"
+          git commit -m "Deploy: v${{ steps.meta.outputs.version }}"
 
           git push -f https://${{ secrets.PAGES_TOKEN }}@github.com/aso-off/mini-app.git main

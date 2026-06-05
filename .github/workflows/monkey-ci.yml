@@ -1,13 +1,17 @@
-name: Monkey Backend CI
+name: Backend CI
 
 on:
   push:
     branches: [main]
     paths-ignore:
       - "mini-app/**"
+      - "configs/version.yml"
+      - "mini-app/public/version.json"
   pull_request:
     paths-ignore:
       - "mini-app/**"
+      - "configs/version.yml"
+      - "mini-app/public/version.json"
 
 concurrency:
   group: ci-${{ github.ref }}
