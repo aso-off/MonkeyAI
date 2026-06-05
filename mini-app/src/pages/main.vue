@@ -1615,6 +1615,13 @@ onMounted(async () => {
   const footerEl = document.querySelector("footer");
   if (footerEl) {
     const updateFooterHeight = () => {
+      // While MainPage is KeepAlive-deactivated (Settings open) the footer is detached.
+      // getBoundingClientRect() then returns 0, which would set --footer-height: 0px,
+      // collapse the .chat-end-spacer and shrink scrollHeight by ~footer-height. On return
+      // the browser clamps the restored scrollTop to the (now lower) bottom — yanking the
+      // user down and hiding the scroll button when they were within ~spacer-height of the
+      // bottom. Skip the measurement until the footer is reattached.
+      if (!footerEl.isConnected) return;
       const el = chatContent.value;
       // Check proximity to bottom BEFORE layout changes
       const atBottom = el
