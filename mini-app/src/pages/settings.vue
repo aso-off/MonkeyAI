@@ -155,7 +155,8 @@
                   <div class="settings__container-title-text">{{ $t('version') }}</div>
                 </div>
                 <div class="settings__container-text-value">
-                  <span class="settings__current-val">{{ appVersion }}</span>
+                  <span v-if="appVersion !== '...'" class="settings__current-val">{{ appVersion }}</span>
+                  <span v-else class="settings__version-skeleton"></span>
                   <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -213,6 +214,7 @@ defineOptions({ name: 'SettingsPage' });
 const appVersion = ref('...');
 
 onMounted(async () => {
+  return; // TEST: keep skeleton visible — remove this line when done
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}version.json`);
     const data: { version: string; buildTime: string } = await res.json();
@@ -309,5 +311,14 @@ body.dark .settings-chevron {
   font-size: 17px;
   color: var(--icons-storke-color);
   white-space: nowrap;
+}
+
+.settings__version-skeleton {
+  display: inline-block;
+  width: 4.5em;
+  height: 0.85em;
+  border-radius: 4px;
+  background-color: var(--second-bg-color);
+  vertical-align: middle;
 }
 </style>
