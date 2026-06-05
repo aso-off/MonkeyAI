@@ -1,20 +1,36 @@
-FROM python:3.11-slim
+# ---- Stage 1: builder ----
+# Compiles all Python C extensions into .venv using build tools
+FROM python:3.11-slim AS builder
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src \
-    UV_COMPILE_BYTECODE=1
+ENV UV_COMPILE_BYTECODE=1
 
-# System dependencies:
-#   build-essential — C extensions (cryptography)
-#   libffi-dev      — cryptography, asyncssh
-#   libssl-dev      — asyncssh, cryptography
-#   ffmpeg          — voice message processing
-#   tzdata          — TZ env variable support
-#   docker.io       — Docker CLI for container management via socket
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libffi-dev \
     libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --extra bot --no-install-project
+
+# ---- Stage 2: runtime ----
+# Only the compiled .venv + source; no build tools, no headers
+FROM python:3.11-slim AS runtime
+
+ARG VERSION=dev
+ARG BUILD_TIME=unknown
+
+LABEL org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.created="${BUILD_TIME}" \
+      org.opencontainers.image.description="Monkey AI Telegram Bot"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libffi8 \
     ffmpeg \
     tzdata \
     docker.io \
@@ -22,19 +38,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=builder /app/.venv /app/.venv
 
-# Install Python dependencies (separate layer for caching)
-COPY pyproject.toml uv.lock pytest.ini ./
-ENV PATH="/app/.venv/bin:$PATH"
-RUN uv sync --frozen --extra bot --group dev --no-install-project
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    PATH="/app/.venv/bin:$PATH"
 
-# Copy source code
 COPY bot/src/ ./src/
 COPY bot/main.py ./
-COPY bot/tests/ ./tests/
 COPY bot/newrelic.ini ./newrelic.ini
 
 EXPOSE 5000
 
-CMD ["newrelic-admin", "run-program", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000", "--workers", "1"]
+CMD ["newrelic-admin", "run-program", "uvicorn", "main:app", \
+     "--host", "0.0.0.0", "--port", "5000", "--workers", "1"]

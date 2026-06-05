@@ -155,7 +155,7 @@
                   <div class="settings__container-title-text">{{ $t('version') }}</div>
                 </div>
                 <div class="settings__container-text-value">
-                  <span class="settings__current-val">2.4.0</span>
+                  <span class="settings__current-val">{{ appVersion }}</span>
                   <svg class="settings-chevron" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 8L14 12L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -191,7 +191,7 @@
 
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { openLink, openTelegramLink } from '@tma.js/sdk-vue';
@@ -209,6 +209,18 @@ import privacySvg from '@/components/img/privacy.svg';
 import termsSvg from '@/components/img/terms.svg';
 
 defineOptions({ name: 'SettingsPage' });
+
+const appVersion = ref('...');
+
+onMounted(async () => {
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}version.json`);
+    const data: { version: string; buildTime: string } = await res.json();
+    appVersion.value = data.version;
+  } catch {
+    appVersion.value = 'dev';
+  }
+});
 
 const store = useUserStore();
 const { t } = useI18n();

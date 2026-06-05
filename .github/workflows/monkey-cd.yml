@@ -1,19 +1,78 @@
-name: Monkey Backend CD
+name: Backend CD
 
 on:
-  workflow_run:
-    workflows: ["Monkey Backend CI"]
-    branches: [main]
-    types: [completed]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g. 1.5.3). Leave empty for "dev".'
+        required: false
+        default: 'dev'
+
+permissions:
+  contents: write
 
 concurrency:
   group: deploy
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      build_time: ${{ steps.meta.outputs.build_time }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version and build time
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
+
+      - name: Update version files
+        if: steps.meta.outputs.version != 'dev'
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          BUILD_TIME="${{ steps.meta.outputs.build_time }}"
+
+          CREATION_DATE=$(python3 -c "import yaml; print(yaml.safe_load(open('configs/version.yml')).get('creation_date','2025-02-01'))")
+          printf 'version: "%s"\ncreation_date: "%s"\nbuild_time: "%s"\n' \
+            "$VERSION" "$CREATION_DATE" "$BUILD_TIME" > configs/version.yml
+
+          printf '{"version":"%s","buildTime":"%s"}\n' "$VERSION" "$BUILD_TIME" \
+            > mini-app/public/version.json
+
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+
+          (cd mini-app && npm version "$VERSION" --no-git-tag-version)
+
+      - name: Commit and push version files
+        if: steps.meta.outputs.version != 'dev'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add configs/version.yml mini-app/public/version.json \
+                  pyproject.toml mini-app/package.json mini-app/package-lock.json
+          git diff --staged --quiet || \
+            git commit -m "chore: release v${{ steps.meta.outputs.version }} [skip ci]"
+          git push origin HEAD:main
+
   build:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    needs: prepare
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -46,7 +105,10 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ needs.prepare.outputs.version }}
+          build-args: |
+            VERSION=${{ needs.prepare.outputs.version }}
+            BUILD_TIME=${{ needs.prepare.outputs.build_time }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
 
@@ -91,8 +153,8 @@ jobs:
 
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker compose restart cloudflared
+            docker compose --env-file .env --env-file secrets.env pull
+            docker compose --env-file .env --env-file secrets.env up -d --remove-orphans
+            docker compose --env-file .env --env-file secrets.env restart cloudflared
 
             docker system prune -af

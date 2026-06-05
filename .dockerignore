@@ -4,10 +4,29 @@
 .gitignore
 .gitattributes
 
-# Mini App
-node_modules
-dist
-npm-debug.log
+# CI/CD (не нужно в образах)
+.github/
+
+# Mini-App (деплоится через GitHub Pages, не Docker)
+mini-app/
+
+# Infrastructure configs (монтируются как volume, не копируются в образ)
+configs/
+
+# Monitoring / deployment configs
+deployment/
+
+# Secrets (CRITICAL: никогда не должны попасть в build context)
+.env
+.env.*
+secrets.env
+!.env.example
+!secrets.env.example
+
+# Docker files
+docker-compose.yml
+docker-compose*.yml
+*.override.yml
 
 # Python cache
 __pycache__/
@@ -59,6 +78,7 @@ htmlcov/
 # Tool caches
 .mypy_cache/
 .ruff_cache/
+.claudeignore
 
 # Temp / backup
 *.bak
