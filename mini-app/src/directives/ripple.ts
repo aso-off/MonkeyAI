@@ -10,14 +10,11 @@ interface RippleEl extends HTMLElement {
   _rippleTimers?: Map<number, ReturnType<typeof setTimeout>>
 }
 
-function spawnWave(wrapper: HTMLSpanElement, x: number, y: number, radius: number): void {
+function spawnWave(wrapper: HTMLSpanElement, x: number, y: number): void {
   const wave = document.createElement('span')
   wave.className = 'tg-ripple__wave'
-  const size = radius * 2
-  wave.style.width = `${size}px`
-  wave.style.height = `${size}px`
-  wave.style.left = `${x - radius}px`
-  wave.style.top = `${y - radius}px`
+  wave.style.left = `${x}px`
+  wave.style.top = `${y}px`
   wave.addEventListener('animationend', () => wave.remove())
   wrapper.appendChild(wave)
 }
@@ -37,16 +34,10 @@ export const ripple: Directive<RippleEl> = {
       const rect = el.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-      const radius = Math.max(
-        Math.hypot(x, y),
-        Math.hypot(rect.width - x, y),
-        Math.hypot(x, rect.height - y),
-        Math.hypot(rect.width - x, rect.height - y),
-      )
       timers.set(
         e.pointerId,
         setTimeout(() => {
-          spawnWave(wrapper, x, y, radius)
+          spawnWave(wrapper, x, y)
           timers.delete(e.pointerId)
         }, RIPPLE_DELAY),
       )
