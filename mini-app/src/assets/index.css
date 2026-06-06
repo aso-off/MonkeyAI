@@ -2353,33 +2353,6 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   white-space: nowrap;
 }
 
-.user-id__toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 28px);
-  transform: translateX(-50%);
-  z-index: 2000;
-  padding: 10px 16px;
-  font-size: 14px;
-  white-space: nowrap;
-  color: #fff;
-  background-color: var(--notification-bgc-color, rgba(0, 0, 0, 0.8));
-  border-radius: 12px;
-  pointer-events: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.user-id-toast-enter-active,
-.user-id-toast-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.user-id-toast-enter-from,
-.user-id-toast-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 8px);
-}
-
 .tg-ripple {
   position: absolute;
   top: 0;
