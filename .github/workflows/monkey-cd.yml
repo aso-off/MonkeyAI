@@ -53,7 +53,7 @@ jobs:
           printf 'version: "%s"\ncreation_date: "%s"\nbuild_time: "%s"\n' \
             "$VERSION" "$CREATION_DATE" "$BUILD_TIME" > configs/version.yml
 
-          printf '{"version":"%s","buildTime":"%s","author":"aso_off"}\n' "$VERSION" "$BUILD_TIME" \
+          printf '{"version":"%s","buildTime":"%s"}\n' "$VERSION" "$BUILD_TIME" \
             > mini-app/public/version.json
 
           sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
