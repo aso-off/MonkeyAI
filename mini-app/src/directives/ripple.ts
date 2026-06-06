@@ -2,7 +2,7 @@ import type { Directive } from 'vue'
 
 const WAVE_BASE = 20
 const EXPAND_DURATION = 200
-const FADE_DURATION = 1000
+const FADE_DURATION = 2000
 const RELEASE_RATE = 2
 // запас, чтобы волна перекрывала края кнопки без зазоров
 const RADIUS_BUFFER = 12
