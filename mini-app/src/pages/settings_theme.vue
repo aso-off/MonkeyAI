@@ -89,7 +89,7 @@ function updateTheme(theme: string): void {
 }
 
 .settingschange-select-button:active {
-  background-color: var(--third-bg-color);
+  background-color: transparent;
 }
 
 .settingschange-select-button.saving {
