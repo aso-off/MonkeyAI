@@ -198,7 +198,7 @@
 
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onActivated, onUnmounted, nextTick } from 'vue';
+import { computed, ref, onActivated, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { openLink, openTelegramLink, hapticFeedback } from '@tma.js/sdk-vue';
@@ -244,20 +244,8 @@ onActivated(() => {
   });
 });
 
-const appVersion = ref('');
-const appAuthor = ref('');
-
-onMounted(async () => {
-  try {
-    const res = await fetch(`${import.meta.env.BASE_URL}version.json`);
-    const data: { version: string; buildTime: string; author?: string } = await res.json();
-    appVersion.value = data.version;
-    appAuthor.value = data.author ? `@${data.author}` : APP_AUTHOR;
-  } catch {
-    appVersion.value = 'dev';
-    appAuthor.value = APP_AUTHOR;
-  }
-});
+const appVersion = ref(__APP_VERSION__);
+const appAuthor = ref(APP_AUTHOR);
 
 const store = useUserStore();
 const { t } = useI18n();
