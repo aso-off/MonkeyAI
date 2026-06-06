@@ -9,6 +9,7 @@
           <div class="settingschange-title">{{ $t('theme') }}</div>
           <div class="settingschange-select">
             <span
+              v-ripple
               class="settingschange-select-button"
               :class="{ active: currentTheme === 'system' }"
               @click="updateTheme('system')"
@@ -21,6 +22,7 @@
             </span>
             <div class="settingschange-divider"></div>
             <span
+              v-ripple
               class="settingschange-select-button"
               :class="{ active: currentTheme === 'dark' }"
               @click="updateTheme('dark')"
@@ -33,6 +35,7 @@
             </span>
             <div class="settingschange-divider"></div>
             <span
+              v-ripple
               class="settingschange-select-button"
               :class="{ active: currentTheme === 'light' }"
               @click="updateTheme('light')"

@@ -8,6 +8,7 @@
           <div class="settingschange-select">
             <!-- Auto: follow Telegram language -->
             <span
+              v-ripple
               class="settingschange-select-button"
               :class="{ active: selectedLang === 'system' }"
               @click="updateLanguage('system')"
@@ -23,6 +24,7 @@
             <template v-for="lang in LANGUAGES" :key="lang.code">
               <div class="settingschange-divider"></div>
               <span
+                v-ripple
                 class="settingschange-select-button"
                 :class="{ active: selectedLang === lang.code }"
                 @click="updateLanguage(lang.code)"

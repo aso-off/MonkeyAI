@@ -10,6 +10,7 @@ import EnvUnsupported from './components/EnvUnsupported.vue';
 import router from './router';
 import { errorHandler } from './errorHandler';
 import { init } from './init';
+import { ripple } from './directives/ripple';
 
 // Import locales
 import en from './locales/en.json';
@@ -86,6 +87,7 @@ async function main() {
     app.use(pinia);
     app.use(router);
     app.use(i18n);
+    app.directive('ripple', ripple);
 
     app.mount('#app');
   } catch {
