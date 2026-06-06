@@ -2390,12 +2390,15 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
 
 .tg-ripple__wave {
   position: absolute;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--tg-ripple-color);
   transform: scale(0);
   opacity: 0;
   pointer-events: none;
-  animation: tg-ripple-rise 0.5s ease-out;
+  will-change: transform, opacity;
+  animation: tg-ripple-rise 0.5s ease-out forwards;
 }
 
 @keyframes tg-ripple-rise {
@@ -2407,7 +2410,7 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
     opacity: 1;
   }
   100% {
-    transform: scale(1);
+    transform: scale(var(--tg-ripple-scale, 8));
     opacity: 0;
   }
 }
