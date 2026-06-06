@@ -2161,7 +2161,10 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   flex-direction: column;
   width: 100%;
   gap: 18px;
-  padding: 24px 16px
+  padding: 8px 16px 24px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .settings__wrapper .settings__container {
@@ -2386,25 +2389,17 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
 
 .tg-ripple__wave {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  margin: -12px 0;
   border-radius: 50%;
   background: var(--tg-ripple-color);
-  opacity: 0;
-  animation: tg-ripple-rise 0.3s cubic-bezier(0.3, 0.3, 0.5, 1);
+  transform: scale(0);
+  opacity: 1;
+  pointer-events: none;
+  animation: tg-ripple-rise 0.45s ease-out;
 }
 
 @keyframes tg-ripple-rise {
-  0% {
+  to {
     transform: scale(1);
-    opacity: 1;
-  }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    transform: scale(8);
     opacity: 0;
   }
 }
@@ -2413,7 +2408,10 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 8px 16px
+  padding: 8px 16px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .settingschange-wrapper .settingschange-container {
@@ -2569,7 +2567,7 @@ body.dark {
   --premium-bgc-selector: #3D3D3F;
   --notification-bgc-color: #2A2A2A;
   --tg-ripple-color: rgba(255, 255, 255, .10);
-  --tg-code-color: #8774e1;
+  --tg-code-color: #83a8d4;
   --tg-code-bg: rgba(0, 0, 0, .5);
   --tg-code-bg-active: rgba(0, 0, 0, .65);
   --premium-header-border-gradient: linear-gradient(93deg, rgba(63, 142, 252, .75) 0%, rgba(38, 105, 229, .75) 25%, rgba(112, 179, 255, .75) 50%, rgba(38, 103, 255, .75) 75%, rgba(30, 136, 229, .75) 100%);
