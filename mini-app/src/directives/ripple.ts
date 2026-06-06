@@ -1,8 +1,10 @@
 import type { Directive } from 'vue'
 
 const WAVE_BASE = 20
-const HOLD_DURATION = 400
+const HOLD_DURATION = 800
 const RELEASE_RATE = 2
+// запас, чтобы волна перекрывала края кнопки без зазоров
+const RADIUS_BUFFER = 12
 
 interface RippleEl extends HTMLElement {
   _rippleWrapper?: HTMLSpanElement
@@ -51,12 +53,13 @@ export const ripple: Directive<RippleEl> = {
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
       // радиус до самого дальнего угла — волна накрывает всю кнопку из любой точки
-      const radius = Math.max(
-        Math.hypot(x, y),
-        Math.hypot(rect.width - x, y),
-        Math.hypot(x, rect.height - y),
-        Math.hypot(rect.width - x, rect.height - y),
-      )
+      const radius =
+        Math.max(
+          Math.hypot(x, y),
+          Math.hypot(rect.width - x, y),
+          Math.hypot(x, rect.height - y),
+          Math.hypot(rect.width - x, rect.height - y),
+        ) + RADIUS_BUFFER
       spawnWave(wrapper, x, y, (radius * 2) / WAVE_BASE, anims)
     }
 
