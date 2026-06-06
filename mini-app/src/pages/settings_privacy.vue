@@ -8,7 +8,7 @@
             <div class="legal-section-heading">{{ $t('page_in_development') }}</div>
             <div class="legal-section-body">
               {{ $t('page_in_development_desc') }}
-              <span class="legal-support-link" @click="openSupport">@MonkeyAI_Support</span>
+              <span class="legal-support-link" @click="openSupport">{{ SUPPORT_HANDLE }}</span>
             </div>
           </div>
         </div>
@@ -19,11 +19,12 @@
 
 <script setup lang="ts">
 import { openTelegramLink } from '@tma.js/sdk-vue';
+import { APP_LINKS, SUPPORT_HANDLE } from '@/config/app';
 
 defineOptions({ name: 'SettingsPrivacy' });
 
 function openSupport() {
-  openTelegramLink('https://t.me/MonkeyAI_Support');
+  openTelegramLink(APP_LINKS.support);
 }
 </script>
 

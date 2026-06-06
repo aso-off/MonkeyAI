@@ -194,11 +194,6 @@
     <div id="veepn-guard-alert"></div>
     <div id="veepn-breach-alert"></div>
   </div>
-  <Teleport to="body">
-    <Transition name="user-id-toast">
-      <div v-if="idCopied" class="user-id__toast">{{ $t('tooltip_copied') }}</div>
-    </Transition>
-  </Teleport>
 </template>
 
 
@@ -208,6 +203,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { openLink, openTelegramLink, hapticFeedback } from '@tma.js/sdk-vue';
 import { useUserStore } from '@/store/user';
+import { APP_LINKS, APP_AUTHOR } from '@/config/app';
 // Импорт изображений
 import profileSvg from '@/components/img/profile.svg';
 import languageSvg from '@/components/img/language.svg';
@@ -256,10 +252,10 @@ onMounted(async () => {
     const res = await fetch(`${import.meta.env.BASE_URL}version.json`);
     const data: { version: string; buildTime: string; author?: string } = await res.json();
     appVersion.value = data.version;
-    appAuthor.value = data.author ? `@${data.author}` : '@aso_off';
+    appAuthor.value = data.author ? `@${data.author}` : APP_AUTHOR;
   } catch {
     appVersion.value = 'dev';
-    appAuthor.value = '@aso_off';
+    appAuthor.value = APP_AUTHOR;
   }
 });
 
@@ -338,25 +334,24 @@ onUnmounted(() => {
 
 // Шеринг через openTelegramLink — открывает t.me-ссылки внутри Telegram
 const shareApp = () => {
-  const botLink = 'https://t.me/Monkey_GPTbot';
-  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}`;
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_LINKS.bot)}`;
   openTelegramLink(shareUrl);
 };
 
 const openSupport = () => {
-  openTelegramLink('https://t.me/MonkeyAI_Support');
+  openTelegramLink(APP_LINKS.support);
 };
 
 const openChannel = () => {
-  openTelegramLink('https://t.me/telegram');
+  openTelegramLink(APP_LINKS.channel);
 };
 
 const openReleases = () => {
-  openLink('https://github.com/aso-off/MonkeyAI/releases/');
+  openLink(APP_LINKS.repository);
 };
 
 const openAuthor = () => {
-  openTelegramLink('https://t.me/aso_off');
+  openTelegramLink(APP_LINKS.author);
 };
 </script>
 
