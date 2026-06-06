@@ -5,6 +5,7 @@
       style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); transition: padding 100ms;"
     >
       <div class="settings__wrapper">
+        <div class="settings__page-title">{{ $t('settings') }}</div>
         <!-- Первый блок -->
         <div class="settings__container">
           <div class="settings__container-buttons">
@@ -16,7 +17,11 @@
                 <div class="settings__container-text-title">
                   <div class="settings__container-title-text">{{ $t('user_id') }}</div>
                 </div>
-                <div class="settings__container-text-value"> {{ userId }}</div>
+                <div class="settings__container-text-value">
+                  <span class="user-id__plate" :class="{ 'is-copied': idCopied }" @click="copyUserId">
+                    <span class="user-id__digits">{{ userId }}</span>
+                  </span>
+                </div>
               </div>
             </span>
           </div>
@@ -24,7 +29,7 @@
         <!-- Второй блок -->
         <div class="settings__container">
           <div class="settings__container-buttons">
-            <span class="settings__container-button interactive" @click="router.push('/settings/language')">
+            <span v-ripple class="settings__container-button interactive" @click="router.push('/settings/language')">
               <div class="settings__container-icon" style="background-color: rgb(183, 77, 235)">
                 <img :src="languageSvg" alt="Language" />
               </div>
@@ -41,7 +46,7 @@
               </div>
             </span>
             <div class="settings__divider"></div>
-            <span class="settings__container-button interactive" @click="router.push('/settings/theme')">
+            <span v-ripple class="settings__container-button interactive" @click="router.push('/settings/theme')">
               <div class="settings__container-icon" style="background-color: rgb(0, 122, 255)">
                 <img :src="themeSvg" alt="Theme" />
               </div>
@@ -62,7 +67,7 @@
         <!-- Третий блок -->
         <div class="settings__container">
           <div class="settings__container-buttons">
-            <span class="settings__container-button interactive" @click="openSupport">
+            <span v-ripple class="settings__container-button interactive" @click="openSupport">
               <div class="settings__container-icon" style="background-color: rgb(255, 149, 0)">
                 <img :src="helpSvg" alt="Help" />
               </div>
@@ -78,7 +83,7 @@
               </div>
             </span>
             <div class="settings__divider"></div>
-            <span class="settings__container-button interactive" @click="openChannel">
+            <span v-ripple class="settings__container-button interactive" @click="openChannel">
               <div class="settings__container-icon" style="background-color: rgb(60, 179, 113)">
                 <img :src="channelSvg" alt="Channel" />
               </div>
@@ -94,7 +99,7 @@
               </div>
             </span>
             <div class="settings__divider"></div>
-            <span class="settings__container-button interactive" @click="shareApp">
+            <span v-ripple class="settings__container-button interactive" @click="shareApp">
               <div class="settings__container-icon" style="background-color: rgb(30, 144, 255)">
                 <img :src="shareSvg" alt="Share" />
               </div>
@@ -114,7 +119,7 @@
         <!-- Четвёртый блок -->
         <div class="settings__container">
           <div class="settings__container-buttons">
-            <span class="settings__container-button interactive" @click="router.push('/settings/privacy')">
+            <span v-ripple class="settings__container-button interactive" @click="router.push('/settings/privacy')">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
                 <img :src="privacySvg" alt="Privacy" />
               </div>
@@ -130,7 +135,7 @@
               </div>
             </span>
             <div class="settings__divider"></div>
-            <span class="settings__container-button interactive" @click="router.push('/settings/terms')">
+            <span v-ripple class="settings__container-button interactive" @click="router.push('/settings/terms')">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
                 <img :src="termsSvg" alt="Terms" />
               </div>
@@ -146,7 +151,7 @@
               </div>
             </span>
             <div class="settings__divider"></div>
-            <span class="settings__container-button interactive" @click="openReleases">
+            <span v-ripple class="settings__container-button interactive" @click="openReleases">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
                 <img :src="versionSvg" alt="Version" />
               </div>
@@ -164,7 +169,7 @@
               </div>
             </span>
             <div class="settings__divider"></div>
-            <span class="settings__container-button interactive" @click="openAuthor">
+            <span v-ripple class="settings__container-button interactive" @click="openAuthor">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166);">
                 <img :src="autor" alt="Author" />
               </div>
@@ -189,14 +194,19 @@
     <div id="veepn-guard-alert"></div>
     <div id="veepn-breach-alert"></div>
   </div>
+  <Teleport to="body">
+    <Transition name="user-id-toast">
+      <div v-if="idCopied" class="user-id__toast">{{ $t('tooltip_copied') }}</div>
+    </Transition>
+  </Teleport>
 </template>
 
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onActivated, nextTick } from 'vue';
+import { computed, ref, onMounted, onActivated, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
-import { openLink, openTelegramLink } from '@tma.js/sdk-vue';
+import { openLink, openTelegramLink, hapticFeedback } from '@tma.js/sdk-vue';
 import { useUserStore } from '@/store/user';
 // Импорт изображений
 import profileSvg from '@/components/img/profile.svg';
@@ -282,6 +292,49 @@ const currentLangLabel = computed(() => {
 
 // Реальный Telegram user ID из initData
 const userId = computed(() => store.userId ?? '—');
+
+const idCopied = ref(false);
+let copyTimer: ReturnType<typeof setTimeout> | null = null;
+
+function fallbackCopy(text: string): void {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+  } catch {
+    // старый webview без clipboard
+  }
+  ta.remove();
+}
+
+async function copyUserId(): Promise<void> {
+  const id = store.userId;
+  if (id == null) return;
+  const text = String(id);
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      fallbackCopy(text);
+    }
+  } catch {
+    fallbackCopy(text);
+  }
+  hapticFeedback.impactOccurred.ifAvailable('light');
+  idCopied.value = true;
+  if (copyTimer) clearTimeout(copyTimer);
+  copyTimer = setTimeout(() => {
+    idCopied.value = false;
+  }, 1500);
+}
+
+onUnmounted(() => {
+  if (copyTimer) clearTimeout(copyTimer);
+});
 
 // Шеринг через openTelegramLink — открывает t.me-ссылки внутри Telegram
 const shareApp = () => {
