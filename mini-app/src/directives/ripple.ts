@@ -1,13 +1,13 @@
 import type { Directive } from 'vue'
 
 const WAVE_BASE = 20
-const EXPAND_DURATION = 200
-const FADE_DURATION = 2000
+const EXPAND_DURATION = 100
+const FADE_DURATION = 1800
 const RELEASE_RATE = 2
 // запас, чтобы волна перекрывала края кнопки без зазоров
 const RADIUS_BUFFER = 12
 // множитель радиуса — больше круг = площе (ровнее) дуга
-const RADIUS_SCALE = 1.2
+const RADIUS_SCALE = 1
 
 interface WaveHandle {
   wave: HTMLSpanElement
