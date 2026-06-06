@@ -1,40 +1,63 @@
 import type { Directive } from 'vue'
 
 const WAVE_BASE = 20
-const HOLD_DURATION = 800
+const EXPAND_DURATION = 1200
+const FADE_DURATION = 600
 const RELEASE_RATE = 2
 // запас, чтобы волна перекрывала края кнопки без зазоров
 const RADIUS_BUFFER = 12
+
+interface WaveHandle {
+  wave: HTMLSpanElement
+  expand: Animation
+  released: boolean
+}
 
 interface RippleEl extends HTMLElement {
   _rippleWrapper?: HTMLSpanElement
   _rippleDown?: (e: PointerEvent) => void
   _rippleUp?: () => void
-  _rippleAnims?: Set<Animation>
+  _rippleWaves?: Set<WaveHandle>
 }
 
-function spawnWave(wrapper: HTMLSpanElement, x: number, y: number, scale: number, anims: Set<Animation>): void {
+function spawnWave(wrapper: HTMLSpanElement, x: number, y: number, scale: number, waves: Set<WaveHandle>): void {
   const wave = document.createElement('span')
   wave.className = 'tg-ripple__wave'
   wave.style.left = `${x - WAVE_BASE / 2}px`
   wave.style.top = `${y - WAVE_BASE / 2}px`
   wrapper.appendChild(wave)
 
-  const anim = wave.animate(
+  const expand = wave.animate(
     [
-      { transform: 'scale(0)', opacity: 1, offset: 0 },
-      { transform: `scale(${scale})`, opacity: 1, offset: 0.65 },
-      { transform: `scale(${scale})`, opacity: 0, offset: 1 },
+      { transform: 'scale(0)', opacity: 0, offset: 0 },
+      { opacity: 1, offset: 0.25 },
+      { transform: `scale(${scale})`, opacity: 1, offset: 1 },
     ],
-    { duration: HOLD_DURATION, easing: 'ease-out', fill: 'forwards' },
+    { duration: EXPAND_DURATION, easing: 'ease-out', fill: 'forwards' },
   )
-  anims.add(anim)
-  const cleanup = () => {
-    wave.remove()
-    anims.delete(anim)
+  waves.add({ wave, expand, released: false })
+}
+
+function releaseWave(h: WaveHandle, waves: Set<WaveHandle>): void {
+  if (h.released) return
+  h.released = true
+  // быстрый клик — досхлопнуть расширение, затем гасить
+  h.expand.playbackRate = RELEASE_RATE
+
+  const remove = () => {
+    h.wave.remove()
+    waves.delete(h)
   }
-  anim.onfinish = cleanup
-  anim.oncancel = cleanup
+  const fade = () => {
+    const f = h.wave.animate([{ opacity: 1 }, { opacity: 0 }], {
+      duration: FADE_DURATION,
+      easing: 'ease-out',
+      fill: 'forwards',
+    })
+    f.onfinish = remove
+    f.oncancel = remove
+  }
+  h.expand.finished.then(fade).catch(remove)
 }
 
 export const ripple: Directive<RippleEl> = {
@@ -46,7 +69,7 @@ export const ripple: Directive<RippleEl> = {
     wrapper.setAttribute('aria-hidden', 'true')
     el.appendChild(wrapper)
 
-    const anims = new Set<Animation>()
+    const waves = new Set<WaveHandle>()
 
     const onDown = (e: PointerEvent) => {
       const rect = el.getBoundingClientRect()
@@ -60,14 +83,12 @@ export const ripple: Directive<RippleEl> = {
           Math.hypot(x, rect.height - y),
           Math.hypot(rect.width - x, rect.height - y),
         ) + RADIUS_BUFFER
-      spawnWave(wrapper, x, y, (radius * 2) / WAVE_BASE, anims)
+      spawnWave(wrapper, x, y, (radius * 2) / WAVE_BASE, waves)
     }
 
-    // отпускание / клик / уход — доигрываем волну быстрее
+    // отпускание / клик / уход — гасим волну
     const onUp = () => {
-      anims.forEach((a) => {
-        a.playbackRate = RELEASE_RATE
-      })
+      waves.forEach((h) => releaseWave(h, waves))
     }
 
     el.addEventListener('pointerdown', onDown)
@@ -78,7 +99,7 @@ export const ripple: Directive<RippleEl> = {
     el._rippleWrapper = wrapper
     el._rippleDown = onDown
     el._rippleUp = onUp
-    el._rippleAnims = anims
+    el._rippleWaves = waves
   },
 
   unmounted(el) {
@@ -88,7 +109,10 @@ export const ripple: Directive<RippleEl> = {
       el.removeEventListener('pointercancel', el._rippleUp)
       el.removeEventListener('pointerleave', el._rippleUp)
     }
-    el._rippleAnims?.forEach((a) => a.cancel())
+    el._rippleWaves?.forEach((h) => {
+      h.expand.cancel()
+      h.wave.remove()
+    })
     el._rippleWrapper?.remove()
   },
 }
