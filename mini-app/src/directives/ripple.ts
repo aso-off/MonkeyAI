@@ -1,11 +1,13 @@
 import type { Directive } from 'vue'
 
 const WAVE_BASE = 20
-const EXPAND_DURATION = 900
-const FADE_DURATION = 450
+const EXPAND_DURATION = 400
+const FADE_DURATION = 800
 const RELEASE_RATE = 2
 // запас, чтобы волна перекрывала края кнопки без зазоров
 const RADIUS_BUFFER = 12
+// множитель радиуса — больше круг = площе (ровнее) дуга
+const RADIUS_SCALE = 1.5
 
 interface WaveHandle {
   wave: HTMLSpanElement
@@ -62,6 +64,8 @@ function releaseWave(h: WaveHandle, waves: Set<WaveHandle>): void {
 export const ripple: Directive<RippleEl> = {
   mounted(el) {
     if (getComputedStyle(el).position === 'static') el.style.position = 'relative'
+    // отдельный контекст наложения — волна уходит под контент (z-index: -1)
+    el.style.isolation = 'isolate'
 
     const wrapper = document.createElement('span')
     wrapper.className = 'tg-ripple'
@@ -74,14 +78,17 @@ export const ripple: Directive<RippleEl> = {
       const rect = el.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-      // радиус до самого дальнего угла — круг расходится во все стороны и накрывает кнопку
+      // радиус до самого дальнего угла, увеличенный — круг расходится во все стороны,
+      // дуга площе (ровнее) на низкой кнопке
       const radius =
-        Math.max(
+        (Math.max(
           Math.hypot(x, y),
           Math.hypot(rect.width - x, y),
           Math.hypot(x, rect.height - y),
           Math.hypot(rect.width - x, rect.height - y),
-        ) + RADIUS_BUFFER
+        ) +
+          RADIUS_BUFFER) *
+        RADIUS_SCALE
       // новое нажатие гасит предыдущие волны — без стакания
       waves.forEach((h) => releaseWave(h, waves))
       spawnWave(wrapper, x, y, (radius * 2) / WAVE_BASE, waves)

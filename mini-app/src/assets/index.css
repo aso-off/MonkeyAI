@@ -2348,7 +2348,7 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
 .user-id__digits {
   font-family: ui-monospace, "SF Mono", SFMono-Regular, "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 16px;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   color: var(--tg-code-color);
   white-space: nowrap;
 }
@@ -2386,6 +2386,7 @@ body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
   right: 0;
   bottom: 0;
   left: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
