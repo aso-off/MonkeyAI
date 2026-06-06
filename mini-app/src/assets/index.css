@@ -2540,7 +2540,7 @@ body {
   --loading-div-color: #E1E1E1;
   --premium-bgc-selector: #E1E1E1;
   --notification-bgc-color: #5F5F5F;
-  --tg-ripple-color: rgba(0, 0, 0, .14);
+  --tg-ripple-color: rgba(0, 0, 0, .07);
   --tg-code-color: #4a729a;
   --tg-code-bg: rgba(112, 117, 121, .08);
   --tg-code-bg-active: rgba(112, 117, 121, .18);
@@ -2564,7 +2564,7 @@ body.dark {
   --loading-div-color: rgba(44, 44, 45, .9);
   --premium-bgc-selector: #3D3D3F;
   --notification-bgc-color: #2A2A2A;
-  --tg-ripple-color: rgba(255, 255, 255, .18);
+  --tg-ripple-color: rgba(255, 255, 255, .10);
   --tg-code-color: #83a8d4;
   --tg-code-bg: rgba(255, 255, 255, .07);
   --tg-code-bg-active: rgba(255, 255, 255, .13);
