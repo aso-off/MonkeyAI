@@ -2,6 +2,7 @@ import type { Directive } from 'vue'
 
 // задержка — чтобы не было волны при скролле
 const RIPPLE_DELAY = 70
+const WAVE_BASE = 20
 
 interface RippleEl extends HTMLElement {
   _rippleWrapper?: HTMLSpanElement
@@ -13,11 +14,9 @@ interface RippleEl extends HTMLElement {
 function spawnWave(wrapper: HTMLSpanElement, x: number, y: number, radius: number): void {
   const wave = document.createElement('span')
   wave.className = 'tg-ripple__wave'
-  const size = radius * 2
-  wave.style.width = `${size}px`
-  wave.style.height = `${size}px`
-  wave.style.left = `${x - radius}px`
-  wave.style.top = `${y - radius}px`
+  wave.style.left = `${x - WAVE_BASE / 2}px`
+  wave.style.top = `${y - WAVE_BASE / 2}px`
+  wave.style.setProperty('--tg-ripple-scale', String((radius * 2) / WAVE_BASE))
   wave.addEventListener('animationend', () => wave.remove())
   wrapper.appendChild(wave)
 }
