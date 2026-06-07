@@ -7,7 +7,6 @@ from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from src.bot.routers.profile.settings import _settings_keyboard
-from src.core.bot import bot
 from src.utils.localization import t
 
 logger = logging.getLogger(__name__)
@@ -18,6 +17,7 @@ _REQUEST_INTERVAL = 0.2
 
 
 async def _measure_ping_ms() -> float:
+    from src.core.bot import bot  # ленивый импорт — избегает circular import с core.bot
     total = 0.0
     for i in range(_NUM_REQUESTS):
         start = time.perf_counter()

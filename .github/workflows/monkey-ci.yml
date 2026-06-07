@@ -41,3 +41,20 @@ jobs:
 
       - name: Health smoke tests
         run: .venv/bin/python -m pytest -q api/tests/test_api_health.py bot/tests/test_bot_health.py
+
+      - name: Unit tests + coverage
+        run: >-
+          .venv/bin/python -m pytest -q
+          api/tests/unit bot/tests/unit
+          --cov
+          --cov-report=term-missing
+          --cov-report=xml:coverage.xml
+          --cov-fail-under=45
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 14

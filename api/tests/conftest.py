@@ -87,11 +87,12 @@ sys.modules.setdefault("core.redis", _stub_redis)
 _stub_security = types.ModuleType("core.security")
 
 
-async def _noop_verify_service_token(*_a, **_kw) -> None:
+async def _noop_verify_service_token() -> None:
+    """Noop: без параметров — FastAPI не пытается распарсить *args из запроса."""
     return None
 
 
-async def _noop_verify_webapp_init_data(*_a, **_kw) -> dict:
+async def _noop_verify_webapp_init_data() -> dict:
     return {}
 
 
