@@ -14,6 +14,7 @@
 from pathlib import Path
 
 import pytest
+import src.utils.localization  # patch() требует src.utils в sys.modules
 import yaml
 from faker import Faker
 
