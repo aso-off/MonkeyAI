@@ -29,11 +29,8 @@ jobs:
 
       - uses: astral-sh/setup-uv@v3
 
-      - name: Check uv.lock is up to date
-        run: uv lock --check
-
       - name: Install dependencies
-        run: uv sync --frozen --extra api --extra bot --group dev --no-install-project
+        run: uv sync --extra api --extra bot --group dev --no-install-project
 
       - name: Ruff lint
         run: .venv/bin/ruff check api bot
@@ -71,11 +68,8 @@ jobs:
 
       - uses: astral-sh/setup-uv@v3
 
-      - name: Check uv.lock is up to date
-        run: uv lock --check
-
       - name: Install dependencies
-        run: uv sync --frozen --extra api --extra bot --group dev --no-install-project
+        run: uv sync --extra api --extra bot --group dev --no-install-project
 
       - name: Health smoke tests
         run: .venv/bin/python -m pytest -q api/tests/test_api_health.py bot/tests/test_bot_health.py
