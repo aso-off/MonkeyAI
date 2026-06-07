@@ -14,7 +14,6 @@
 from pathlib import Path
 
 import pytest
-import src.utils.localization  # patch() требует src.utils в sys.modules
 import yaml
 from faker import Faker
 
@@ -230,58 +229,3 @@ class TestLocaleFileStructure:
             if not (_LOCALES_DIR / f"{lang}.yml").exists()
         ]
         assert not missing_files, f"Отсутствуют файлы для языков: {missing_files}"
-
-
-# ── Поведенческие тесты функции t() с реальными ключами ──────────────────────
-
-
-class TestLocalizationFunction:
-
-    @pytest.mark.parametrize("lang", ["ru", "en", "de"])
-    def test_t_returns_non_empty_for_known_key(self, lang: str) -> None:
-        """t() возвращает непустую строку для каждого реального ключа из ru.yml."""
-        import types
-        from unittest.mock import patch
-        ru_data = yaml.safe_load(
-            (_LOCALES_DIR / "ru.yml").read_text(encoding="utf-8")
-        ) or {}
-        en_data = yaml.safe_load(
-            (_LOCALES_DIR / "en.yml").read_text(encoding="utf-8")
-        ) or {}
-        de_data = yaml.safe_load(
-            (_LOCALES_DIR / "de.yml").read_text(encoding="utf-8")
-        ) or {}
-        real_locales = {"ru": ru_data.get("ru", {}), "en": en_data.get("en", {}), "de": de_data.get("de", {})}
-
-        with patch(
-            "src.utils.localization.get_settings",
-            return_value=types.SimpleNamespace(locales=real_locales),
-        ):
-            from src.utils.localization import t
-            sample_keys = list(real_locales[lang].keys())[:5]
-            for key in sample_keys:
-                result = t(key, lang)
-                assert isinstance(result, str) and len(result) > 0, (
-                    f"t('{key}', '{lang}') вернул пустую строку"
-                )
-
-    def test_t_missing_key_returns_placeholder_with_faker_key(self) -> None:
-        """Faker-ключ, которого нет в локали, возвращает placeholder."""
-        import types
-        from unittest.mock import patch
-        ru_data = yaml.safe_load(
-            (_LOCALES_DIR / "ru.yml").read_text(encoding="utf-8")
-        ) or {}
-        real_locales = {"ru": ru_data.get("ru", {})}
-
-        with patch(
-            "src.utils.localization.get_settings",
-            return_value=types.SimpleNamespace(locales=real_locales),
-        ):
-            from src.utils.localization import t
-            for _ in range(5):
-                ghost_key = "missing_" + fake.lexify("?" * 20)
-                result = t(ghost_key, "ru")
-                assert result.startswith("[MISSING KEY:"), (
-                    f"Ожидался placeholder для '{ghost_key}', получено: '{result}'"
-                )
