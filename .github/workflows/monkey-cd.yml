@@ -71,8 +71,36 @@ jobs:
             git commit -m "release v${{ steps.meta.outputs.version }}"
           git push origin HEAD:main
 
-  build:
+  test:
     needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra api --extra bot --group dev --no-install-project
+
+      - name: Full tests with coverage gate
+        run: >-
+          .venv/bin/python -m pytest -q
+          api/tests/ bot/tests/
+          --cov=api/src
+          --cov=bot/src
+          --cov-report=term-missing
+          --cov-fail-under=50
+
+  build:
+    needs: [prepare, test]
     runs-on: ubuntu-latest
     strategy:
       matrix:
