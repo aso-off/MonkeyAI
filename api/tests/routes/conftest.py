@@ -1,7 +1,6 @@
 """Shared fixtures для api/tests/routes/ — TestClient с мокнутыми зависимостями."""
 
 import importlib.util
-import sys
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path

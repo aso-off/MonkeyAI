@@ -1,6 +1,6 @@
 """Юнит-тесты для bot/src/utils/stickers.py — класс MonkeyStickers."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

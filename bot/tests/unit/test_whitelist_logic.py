@@ -11,7 +11,7 @@
 
 import types
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, mock_open, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -19,15 +19,16 @@ import pytest
 # ── Патч настроек для всего модуля ────────────────────────────────────────────
 
 @pytest.fixture(autouse=True)
-def patch_whitelist_module_settings(mocker):
-    mocker.patch(
+def patch_whitelist_module_settings():
+    with patch(
         "src.bot.routers.admin.whitelist.settings",
         types.SimpleNamespace(
             admin_ids=[999_000_000],
             whitelist_mode=True,
             allowed_user_ids=[],
         ),
-    )
+    ):
+        yield
 
 
 # ── Валидация User ID ─────────────────────────────────────────────────────────
@@ -124,20 +125,18 @@ class TestWriteUserIds:
         assert written["allowed_user_ids"] == [300]
 
     @pytest.mark.unit
-    def test_write_and_read_roundtrip(self, mocker, tmp_path, fake) -> None:
-        import yaml
+    def test_write_and_read_roundtrip(self, tmp_path, fake) -> None:
         yml_file = tmp_path / "user-ids.yml"
-        mocker.patch("src.bot.routers.admin.whitelist.USER_IDS_PATH", yml_file)
-
-        original = {
-            "admin_user_ids": [fake.random_int(min=100_000_000, max=999_999_999)],
-            "allowed_user_ids": [fake.random_int(min=100_000_000, max=999_999_999)],
-        }
-        from src.bot.routers.admin.whitelist import _write_user_ids, _read_user_ids
-        _write_user_ids(original)
-        result = _read_user_ids()
-        assert result["admin_user_ids"] == original["admin_user_ids"]
-        assert result["allowed_user_ids"] == original["allowed_user_ids"]
+        with patch("src.bot.routers.admin.whitelist.USER_IDS_PATH", yml_file):
+            original = {
+                "admin_user_ids": [fake.random_int(min=100_000_000, max=999_999_999)],
+                "allowed_user_ids": [fake.random_int(min=100_000_000, max=999_999_999)],
+            }
+            from src.bot.routers.admin.whitelist import _write_user_ids, _read_user_ids
+            _write_user_ids(original)
+            result = _read_user_ids()
+            assert result["admin_user_ids"] == original["admin_user_ids"]
+            assert result["allowed_user_ids"] == original["allowed_user_ids"]
 
 
 # ── Логика добавления/удаления ────────────────────────────────────────────────

@@ -12,7 +12,6 @@ Faker: user IDs, dialog IDs, модели, messages.
 """
 
 import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -307,3 +306,366 @@ class TestUpdateNUsedTokensEdgeCases:
                 fake.random_int(min=1, max=200),
             )
             session.commit.assert_awaited()
+
+    @pytest.mark.asyncio
+    async def test_user_not_found_returns_early(self) -> None:
+        from db.repositories.dialogs import update_n_used_tokens
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        await update_n_used_tokens(session, _uid(), "gpt-4o", 10, 5)
+        session.commit.assert_not_awaited()
+
+
+# ── start_new_dialog ──────────────────────────────────────────────────────────
+
+
+class TestStartNewDialog:
+
+    @pytest.mark.asyncio
+    async def test_raises_when_user_not_found(self) -> None:
+        from db.repositories.dialogs import start_new_dialog
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        with pytest.raises(ValueError, match="not found"):
+            await start_new_dialog(session, _uid())
+
+    @pytest.mark.asyncio
+    async def test_creates_dialog_and_commits(self) -> None:
+        from db.repositories.dialogs import start_new_dialog
+        uid = _uid()
+        user = _fake_user_obj(uid)
+        user.current_dialog_ids = {}
+        user.current_chat_mode = "assistant"
+        user.current_model = "gpt-4o"
+        session = _make_session()
+        session.execute.return_value = _scalar_result(user)
+        dialog_id = await start_new_dialog(session, uid)
+        assert isinstance(dialog_id, str)
+        session.add.assert_called_once()
+        session.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_commit_false_skips_commit(self) -> None:
+        from db.repositories.dialogs import start_new_dialog
+        uid = _uid()
+        user = _fake_user_obj(uid)
+        user.current_dialog_ids = {}
+        user.current_chat_mode = "artist"
+        user.current_model = "gpt-image-1.5"
+        session = _make_session()
+        session.execute.return_value = _scalar_result(user)
+        await start_new_dialog(session, uid, commit=False)
+        session.commit.assert_not_awaited()
+
+
+# ── get_dialog_messages ───────────────────────────────────────────────────────
+
+
+class TestGetDialogMessages:
+
+    @pytest.mark.asyncio
+    async def test_returns_messages_by_dialog_id(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages
+        uid = _uid()
+        did = _did()
+        msgs = [{"user": fake.sentence(), "bot": fake.sentence()}]
+        dialog = _fake_dialog_obj(uid=uid, did=did, messages=msgs)
+        session = _make_session()
+        session.execute.return_value = _scalar_result(dialog)
+        result = await get_dialog_messages(session, uid, dialog_id=did)
+        assert result == msgs
+
+    @pytest.mark.asyncio
+    async def test_no_dialog_id_uses_current_dialog(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages
+        uid = _uid()
+        did = _did()
+        user = _fake_user_obj(uid)
+        user.current_dialog_id = did
+        msgs = [{"user": "hi", "bot": "hello"}]
+        dialog = _fake_dialog_obj(uid=uid, did=did, messages=msgs)
+        session = _make_session()
+        session.execute.side_effect = [
+            _scalar_result(user),
+            _scalar_result(dialog),
+        ]
+        result = await get_dialog_messages(session, uid, dialog_id=None)
+        assert result == msgs
+
+    @pytest.mark.asyncio
+    async def test_no_dialog_returns_empty_list(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        result = await get_dialog_messages(session, _uid(), dialog_id=_did())
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_no_dialog_id_user_not_found_raises(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        with pytest.raises(ValueError, match="not found"):
+            await get_dialog_messages(session, _uid(), dialog_id=None)
+
+
+# ── get_dialog_messages_page ──────────────────────────────────────────────────
+
+
+class TestGetDialogMessagesPage:
+
+    @pytest.mark.asyncio
+    async def test_no_dialog_returns_empty(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages_page
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        msgs, total, cursor = await get_dialog_messages_page(
+            session, _uid(), _did(), limit=10
+        )
+        assert msgs == []
+        assert total == 0
+        assert cursor == 0
+
+    @pytest.mark.asyncio
+    async def test_empty_messages_returns_empty(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages_page
+        dialog = _fake_dialog_obj(messages=[])
+        session = _make_session()
+        session.execute.return_value = _scalar_result(dialog)
+        msgs, total, cursor = await get_dialog_messages_page(
+            session, _uid(), _did(), limit=10
+        )
+        assert msgs == []
+        assert total == 0
+
+    @pytest.mark.asyncio
+    async def test_before_index_none_returns_last_n(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages_page
+        all_msgs = [{"user": str(i), "bot": str(i)} for i in range(20)]
+        dialog = _fake_dialog_obj(messages=all_msgs)
+        session = _make_session()
+        session.execute.return_value = _scalar_result(dialog)
+        msgs, total, cursor = await get_dialog_messages_page(
+            session, _uid(), _did(), limit=5, before_index=None
+        )
+        assert len(msgs) == 5
+        assert total == 20
+        assert msgs == all_msgs[15:20]
+
+    @pytest.mark.asyncio
+    async def test_before_index_returns_older_messages(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages_page
+        all_msgs = [{"user": str(i), "bot": str(i)} for i in range(20)]
+        dialog = _fake_dialog_obj(messages=all_msgs)
+        session = _make_session()
+        session.execute.return_value = _scalar_result(dialog)
+        msgs, total, cursor = await get_dialog_messages_page(
+            session, _uid(), _did(), limit=5, before_index=10
+        )
+        assert len(msgs) == 5
+        assert msgs == all_msgs[5:10]
+        assert cursor == 5
+
+    @pytest.mark.asyncio
+    async def test_cursor_zero_when_no_more_messages(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages_page
+        all_msgs = [{"user": str(i), "bot": str(i)} for i in range(3)]
+        dialog = _fake_dialog_obj(messages=all_msgs)
+        session = _make_session()
+        session.execute.return_value = _scalar_result(dialog)
+        msgs, total, cursor = await get_dialog_messages_page(
+            session, _uid(), _did(), limit=5, before_index=None
+        )
+        assert len(msgs) == 3
+        assert cursor == 0
+
+    @pytest.mark.asyncio
+    async def test_faker_various_page_sizes(self) -> None:
+        from db.repositories.dialogs import get_dialog_messages_page
+        for limit in [1, 5, 20]:
+            n = fake.random_int(min=limit + 1, max=limit + 10)
+            all_msgs = [{"user": str(i), "bot": str(i)} for i in range(n)]
+            dialog = _fake_dialog_obj(messages=all_msgs)
+            session = _make_session()
+            session.execute.return_value = _scalar_result(dialog)
+            msgs, total, _ = await get_dialog_messages_page(
+                session, _uid(), _did(), limit=limit
+            )
+            assert len(msgs) <= limit
+            assert total == n
+
+
+# ── append_dialog_message ─────────────────────────────────────────────────────
+
+
+class TestAppendDialogMessage:
+
+    @pytest.mark.asyncio
+    async def test_appends_message_and_commits(self) -> None:
+        from db.repositories.dialogs import append_dialog_message
+        uid = _uid()
+        did = _did()
+        existing = [{"user": "old", "bot": "reply"}]
+        dialog = _fake_dialog_obj(uid=uid, did=did, messages=existing)
+        session = _make_session()
+        session.execute.return_value = _scalar_result(dialog)
+        new_msg = {"user": fake.sentence(), "bot": fake.sentence()}
+        await append_dialog_message(session, uid, new_msg, did)
+        assert len(dialog.messages) == 2
+        session.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_trims_to_max_messages(self) -> None:
+        from db.repositories.dialogs import append_dialog_message
+        uid = _uid()
+        did = _did()
+        existing = [{"user": str(i), "bot": str(i)} for i in range(5)]
+        dialog = _fake_dialog_obj(uid=uid, did=did, messages=existing)
+        session = _make_session()
+        session.execute.return_value = _scalar_result(dialog)
+        await append_dialog_message(session, uid, {"user": "new", "bot": "r"}, did, max_messages=3)
+        assert len(dialog.messages) == 3
+
+    @pytest.mark.asyncio
+    async def test_no_dialog_found_only_commits(self) -> None:
+        from db.repositories.dialogs import append_dialog_message
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        await append_dialog_message(session, _uid(), {"user": "x", "bot": "y"}, _did())
+        session.commit.assert_awaited_once()
+
+
+# ── ensure_active_dialog ──────────────────────────────────────────────────────
+
+
+class TestEnsureActiveDialog:
+
+    @pytest.mark.asyncio
+    async def test_user_not_found_raises(self) -> None:
+        from db.repositories.dialogs import ensure_active_dialog
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        with pytest.raises(ValueError, match="not found"):
+            await ensure_active_dialog(session, _uid())
+
+    @pytest.mark.asyncio
+    async def test_creates_new_dialog_when_none_exists(self) -> None:
+        from db.repositories.dialogs import ensure_active_dialog
+        uid = _uid()
+        user = _fake_user_obj(uid)
+        user.current_dialog_ids = {}
+        user.current_dialog_id = None
+        user.current_chat_mode = "assistant"
+        user.current_model = "gpt-4o"
+        session = _make_session()
+        session.execute.return_value = _scalar_result(user)
+        dialog_id = await ensure_active_dialog(session, uid)
+        assert isinstance(dialog_id, str)
+        session.commit.assert_awaited()
+
+    @pytest.mark.asyncio
+    async def test_reuses_existing_valid_dialog(self) -> None:
+        from db.repositories.dialogs import ensure_active_dialog
+        uid = _uid()
+        did = _did()
+        user = _fake_user_obj(uid)
+        user.current_dialog_ids = {"assistant": did}
+        user.current_dialog_id = did
+        user.current_chat_mode = "assistant"
+        session = _make_session()
+        existing_dialog_result = MagicMock()
+        existing_dialog_result.scalar_one_or_none.return_value = did
+        session.execute.side_effect = [
+            _scalar_result(user),
+            existing_dialog_result,
+        ]
+        result = await ensure_active_dialog(session, uid)
+        assert result == did
+
+    @pytest.mark.asyncio
+    async def test_updates_current_dialog_id_when_out_of_sync(self) -> None:
+        from db.repositories.dialogs import ensure_active_dialog
+        uid = _uid()
+        did = _did()
+        user = _fake_user_obj(uid)
+        user.current_dialog_ids = {"assistant": did}
+        user.current_dialog_id = "old_different_id"
+        user.current_chat_mode = "assistant"
+        session = _make_session()
+        existing_dialog_result = MagicMock()
+        existing_dialog_result.scalar_one_or_none.return_value = did
+        session.execute.side_effect = [
+            _scalar_result(user),
+            existing_dialog_result,
+        ]
+        result = await ensure_active_dialog(session, uid)
+        assert result == did
+        assert user.current_dialog_id == did
+        session.commit.assert_awaited()
+
+
+# ── ensure_active_mini_app_dialog ─────────────────────────────────────────────
+
+
+class TestEnsureActiveMiniAppDialog:
+
+    @pytest.mark.asyncio
+    async def test_user_not_found_raises(self) -> None:
+        from db.repositories.dialogs import ensure_active_mini_app_dialog
+        session = _make_session()
+        session.execute.return_value = _scalar_result(None)
+        with pytest.raises(ValueError, match="not found"):
+            await ensure_active_mini_app_dialog(session, _uid())
+
+    @pytest.mark.asyncio
+    async def test_reuses_existing_valid_dialog(self) -> None:
+        from db.repositories.dialogs import ensure_active_mini_app_dialog
+        uid = _uid()
+        did = _did()
+        user = _fake_user_obj(uid)
+        user.mini_app_chat_mode = "assistant"
+        user.mini_app_dialog_ids = {"assistant": did}
+        user.current_model = "gpt-4o"
+        session = _make_session()
+        existing_result = MagicMock()
+        existing_result.scalar_one_or_none.return_value = did
+        session.execute.side_effect = [
+            _scalar_result(user),
+            existing_result,
+        ]
+        result = await ensure_active_mini_app_dialog(session, uid)
+        assert result == did
+
+    @pytest.mark.asyncio
+    async def test_creates_new_when_no_existing_dialog(self) -> None:
+        from db.repositories.dialogs import ensure_active_mini_app_dialog
+        uid = _uid()
+        user = _fake_user_obj(uid)
+        user.mini_app_chat_mode = "assistant"
+        user.mini_app_dialog_ids = {}
+        user.current_model = "gpt-4o"
+        session = _make_session()
+        session.execute.return_value = _scalar_result(user)
+        result = await ensure_active_mini_app_dialog(session, uid)
+        assert isinstance(result, str)
+        session.add.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_creates_new_when_existing_not_found_in_db(self) -> None:
+        from db.repositories.dialogs import ensure_active_mini_app_dialog
+        uid = _uid()
+        did = _did()
+        user = _fake_user_obj(uid)
+        user.mini_app_chat_mode = "artist"
+        user.mini_app_dialog_ids = {"artist": did}
+        user.current_model = "gpt-image-1.5"
+        session = _make_session()
+        missing_result = MagicMock()
+        missing_result.scalar_one_or_none.return_value = None
+        session.execute.side_effect = [
+            _scalar_result(user),
+            missing_result,
+        ]
+        result = await ensure_active_mini_app_dialog(session, uid)
+        assert isinstance(result, str)
+        session.add.assert_called_once()

@@ -11,7 +11,6 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-import pytest_asyncio
 from faker import Faker
 
 fake = Faker()

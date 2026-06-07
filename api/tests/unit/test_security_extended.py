@@ -15,10 +15,9 @@ import hashlib
 import hmac
 import importlib
 import importlib.util
-import sys
 import time
 from pathlib import Path
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 import pytest
 from faker import Faker
@@ -65,8 +64,6 @@ class TestVerifyServiceToken:
     @pytest.mark.asyncio
     async def test_no_service_token_allows_all(self) -> None:
         """Если _SERVICE_TOKEN пустой — любой запрос проходит."""
-        import importlib
-        import os
         from unittest.mock import MagicMock
 
         # Загружаем реальный модуль с пустым токеном

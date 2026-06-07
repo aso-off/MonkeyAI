@@ -44,27 +44,29 @@ def _make_moderation_response(
 
 
 @pytest.fixture
-def settings_enabled(mocker):
-    mocker.patch("services.moderation.settings", types.SimpleNamespace(
+def settings_enabled():
+    with patch("services.moderation.settings", types.SimpleNamespace(
         enable_content_moderation=True,
         moderation_thresholds={},
-    ))
+    )):
+        yield
 
 
 @pytest.fixture
-def settings_disabled(mocker):
-    mocker.patch("services.moderation.settings", types.SimpleNamespace(
+def settings_disabled():
+    with patch("services.moderation.settings", types.SimpleNamespace(
         enable_content_moderation=False,
         moderation_thresholds={},
-    ))
+    )):
+        yield
 
 
 @pytest.fixture
-def mock_client(mocker):
+def mock_client():
     client = MagicMock()
     client.moderations.create = AsyncMock()
-    mocker.patch("services.moderation.make_client", return_value=client)
-    return client
+    with patch("services.moderation.make_client", return_value=client):
+        yield client
 
 
 # ── Модерация отключена ───────────────────────────────────────────────────────
