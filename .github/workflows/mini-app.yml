@@ -1,19 +1,16 @@
 name: Mini App CI/CD
 
 on:
-  workflow_run:
-    workflows: ["Backend CD"]
-    types: [completed]
+  push:
+    tags:
+      - "v*.*.*"
 
 concurrency:
-  group: mini-app-deploy-${{ github.event.workflow_run.head_branch }}
+  group: mini-app-deploy-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   build-and-deploy:
-    if: >-
-      ${{ github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.event.workflow_run.head_branch, 'v') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -22,14 +19,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Extract version and build time
         id: meta
         run: |
-          TAG="${{ github.event.workflow_run.head_branch }}"
-          VERSION="${TAG#v}"
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
           BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
