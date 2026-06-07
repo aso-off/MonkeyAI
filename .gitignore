@@ -39,6 +39,8 @@ wheels/
 .coverage.*
 htmlcov/
 coverage/
+coverage.json
+coverage.xml
 .tox/
 .hypothesis/
 

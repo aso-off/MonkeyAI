@@ -1,0 +1,28 @@
+{
+  "pythonVersion": "3.11",
+  "venvPath": ".",
+  "venv": ".venv",
+  "extraPaths": [
+    "bot",
+    "api",
+    "api/src"
+  ],
+  "exclude": [
+    "mini-app",
+    ".venv",
+    "**/__pycache__",
+    "**/*.pyc"
+  ],
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none",
+  "executionEnvironments": [
+    {
+      "root": "api/tests",
+      "extraPaths": ["api/src", "api"]
+    },
+    {
+      "root": "bot/tests",
+      "extraPaths": ["bot"]
+    }
+  ]
+}

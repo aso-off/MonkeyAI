@@ -6,7 +6,6 @@ from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from src.core.bot import dp
 from src.core.config import settings
 from src.services import api_client as api
 from src.utils.admin import require_admin
@@ -27,6 +26,7 @@ def _status_keyboard(lang: str) -> InlineKeyboardMarkup:
 
 
 async def _build_status_text(lang: str) -> str:
+    from src.core.bot import dp  # ленивый импорт — избегает circular import с core.bot
     redis = dp.storage.redis
 
     # Uptime из Redis

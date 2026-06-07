@@ -87,9 +87,11 @@ def _make_fake_settings() -> types.SimpleNamespace:
         postgres_db="testdb",
         postgres_user="user",
         postgres_password=types.SimpleNamespace(get_secret_value=lambda: "password"),
+        database_url="postgresql+asyncpg://user:password@localhost:5432/testdb",
         redis_host="localhost",
         redis_port=6379,
         redis_password=None,
+        redis_url="redis://localhost:6379/0",
     )
 
 
