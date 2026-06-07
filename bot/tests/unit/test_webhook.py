@@ -10,7 +10,6 @@ Faker: user IDs, update data.
 """
 
 import importlib.util
-import json
 import sys
 import types
 from contextlib import asynccontextmanager
@@ -297,7 +296,6 @@ class TestCreateApp:
         assert resp.status_code == 200
 
     def test_app_has_webhook_router_included(self, webhook_app_module) -> None:
-        from fastapi import FastAPI
         app = webhook_app_module.create_app()
         routes = [r.path for r in app.routes]
         assert any("/webhook" in p for p in routes)

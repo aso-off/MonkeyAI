@@ -9,7 +9,7 @@
 Реальная БД и Redis не нужны.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -164,12 +164,11 @@ class TestUpdateUser:
         assert resp.json()["current_chat_mode"] == "code_assistant"
 
     @pytest.mark.api
-    def test_update_is_whitelisted_calls_whitelist_service(self, api_client, user_factory, mocker) -> None:
+    def test_update_is_whitelisted_calls_whitelist_service(self, api_client, user_factory) -> None:
         user = user_factory(is_whitelisted=False)
-        # routes/users.py делает `from services import whitelist` ВНУТРИ функции
-        # → патчим services.whitelist.add напрямую
-        mock_add = mocker.patch("services.whitelist.add", new=AsyncMock())
-        with patch("routes.users._redis_read_user", new=AsyncMock(return_value=None)), \
+        mock_add = AsyncMock()
+        with patch("services.whitelist.add", new=mock_add), \
+             patch("routes.users._redis_read_user", new=AsyncMock(return_value=None)), \
              patch("routes.users.user_repo.get_user", new=AsyncMock(return_value=user)), \
              patch("routes.users._redis_write_user", new=AsyncMock()), \
              patch("routes.users._redis_sync_webapp_prefs", new=AsyncMock()), \

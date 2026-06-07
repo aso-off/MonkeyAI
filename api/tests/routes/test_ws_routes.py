@@ -230,7 +230,6 @@ class TestWebSocketAuth:
 
     @pytest.mark.api
     def test_ws_auth_ok_with_valid_init_data(self, api_client) -> None:
-        import routes.ws as ws_mod
 
         uid = fake.random_int(min=100_000, max=999_999_999)
         parsed_data = {"user": json.dumps({"id": uid, "first_name": "Test"})}

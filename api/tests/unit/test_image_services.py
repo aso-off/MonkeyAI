@@ -10,7 +10,6 @@ httpx мокируется через unittest.mock.
 
 import base64
 import io
-import json
 from io import BytesIO
 from unittest.mock import AsyncMock, MagicMock, patch
 

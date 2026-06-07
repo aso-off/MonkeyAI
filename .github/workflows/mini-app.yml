@@ -1,21 +1,26 @@
 name: Mini App CI/CD
 
 on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_run:
+    workflows: ["Backend CD"]
+    types: [completed]
 
 concurrency:
-  group: mini-app-deploy-${{ github.ref }}
+  group: mini-app-deploy-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
   test-locales:
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v') }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -38,11 +43,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Extract version and build time
         id: meta
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          TAG="${{ github.event.workflow_run.head_branch }}"
+          VERSION="${TAG#v}"
           BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"

@@ -10,7 +10,6 @@ Faker: user_id, имена, сообщения, model, URL, prompt, ответы
 
 import json
 import uuid
-from datetime import datetime, timezone
 from io import BytesIO
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch

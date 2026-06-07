@@ -11,7 +11,6 @@
 Faker: user IDs, имена, language codes.
 """
 
-import types
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -146,7 +145,6 @@ class TestCmdStart:
     @pytest.mark.asyncio
     async def test_start_group_chat(self, fake_message) -> None:
         from src.bot.routers.start import cmd_start
-        from aiogram.enums import ChatType
         uid = _uid()
         msg = fake_message(user_id=uid)
         msg.chat.type = "group"

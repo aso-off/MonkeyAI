@@ -10,7 +10,6 @@
 Faker: user IDs, YAML-контент.
 """
 
-import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 

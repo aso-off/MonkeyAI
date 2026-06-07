@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from src.utils.localization import resolve_lang, t
+from src.utils.localization import t
 
 # ── Путь к реальным locale файлам ──────────────────────────────────────────────
 
