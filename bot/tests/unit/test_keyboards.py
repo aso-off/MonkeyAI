@@ -7,7 +7,6 @@ Keyboard файлы пустые — вся логика в роутерах. Т
 """
 
 import types
-from unittest.mock import patch
 
 import pytest
 from aiogram.types import InlineKeyboardMarkup

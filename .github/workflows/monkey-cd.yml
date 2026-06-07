@@ -90,14 +90,14 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --extra api --extra bot --group dev --no-install-project
 
-      - name: Full tests with coverage gate
+      - name: Full tests with coverage gate (≥ 80%)
         run: >-
           .venv/bin/python -m pytest -q
           api/tests/ bot/tests/
           --cov=api/src
           --cov=bot/src
           --cov-report=term-missing
-          --cov-fail-under=50
+          --cov-fail-under=80
 
   build:
     needs: [prepare, test]
