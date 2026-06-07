@@ -30,5 +30,7 @@ export const messages = {
 type _StringKeys = { [K in keyof LocaleSchema as LocaleSchema[K] extends string ? K : never]: string }
 
 declare module 'vue-i18n' {
-  export interface DefineLocaleMessage extends _StringKeys {}
+  export interface DefineLocaleMessage extends _StringKeys {
+    _?: never
+  }
 }
