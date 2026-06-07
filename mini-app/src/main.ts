@@ -12,15 +12,7 @@ import { errorHandler } from './errorHandler';
 import { init } from './init';
 import { ripple } from './directives/ripple';
 
-// Import locales
-import en from './locales/en.json';
-import ru from './locales/ru.json';
-import de from './locales/de.json';
-import es from './locales/es.json';
-import fr from './locales/fr.json';
-import pl from './locales/pl.json';
-import pt from './locales/pt.json';
-import tr from './locales/tr.json';
+import { messages } from './locales';
 
 // Mock the environment in case, we are outside Telegram (DEV only — tree-shaken in production).
 import './mockEnv';
@@ -77,7 +69,7 @@ async function main() {
       legacy: false,
       locale: initialLocale,
       fallbackLocale: 'en',
-      messages: { en, ru, de, es, fr, pl, pt, tr }
+      messages,
     });
 
     const app = createApp(App);

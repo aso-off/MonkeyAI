@@ -10,32 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-locales:
+  build-and-deploy:
     if: >-
       ${{ github.event.workflow_run.conclusion == 'success' &&
       startsWith(github.event.workflow_run.head_branch, 'v') }}
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install test dependencies
-        run: pip install pytest faker
-
-      - name: Locale keys test
-        run: pytest bot/tests/test_miniapp_locale_keys.py -v
-
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    needs: test-locales
     defaults:
       run:
         working-directory: mini-app

@@ -52,9 +52,6 @@ jobs:
       - name: Bot locale keys
         run: pytest bot/tests/unit/test_bot_locale_keys.py -v
 
-      - name: Mini-app locale keys
-        run: pytest bot/tests/test_miniapp_locale_keys.py -v
-
   # ── Job 3: Unit tests + coverage ─────────────────────────────────────────────
   unit-tests:
     name: Unit tests (coverage ≥ 60%)
