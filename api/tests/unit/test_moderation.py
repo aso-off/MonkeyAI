@@ -173,31 +173,31 @@ class TestFlaggedContent:
         assert "violence" in cats
 
     @pytest.mark.unit
-    async def test_score_below_threshold_not_flagged(self, mock_client, mocker, fake) -> None:
-        mocker.patch("services.moderation.settings", types.SimpleNamespace(
-            enable_content_moderation=True,
-            moderation_thresholds={"harassment": 0.9},
-        ))
+    async def test_score_below_threshold_not_flagged(self, mock_client, fake) -> None:
         response = _make_moderation_response(
             flagged=False,
             scores={"harassment": 0.7},  # 0.7 < 0.9 → не флаг
         )
         mock_client.moderations.create.return_value = response
-        flagged, cats, _ = await moderate_content(text=fake.sentence())
+        with patch("services.moderation.settings", types.SimpleNamespace(
+            enable_content_moderation=True,
+            moderation_thresholds={"harassment": 0.9},
+        )):
+            flagged, cats, _ = await moderate_content(text=fake.sentence())
         assert flagged is False
 
     @pytest.mark.unit
-    async def test_custom_threshold_respected(self, mock_client, mocker, fake) -> None:
-        mocker.patch("services.moderation.settings", types.SimpleNamespace(
-            enable_content_moderation=True,
-            moderation_thresholds={"hate": 0.3},
-        ))
+    async def test_custom_threshold_respected(self, mock_client, fake) -> None:
         response = _make_moderation_response(
             flagged=False,
             scores={"hate": 0.5},  # 0.5 > 0.3 → флаг
         )
         mock_client.moderations.create.return_value = response
-        flagged, cats, _ = await moderate_content(text=fake.sentence())
+        with patch("services.moderation.settings", types.SimpleNamespace(
+            enable_content_moderation=True,
+            moderation_thresholds={"hate": 0.3},
+        )):
+            flagged, cats, _ = await moderate_content(text=fake.sentence())
         assert flagged is True
         assert "hate" in cats
 
