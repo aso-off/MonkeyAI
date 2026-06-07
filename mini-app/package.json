@@ -1,6 +1,6 @@
 {
   "name": "monkey-ai-mini-app",
-  "version": "2.7.14",
+  "version": "2.7.15",
   "private": true,
   "type": "module",
   "homepage": "https://telegram-mini-apps.github.io/vuejs-template",
