@@ -9,9 +9,11 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import uuid
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -136,6 +138,15 @@ def create_app() -> FastAPI:
             "docExpansion": "list",
         },
     )
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        request_id = uuid.uuid4().hex[:12]
+        logger.exception("Unhandled error [%s] %s %s", request_id, request.method, request.url.path)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error", "request_id": request_id},
+        )
 
     app.include_router(health_router)
     app.include_router(users_router)

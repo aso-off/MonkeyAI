@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     return_n_generated_images: int = 1
     image_size: str = "1024x1024"
     image_quality: str = "medium"
+    image_rate_limit_count: int = 15
+    image_rate_limit_window_seconds: int = 3600
     # ImgBB API key for uploading generated images to permanent CDN storage.
     imgbb_api_key: str = ""
 
@@ -79,6 +81,10 @@ class Settings(BaseSettings):
         self.return_n_generated_images = cfg.get("return_n_generated_images", self.return_n_generated_images)
         self.image_size = cfg.get("image_size", self.image_size)
         self.image_quality = cfg.get("image_quality", self.image_quality)
+        self.image_rate_limit_count = cfg.get("image_rate_limit_count", self.image_rate_limit_count)
+        self.image_rate_limit_window_seconds = cfg.get(
+            "image_rate_limit_window_seconds", self.image_rate_limit_window_seconds
+        )
 
         self.chat_modes = _load_yaml(CONFIGS_DIR / "chat_modes.yml") or {}
         self.models = _load_yaml(CONFIGS_DIR / "models.yml") or {}

@@ -9,7 +9,7 @@ from services.openai import make_client
 logger = logging.getLogger(__name__)
 
 IMAGE_MODEL = "gpt-image-1.5"
-IMAGE_MODELS: frozenset[str] = frozenset({"gpt-image-1.5", "dall-e-3"})
+IMAGE_MODELS: frozenset[str] = frozenset({IMAGE_MODEL})
 
 
 async def generate_image_b64(
@@ -32,10 +32,10 @@ async def generate_image_b64(
         quality=quality,
     )
     item = response.data[0]
-    # gpt-image-1 / gpt-image-1.5 typically return b64_json directly.
+    # gpt-image-1.5 возвращает b64_json напрямую
     if item.b64_json:
         return f"data:image/png;base64,{item.b64_json}"
-    # Fallback for models that return a URL (e.g. dall-e-3): download & encode.
+    # запасной путь, если пришёл URL
     if item.url:
         async with httpx.AsyncClient(timeout=90.0) as http:
             r = await http.get(item.url)

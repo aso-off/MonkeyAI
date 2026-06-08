@@ -43,6 +43,8 @@ def _make_fake_settings() -> types.SimpleNamespace:
         return_n_generated_images=1,
         image_size="1024x1024",
         image_quality="medium",
+        image_rate_limit_count=15,
+        image_rate_limit_window_seconds=3600,
         whitelist_mode=True,
         dialog_context_limit=20,
         message_max_length=4096,
