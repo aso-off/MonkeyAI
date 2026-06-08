@@ -78,19 +78,6 @@ async def set_messages(
     return {"ok": True}
 
 
-@router.post("/{user_id}/tokens")
-async def update_tokens(
-    user_id: int,
-    model: str,
-    n_input_tokens: int,
-    n_output_tokens: int,
-    session: AsyncSession = Depends(get_session),
-    _: None = Depends(verify_service_token),
-) -> dict:
-    await dialog_repo.update_n_used_tokens(session, user_id, model, n_input_tokens, n_output_tokens)
-    return {"ok": True}
-
-
 @router.get("/{user_id}/message-count")
 async def get_message_count(
     user_id: int,
