@@ -2071,8 +2071,8 @@ onBeforeUnmount(() => {
 
 /* Skeleton shimmer shown while the WebP image is loading */
 .image-skeleton {
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  width: 240px;
+  height: 240px;
   border-radius: 8px;
   background: linear-gradient(
     90deg,
@@ -2099,9 +2099,10 @@ onBeforeUnmount(() => {
 }
 
 .generated-image {
-  width: 100%;
+  width: 240px;
+  height: 240px;
   border-radius: 8px;
-  object-fit: contain;
+  object-fit: cover;
   cursor: pointer;
   transition: transform 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
