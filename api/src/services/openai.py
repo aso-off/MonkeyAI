@@ -10,43 +10,28 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_tiktoken_encoding: tiktoken.Encoding | None = None
+_DEFAULT_ENCODING = "o200k_base"
 
 
-def _get_encoding() -> tiktoken.Encoding:
-    global _tiktoken_encoding
-    if _tiktoken_encoding is None:
-        _tiktoken_encoding = tiktoken.get_encoding("cl100k_base")
-    return _tiktoken_encoding
+def _get_encoding(model: str | None = None) -> tiktoken.Encoding:
+    try:
+        return tiktoken.encoding_for_model(model) if model else tiktoken.get_encoding(_DEFAULT_ENCODING)
+    except KeyError:
+        return tiktoken.get_encoding(_DEFAULT_ENCODING)
 
 
 BASE_OPTIONS: dict = {
     "timeout": 60.0,
 }
 
-MODEL_OPTIONS: dict[str, dict] = {
-    "gpt-5-mini": {
-        "max_completion_tokens": 8192,
-        "reasoning_effort": "medium",
-    },
-    "gpt-4o": {
-        "max_completion_tokens": 4000,
-        "temperature": 0.3,
-        "top_p": 1,
-        "frequency_penalty": 0,
-        "presence_penalty": 0,
-    },
-    "gpt-5-nano": {
-        "max_completion_tokens": 8192,
-        "reasoning_effort": "low",
-    },
-}
 
-MODEL_FAMILY: dict[str, str] = {
-    "gpt-5-nano": "gpt-5-nano",
-    "gpt-4o": "gpt-4o",
-    "gpt-5-mini": "gpt-5-mini",
-}
+def _text_models() -> list[str]:
+    return settings.models.get("available_text_models", []) or []
+
+
+def _model_options(model: str) -> dict:
+    info = settings.models.get("info", {}).get(model, {}) or {}
+    return info.get("options", {}) or {}
 
 _openai_client: AsyncOpenAI | None = None
 
@@ -70,15 +55,15 @@ def _encode_image(image_buffer: BytesIO) -> str:
 
 class ChatGPT:
     def __init__(self, model: str = "gpt-5-nano") -> None:
-        if model not in MODEL_FAMILY:
-            raise ValueError(f"Unknown model: {model!r}. Available: {sorted(MODEL_FAMILY)}")
+        available = _text_models()
+        if model not in available:
+            raise ValueError(f"Unknown model: {model!r}. Available: {sorted(available)}")
         self.model = model
         self.client = make_client()
 
     def _options(self) -> dict:
-        family = MODEL_FAMILY.get(self.model, self.model)
         options = BASE_OPTIONS.copy()
-        options.update(MODEL_OPTIONS.get(family, {}))
+        options.update(_model_options(self.model))
         return options
 
     def _build_messages(
@@ -118,7 +103,7 @@ class ChatGPT:
 
     def _count_tokens(self, messages: list, answer: str) -> tuple[int, int]:
         try:
-            encoding = _get_encoding()
+            encoding = _get_encoding(self.model)
             tokens_per_message = 100 if self.model == "gpt-5-mini" else 50
             tokens_per_name = -1 if self.model == "gpt-5-mini" else 1
 

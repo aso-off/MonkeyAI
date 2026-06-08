@@ -1,12 +1,11 @@
 """
 Тесты для api/src/routes/dialogs.py.
 
-Покрываем все 6 эндпоинтов:
+Покрываем все 5 эндпоинтов:
 - POST /{user_id}/new
 - POST /{user_id}/ensure
 - GET  /{user_id}/messages
 - PUT  /{user_id}/messages
-- POST /{user_id}/tokens
 - GET  /{user_id}/message-count
 
 Faker используется для user_id, dialog_id, сообщений, счётчиков токенов.
@@ -255,51 +254,6 @@ class TestSetMessages:
                 json={"messages": msgs},
             )
         assert resp.status_code == 200
-
-
-# ── POST /{user_id}/tokens ────────────────────────────────────────────────────
-
-
-class TestUpdateTokens:
-
-    @pytest.mark.api
-    def test_update_tokens_returns_ok(self, api_client) -> None:
-        uid = _uid()
-        n_in = fake.random_int(min=1, max=5000)
-        n_out = fake.random_int(min=1, max=2000)
-        model = fake.random_element(["gpt-4o", "gpt-5-nano"])
-
-        with patch("routes.dialogs.dialog_repo.update_n_used_tokens", new=AsyncMock()):
-            resp = api_client.post(
-                f"/dialogs/{uid}/tokens",
-                params={"model": model, "n_input_tokens": n_in, "n_output_tokens": n_out},
-            )
-
-        assert resp.status_code == 200
-        assert resp.json()["ok"] is True
-
-    @pytest.mark.api
-    def test_faker_batch_token_updates(self, api_client) -> None:
-        for _ in range(3):
-            uid = _uid()
-            n_in = fake.random_int(min=1, max=1000)
-            n_out = fake.random_int(min=1, max=500)
-            model = "gpt-4o"
-            with patch("routes.dialogs.dialog_repo.update_n_used_tokens", new=AsyncMock()):
-                resp = api_client.post(
-                    f"/dialogs/{uid}/tokens",
-                    params={"model": model, "n_input_tokens": n_in, "n_output_tokens": n_out},
-                )
-            assert resp.status_code == 200
-
-    @pytest.mark.api
-    def test_missing_model_param_returns_422(self, api_client) -> None:
-        uid = _uid()
-        resp = api_client.post(
-            f"/dialogs/{uid}/tokens",
-            params={"n_input_tokens": 10, "n_output_tokens": 5},
-        )
-        assert resp.status_code == 422
 
 
 # ── GET /{user_id}/message-count ──────────────────────────────────────────────

@@ -34,7 +34,14 @@ def _make_fake_settings() -> types.SimpleNamespace:
             "assistant": {"prompt_start": "You are a helpful assistant."},
             "code_assistant": {"prompt_start": "You are a coding expert."},
         },
-        models={},
+        models={
+            "available_text_models": ["gpt-5-nano", "gpt-4o", "gpt-5-mini"],
+            "info": {
+                "gpt-5-nano": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "low"}},
+                "gpt-5-mini": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "medium"}},
+                "gpt-4o": {"options": {"max_completion_tokens": 4000, "temperature": 0.3}},
+            },
+        },
         admin_ids=[123456789],
         allowed_user_ids=[],
         enable_content_moderation=True,
