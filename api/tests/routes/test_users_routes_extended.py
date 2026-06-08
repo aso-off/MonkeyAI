@@ -221,7 +221,7 @@ class TestRedisUserHelpers:
         from schemas.user import UserRead
         user = user_factory()
         user_read = UserRead.model_validate(user)
-        pipe = AsyncMock()
+        pipe = MagicMock()
         pipe.execute = AsyncMock()
         mock_r = MagicMock()
         mock_r.pipeline = MagicMock(return_value=pipe)

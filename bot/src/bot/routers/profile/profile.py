@@ -23,13 +23,31 @@ def _profile_keyboard(lang: str) -> InlineKeyboardMarkup:
     ])
 
 
+_LANG_DISPLAY: dict[str, str] = {
+    "ru": "Русский",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "fr": "Français",
+    "pl": "Polski",
+    "pt": "Português",
+    "tr": "Türkçe",
+}
+
+
+def _lang_label(code: str, lang: str) -> str:
+    if code == "system":
+        return t("language_system", lang)
+    return _LANG_DISPLAY.get(code, code)
+
+
 def _build_profile_text(user, lang: str) -> str:
     if user is None:
         return t("profile_error", lang)
 
     status = t("status_admin", lang) if user.id in settings.admin_ids else t("status_user", lang)
     reg_date = format_date(user.first_seen, lang)
-    return t("profile_info", lang).format(user.id, user.language, reg_date, status)
+    return t("profile_info", lang).format(user.id, _lang_label(user.language, lang), reg_date, status)
 
 
 @router.message(Command("profile"), StateFilter("*"))
