@@ -2071,8 +2071,7 @@ onBeforeUnmount(() => {
 
 /* Skeleton shimmer shown while the WebP image is loading */
 .image-skeleton {
-  width: 90%;
-  max-width: 280px;
+  width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 8px;
   background: linear-gradient(
@@ -2100,11 +2099,10 @@ onBeforeUnmount(() => {
 }
 
 .generated-image {
-  max-width: 90%;
+  width: 100%;
   border-radius: 8px;
-  max-height: 40vh; /* ограничение высоты */
   object-fit: contain;
-  cursor: pointer; /* Указатель при наведении */
+  cursor: pointer;
   transition: transform 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -2134,13 +2132,6 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
-  .generated-image {
-    max-width: 95%;
-    max-height: 35vh;
-  }
-}
 
 .scroll-to-bottom-btn {
   position: fixed;
