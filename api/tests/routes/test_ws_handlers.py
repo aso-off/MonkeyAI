@@ -569,7 +569,6 @@ class TestMessageLoop:
 
     async def _run_one_frame(self, raw_frame: str):
         """Run _message_loop for exactly one frame then raise WebSocketDisconnect."""
-        import routes.ws as ws_mod
         from fastapi import WebSocketDisconnect
 
         ws = _make_ws()
