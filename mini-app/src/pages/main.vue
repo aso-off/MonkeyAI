@@ -603,6 +603,30 @@ const reactionMap = reactive(new Map<number, "like" | "dislike">());
 const moreMenuIndex = ref<number | null>(null);
 const moreMenuUp = ref(false);
 const streamingBotIdx = ref(-1);
+let dotsAnimInterval: ReturnType<typeof setInterval> | null = null;
+
+function startDotsAnim() {
+  if (dotsAnimInterval !== null) return;
+  let tick = 0;
+  dotsAnimInterval = setInterval(() => {
+    const dots = document.querySelectorAll<HTMLElement>('.ai-thinking span');
+    if (!dots.length) return;
+    dots.forEach((dot, i) => {
+      const t = ((tick - i * 2) % 12 + 12) % 12;
+      const y = t < 6 ? -7 * Math.sin((t / 6) * Math.PI) : 0;
+      dot.style.transform = `translateY(${y.toFixed(1)}px)`;
+    });
+    tick++;
+  }, 50);
+}
+
+function stopDotsAnim() {
+  if (dotsAnimInterval !== null) {
+    clearInterval(dotsAnimInterval);
+    dotsAnimInterval = null;
+  }
+}
+
 /** reqId of a request whose WS dropped mid-generation; null if none. */
 const pendingReconnectReqId = ref<string | null>(null);
 /** chatMessages index of the bot slot waiting for reconnect. */
@@ -725,6 +749,17 @@ const selectedModel = ref(
 const modelDropdownVisible = ref(false);
 const modelSelector = ref<HTMLElement | null>(null);
 const modelDropdown = ref<HTMLElement | null>(null);
+
+watch(
+  () => streamingBotIdx.value,
+  async (idx) => {
+    stopDotsAnim();
+    if (idx !== -1) {
+      await nextTick();
+      startDotsAnim();
+    }
+  },
+);
 
 // Синхронизация модели после загрузки store.init() (модель берётся из БД)
 watch(
@@ -1988,6 +2023,7 @@ onDeactivated(() => {
 });
 
 onBeforeUnmount(() => {
+  stopDotsAnim();
   document.removeEventListener("click", handleDocumentClick);
   document.removeEventListener("touchstart", handleTipTouch);
   document.removeEventListener("visibilitychange", handleResumeRepaint);
