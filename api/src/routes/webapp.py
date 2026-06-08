@@ -19,6 +19,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import settings
+from core.ratelimit import enforce_rate_limit
 from core.redis import get_redis
 from core.security import verify_webapp_init_data
 from services import whitelist
@@ -26,7 +28,7 @@ from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
 from schemas.user import UserRead
-from services.image import IMAGE_MODELS, generate_image_url
+from services.image_generation import IMAGE_MODELS, generate_image_url
 from services.moderation import moderate_content
 from services.openai import ChatGPT
 
@@ -466,6 +468,12 @@ async def chat_complete(
     chat_mode = body.chat_mode or "mini_app_assistant"
 
     if body.model in IMAGE_MODELS:
+        await enforce_rate_limit(
+            "image_gen",
+            user_id,
+            settings.image_rate_limit_count,
+            settings.image_rate_limit_window_seconds,
+        )
         try:
             image_url = await generate_image_url(prompt=body.message, model=body.model)
         except Exception as exc:

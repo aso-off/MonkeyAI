@@ -43,12 +43,12 @@ def _build_balance_text(user, lang: str) -> str:
         total_dollars += spent
         details += t("balance_tokens_detail", lang).format(model_key, spent, n_input + n_output)
 
-    dalle_info = models_info.get("gpt-image-1.5", {})
-    dalle_price = dalle_info.get("price_per_1_image", 0.034)
-    dalle_spent = dalle_price * n_generated_images
-    total_dollars += dalle_spent
+    image_info = models_info.get("gpt-image-1.5", {})
+    image_price = image_info.get("price_per_1_image", 0.034)
+    image_spent = image_price * n_generated_images
+    total_dollars += image_spent
     if n_generated_images:
-        details += t("balance_images_detail", lang).format(dalle_spent, n_generated_images)
+        details += t("balance_images_detail", lang).format(image_spent, n_generated_images)
 
     whisper_info = models_info.get("whisper-1", {})
     whisper_price = whisper_info.get("price_per_1_min", settings.whisper_price_per_1_min)

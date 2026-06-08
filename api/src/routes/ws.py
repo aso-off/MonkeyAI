@@ -68,8 +68,8 @@ from core.security import _verify_init_data
 from db.db import Session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
-from services.image import generate_image_b64
-from services.image_service import process_generated_image, upload_to_imgbb
+from services.image_generation import generate_image_b64
+from services.image_processing import process_generated_image, upload_to_imgbb
 from services.moderation import moderate_content
 from services.openai import ChatGPT
 

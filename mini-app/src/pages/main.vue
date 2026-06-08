@@ -282,16 +282,10 @@
               <div v-if="msg.contentType === 'image'">
                 <p v-if="msg.text">{{ msg.text }}</p>
                 <div class="image-container">
-                  <div
+                  <ChatLoader
                     v-if="msg.imageUrl && !loadedImages.has(msg.imageUrl)"
-                    class="image-skeleton"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                      <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="1.5"/>
-                      <path d="M3 16l5-5 4 4 2-2 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </div>
+                    variant="image"
+                  />
                   <img
                     v-if="msg.imageUrl"
                     :src="msg.imageUrl"
@@ -309,13 +303,10 @@
 
               <!-- Для текста -->
               <div v-else-if="msg.type === 'bot'">
-                <!-- Лоадер: три пульсирующие точки пока AI ещё не начал отвечать -->
-                <div
+                <ChatLoader
                   v-if="index === streamingBotIdx && !msg.text"
-                  class="ai-thinking"
-                >
-                  <span></span><span></span><span></span>
-                </div>
+                  variant="thinking"
+                />
                 <!-- Текст ответа -->
                 <div v-if="msg.text" v-html="formatMessage(msg.text)"></div>
                 <!-- Кнопки: копировать / лайк / дизлайк / три точки — только когда генерация завершена -->
@@ -573,6 +564,7 @@ import {
   dialogMessagesToChat,
   type ChatMessage,
 } from "@/store/user";
+import ChatLoader from "@/components/ChatLoader.vue";
 
 defineOptions({ name: "MainPage" });
 
@@ -603,32 +595,6 @@ const reactionMap = reactive(new Map<number, "like" | "dislike">());
 const moreMenuIndex = ref<number | null>(null);
 const moreMenuUp = ref(false);
 const streamingBotIdx = ref(-1);
-let dotsAnimInterval: ReturnType<typeof setInterval> | null = null;
-
-function startDotsAnim() {
-  if (dotsAnimInterval !== null) return;
-  let tick = 0;
-  dotsAnimInterval = setInterval(() => {
-    const dots = document.querySelectorAll<HTMLElement>('.ai-thinking span');
-    if (!dots.length) return;
-    dots.forEach((dot, i) => {
-      // 30 тиков × 40ms = 1200ms цикл; 4 тика × 40ms = 160ms задержка между точками
-      const t = ((tick - i * 4) % 30 + 30) % 30;
-      // 60% цикла — подъём+спуск, 40% — покой (как в исходном CSS)
-      const y = t < 18 ? -7 * Math.sin((t / 18) * Math.PI) : 0;
-      dot.style.transform = `translateY(${y.toFixed(1)}px)`;
-    });
-    tick++;
-  }, 40);
-}
-
-function stopDotsAnim() {
-  if (dotsAnimInterval !== null) {
-    clearInterval(dotsAnimInterval);
-    dotsAnimInterval = null;
-  }
-}
-
 /** reqId of a request whose WS dropped mid-generation; null if none. */
 const pendingReconnectReqId = ref<string | null>(null);
 /** chatMessages index of the bot slot waiting for reconnect. */
@@ -751,17 +717,6 @@ const selectedModel = ref(
 const modelDropdownVisible = ref(false);
 const modelSelector = ref<HTMLElement | null>(null);
 const modelDropdown = ref<HTMLElement | null>(null);
-
-watch(
-  () => streamingBotIdx.value,
-  async (idx) => {
-    stopDotsAnim();
-    if (idx !== -1) {
-      await nextTick();
-      startDotsAnim();
-    }
-  },
-);
 
 // Синхронизация модели после загрузки store.init() (модель берётся из БД)
 watch(
@@ -2025,7 +1980,6 @@ onDeactivated(() => {
 });
 
 onBeforeUnmount(() => {
-  stopDotsAnim();
   document.removeEventListener("click", handleDocumentClick);
   document.removeEventListener("touchstart", handleTipTouch);
   document.removeEventListener("visibilitychange", handleResumeRepaint);
@@ -2114,25 +2068,6 @@ onBeforeUnmount(() => {
 @keyframes lm-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-.image-skeleton {
-  width: 240px;
-  height: 240px;
-  border-radius: 8px;
-  background: #e5e5ea;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #aeaeb2;
-  flex-shrink: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .image-skeleton {
-    background: #3a3a3c;
-    color: #636366;
   }
 }
 
