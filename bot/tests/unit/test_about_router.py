@@ -9,8 +9,7 @@
 """
 
 import types
-from datetime import datetime
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 from faker import Faker
