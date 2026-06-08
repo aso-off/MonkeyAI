@@ -11,8 +11,8 @@ from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import users as user_repo
 from schemas.media import ImageGenerateRequest, ImageGenerateResponse, TranscribeResponse
-from services.image import generate_images
-from services.image_service import upload_to_imgbb
+from services.image_generation import generate_images
+from services.image_processing import upload_to_imgbb
 from services.voice import transcribe_audio
 
 logger = logging.getLogger(__name__)

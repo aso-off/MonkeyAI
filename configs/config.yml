@@ -21,6 +21,8 @@ openai_api_base: null
 return_n_generated_images: 1
 image_size: 1024x1024
 image_quality: medium
+image_rate_limit_count: 15  # генераций на окно
+image_rate_limit_window_seconds: 3600
 
 # Цены
 chatgpt_price_per_1000_tokens: 0.00275
