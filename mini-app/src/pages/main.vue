@@ -2083,18 +2083,18 @@ onBeforeUnmount(() => {
   width: 240px;
   height: 240px;
   border-radius: 8px;
-  background: var(--tg-theme-secondary-bg-color, #ebebeb);
+  background: #e5e5ea;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--tg-theme-hint-color, #aaaaaa);
+  color: #aeaeb2;
   flex-shrink: 0;
 }
 
 @media (prefers-color-scheme: dark) {
   .image-skeleton {
-    background: var(--tg-theme-secondary-bg-color, #2c2c2e);
-    color: var(--tg-theme-hint-color, #636366);
+    background: #3a3a3c;
+    color: #636366;
   }
 }
 
