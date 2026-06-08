@@ -1782,7 +1782,6 @@ footer .input__text .input__text-placeholder.active {
   padding-bottom: calc(11px + env(safe-area-inset-bottom));
 }
 
-/* AI thinking — три статичных точки разных цветов */
 .ai-thinking {
   display: flex;
   align-items: center;
@@ -1793,18 +1792,20 @@ footer .input__text .input__text-placeholder.active {
 
 .ai-thinking span {
   display: block;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  background-color: var(--tg-theme-hint-color, #999999);
+  animation: ai-bounce 1.2s ease-in-out infinite;
 }
 
-.ai-thinking span:nth-child(1) { background-color: #c0c0c0; }
-.ai-thinking span:nth-child(2) { background-color: #808080; }
-.ai-thinking span:nth-child(3) { background-color: #303030; }
+.ai-thinking span:nth-child(2) { animation-delay: 160ms; }
+.ai-thinking span:nth-child(3) { animation-delay: 320ms; }
 
-body.dark .ai-thinking span:nth-child(1) { background-color: #555; }
-body.dark .ai-thinking span:nth-child(2) { background-color: #aaa; }
-body.dark .ai-thinking span:nth-child(3) { background-color: #eee; }
+@keyframes ai-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-7px); opacity: 1; }
+}
 
 #editable-message-text {
   -webkit-appearance: none;

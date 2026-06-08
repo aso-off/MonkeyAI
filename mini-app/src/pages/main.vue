@@ -2083,12 +2083,19 @@ onBeforeUnmount(() => {
   width: 240px;
   height: 240px;
   border-radius: 8px;
-  background: var(--tg-theme-secondary-bg-color, #1e2130);
+  background: var(--tg-theme-secondary-bg-color, #ebebeb);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--tg-theme-hint-color, #4a5068);
+  color: var(--tg-theme-hint-color, #aaaaaa);
   flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .image-skeleton {
+    background: var(--tg-theme-secondary-bg-color, #2c2c2e);
+    color: var(--tg-theme-hint-color, #636366);
+  }
 }
 
 /* Hide img tag while skeleton is visible to avoid flash of broken icon */
