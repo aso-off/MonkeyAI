@@ -8,6 +8,10 @@ info:
     price_per_1000_input_tokens: 0.00005
     price_per_1000_output_tokens: 0.0004
 
+    options:
+      max_completion_tokens: 8192
+      reasoning_effort: low
+
     scores:
       "{score_smart}": 4
       "{score_fast}": 5
@@ -20,6 +24,10 @@ info:
     price_per_1000_input_tokens: 0.00025
     price_per_1000_output_tokens: 0.0020
 
+    options:
+      max_completion_tokens: 8192
+      reasoning_effort: medium
+
     scores:
       "{score_smart}": 5
       "{score_fast}": 4
@@ -31,6 +39,13 @@ info:
     description: "{model_description_gpt_4o}"
     price_per_1000_input_tokens: 0.0025
     price_per_1000_output_tokens: 0.0100
+
+    options:
+      max_completion_tokens: 4000
+      temperature: 0.3
+      top_p: 1
+      frequency_penalty: 0
+      presence_penalty: 0
 
     scores:
       "{score_smart}": 5

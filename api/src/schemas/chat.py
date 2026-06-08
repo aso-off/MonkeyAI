@@ -18,11 +18,3 @@ class ChatCompleteResponse(BaseModel):
     n_output_tokens: int
     n_first_removed: int
     is_flagged: bool
-
-
-class StreamChunk(BaseModel):
-    status: str
-    text: str
-    n_input_tokens: int
-    n_output_tokens: int
-    n_first_removed: int

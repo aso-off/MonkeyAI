@@ -11,7 +11,17 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 # Импортируем только то, что нужно — init_redis и реальный клиент не трогаем
-from services.openai import BASE_OPTIONS, MODEL_FAMILY, MODEL_OPTIONS, ChatGPT, _encode_image
+from services.openai import BASE_OPTIONS, ChatGPT, _encode_image
+
+_TEST_MODELS = {
+    "available_text_models": ["gpt-5-nano", "gpt-4o", "gpt-5-mini"],
+    "info": {
+        "gpt-5-nano": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "low"}},
+        "gpt-5-mini": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "medium"}},
+        "gpt-4o": {"options": {"max_completion_tokens": 4000, "temperature": 0.3}},
+    },
+}
+_MODEL_OPTIONS = {m: info["options"] for m, info in _TEST_MODELS["info"].items()}
 
 
 # ── Фикстуры ─────────────────────────────────────────────────────────────────
@@ -36,6 +46,7 @@ def mock_settings(mocker):
             "assistant": {"prompt_start": "You are a helpful assistant."},
             "code_assistant": {"prompt_start": "You are a coding expert."},
         },
+        models=_TEST_MODELS,
     )
     mocker.patch("services.openai.settings", settings)
     return settings
@@ -60,7 +71,7 @@ def gpt(mock_openai, mock_settings) -> ChatGPT:
 
 class TestChatGPTInit:
     @pytest.mark.unit
-    @pytest.mark.parametrize("model", list(MODEL_FAMILY.keys()))
+    @pytest.mark.parametrize("model", list(_MODEL_OPTIONS.keys()))
     def test_valid_models_accepted(self, model: str, mock_openai, mock_settings) -> None:
         gpt = ChatGPT(model=model)
         assert gpt.model == model
@@ -87,11 +98,11 @@ class TestOptions:
             assert opts[k] == v
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("model", list(MODEL_OPTIONS.keys()))
+    @pytest.mark.parametrize("model", list(_MODEL_OPTIONS.keys()))
     def test_model_specific_options_present(self, model: str, mock_openai, mock_settings) -> None:
         gpt = ChatGPT(model=model)
         opts = gpt._options()
-        for k, v in MODEL_OPTIONS[model].items():
+        for k, v in _MODEL_OPTIONS[model].items():
             assert opts[k] == v
 
     @pytest.mark.unit
@@ -130,6 +141,7 @@ class TestValidateMode:
                 "system_prompt": "global system prompt",
                 "assistant": {"prompt_start": "You are helpful."},
             },
+            models=_TEST_MODELS,
         )
         mocker.patch("services.openai.settings", settings)
         gpt = ChatGPT(model="gpt-4o")
