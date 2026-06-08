@@ -612,12 +612,14 @@ function startDotsAnim() {
     const dots = document.querySelectorAll<HTMLElement>('.ai-thinking span');
     if (!dots.length) return;
     dots.forEach((dot, i) => {
-      const t = ((tick - i * 2) % 12 + 12) % 12;
-      const y = t < 6 ? -7 * Math.sin((t / 6) * Math.PI) : 0;
+      // 30 тиков × 40ms = 1200ms цикл; 4 тика × 40ms = 160ms задержка между точками
+      const t = ((tick - i * 4) % 30 + 30) % 30;
+      // 60% цикла — подъём+спуск, 40% — покой (как в исходном CSS)
+      const y = t < 18 ? -7 * Math.sin((t / 18) * Math.PI) : 0;
       dot.style.transform = `translateY(${y.toFixed(1)}px)`;
     });
     tick++;
-  }, 50);
+  }, 40);
 }
 
 function stopDotsAnim() {
