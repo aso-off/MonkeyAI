@@ -282,11 +282,16 @@
               <div v-if="msg.contentType === 'image'">
                 <p v-if="msg.text">{{ msg.text }}</p>
                 <div class="image-container">
-                  <!-- Skeleton shimmer while the browser fetches the WebP -->
                   <div
                     v-if="msg.imageUrl && !loadedImages.has(msg.imageUrl)"
                     class="image-skeleton"
-                  ></div>
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                      <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+                      <path d="M3 16l5-5 4 4 2-2 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
                   <img
                     v-if="msg.imageUrl"
                     :src="msg.imageUrl"
@@ -295,7 +300,7 @@
                     :class="{
                       'image-loading': !loadedImages.has(msg.imageUrl ?? ''),
                     }"
-                    @load="loadedImages.add(msg.imageUrl!)"
+                    @load="onImageLoad(msg.imageUrl!)"
                     @error="loadedImages.add(msg.imageUrl!)"
                     @click="openFullImage(msg.imageUrl ?? '')"
                   />
@@ -859,6 +864,11 @@ function jumpToBottomSilent() {
   isNearBottom.value = true;
   showScrollBtn.value = false;
   suppressScrollEvents = false;
+}
+
+function onImageLoad(url: string) {
+  loadedImages.add(url);
+  if (isNearBottom.value) jumpToBottomSilent();
 }
 
 /** Finish a programmatic smooth scroll: stop the watchdog and recompute button state. */
@@ -2069,28 +2079,16 @@ onBeforeUnmount(() => {
   }
 }
 
-/* Skeleton shimmer shown while the WebP image is loading */
 .image-skeleton {
   width: 240px;
   height: 240px;
   border-radius: 8px;
-  background: linear-gradient(
-    90deg,
-    var(--tg-theme-secondary-bg-color, #e0e0e0) 25%,
-    var(--tg-theme-bg-color, #f5f5f5) 50%,
-    var(--tg-theme-secondary-bg-color, #e0e0e0) 75%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.4s ease-in-out infinite;
-}
-
-@keyframes skeleton-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  background: var(--tg-theme-secondary-bg-color, #1e2130);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tg-theme-hint-color, #4a5068);
+  flex-shrink: 0;
 }
 
 /* Hide img tag while skeleton is visible to avoid flash of broken icon */
