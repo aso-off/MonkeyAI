@@ -137,11 +137,11 @@ def mock_redis() -> AsyncMock:
     r.hset.return_value = 0
     r.expire.return_value = True
 
-    pipe = AsyncMock()
+    pipe = MagicMock()
     pipe.set.return_value = pipe
     pipe.delete.return_value = pipe
-    pipe.execute.return_value = [True, 1]
-    r.pipeline.return_value = pipe
+    pipe.execute = AsyncMock(return_value=[True, 1])
+    r.pipeline = MagicMock(return_value=pipe)
 
     return r
 
