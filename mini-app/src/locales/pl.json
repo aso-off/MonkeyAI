@@ -119,7 +119,7 @@
         {
           "heading": "5. Twoje prawa",
           "intro": "",
-          "body": "W każdej chwili możesz zażądać dostępu do swoich danych osobowych, ich poprawienia lub usunięcia. Aby złożyć takie żądanie, skontaktuj się z nami: {support}.",
+          "body": "W każdej chwili możesz zażądać dostępu do swoich danych osobowych, ich poprawienia lub usunięcia. Aby złożyć takie żądanie, skontaktuj się z nami: {support}",
           "items": []
         },
         {
@@ -188,7 +188,7 @@
         {
           "heading": "9. Kontakt",
           "intro": "",
-          "body": "W przypadku jakichkolwiek pytań dotyczących niniejszych Warunków skontaktuj się z nami: {support}.",
+          "body": "W przypadku jakichkolwiek pytań dotyczących niniejszych Warunków skontaktuj się z nami:\nWsparcie: {support}",
           "items": []
         }
       ]

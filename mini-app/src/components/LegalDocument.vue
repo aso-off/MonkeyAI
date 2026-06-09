@@ -6,7 +6,7 @@
           <div class="settingschange-title">{{ t(titleKey) }}</div>
 
           <div class="legal-meta">
-            <div class="legal-updated">{{ updated }}</div>
+            <div v-if="doc === 'terms'" class="legal-updated">{{ updated }}</div>
             <p class="legal-intro">{{ intro }}</p>
           </div>
 
@@ -158,23 +158,33 @@ function splitSupport(text: string): Seg[] {
   color: var(--icons-storke-color);
   line-height: 1.5;
   margin: 0;
+  white-space: pre-line;
 }
 
 .legal-list {
   margin: 0;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding-left: 22px;
+  list-style: disc;
 }
 
 .legal-list-item {
-  padding-left: 4px;
+  display: list-item;
+  margin-bottom: 8px;
 }
 
-.legal-list-item strong {
-  color: var(--text-color);
+.legal-list-item:last-child {
+  margin-bottom: 0;
+}
+
+.legal-list-item::marker {
+  color: var(--icons-storke-color);
+}
+
+.legal-list-item strong,
+.legal-section-body strong {
+  font-size: inherit;
   font-weight: 600;
+  color: var(--text-color);
 }
 
 .legal-support-link {
