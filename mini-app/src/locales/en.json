@@ -119,7 +119,7 @@
         {
           "heading": "5. Your Rights",
           "intro": "",
-          "body": "You may request access to, correction of, or deletion of your personal data at any time. To make such a request, contact us at {support}.",
+          "body": "You may request access to, correction of, or deletion of your personal data at any time. To make such a request, contact us at {support}",
           "items": []
         },
         {
@@ -188,7 +188,7 @@
         {
           "heading": "9. Contact",
           "intro": "",
-          "body": "For any questions about these Terms, contact us at {support}.",
+          "body": "For any questions regarding these Terms, please contact:\nSupport: {support}",
           "items": []
         }
       ]

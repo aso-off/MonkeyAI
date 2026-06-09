@@ -119,7 +119,7 @@
         {
           "heading": "5. Haklarınız",
           "intro": "",
-          "body": "Kişisel verilerinize erişim, bunların düzeltilmesi veya silinmesini istediğiniz zaman talep edebilirsiniz. Böyle bir talepte bulunmak için bizimle iletişime geçin: {support}.",
+          "body": "Kişisel verilerinize erişim, bunların düzeltilmesi veya silinmesini istediğiniz zaman talep edebilirsiniz. Böyle bir talepte bulunmak için bizimle iletişime geçin: {support}",
           "items": []
         },
         {
@@ -188,7 +188,7 @@
         {
           "heading": "9. İletişim",
           "intro": "",
-          "body": "Bu Koşullarla ilgili her türlü soru için bizimle iletişime geçin: {support}.",
+          "body": "Bu Koşullarla ilgili her türlü soru için bizimle iletişime geçin:\nDestek: {support}",
           "items": []
         }
       ]
