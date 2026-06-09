@@ -1,5 +1,6 @@
 <template>
-  <div id="root">
+  <div id="root" class="swipe-y-off">
+    <div class="swipe-y-on scroll-area">
     <div
       class="wrapper"
       style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); transition: padding 100ms;"
@@ -51,6 +52,8 @@
       </div>
     </div>
     <div id="veepn-breach-alert"></div>
+    <div class="scroll-buffer" aria-hidden="true"></div>
+    </div>
   </div>
 </template>
 
@@ -73,6 +76,32 @@ function updateTheme(theme: string): void {
 </script>
 
 <style scoped>
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+.scroll-area {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-area::-webkit-scrollbar {
+  display: none;
+}
+
+.wrapper {
+  min-height: 100%;
+  padding-bottom: 24px;
+}
+
+.scroll-buffer {
+  height: 1px;
+}
+
 .settingschange-select-button {
   display: flex;
   align-items: center;
