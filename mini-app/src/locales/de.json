@@ -77,5 +77,121 @@
   "privacy_policy": "Datenschutzrichtlinie",
   "terms_of_service": "Nutzungsbedingungen",
   "page_in_development": "Seite in Entwicklung",
-  "page_in_development_desc": "Dieser Abschnitt wird bald verfügbar sein. Bei Fragen wende dich an"
+  "page_in_development_desc": "Dieser Abschnitt wird bald verfügbar sein. Bei Fragen wende dich an",
+  "legal": {
+    "updated": "Zuletzt aktualisiert: {date}",
+    "privacy": {
+      "intro": "Diese Datenschutzrichtlinie erläutert, wie Monkey AI („wir\", „uns\" oder „unser\") Ihre Informationen erhebt, verwendet und schützt, wenn Sie unseren Dienst nutzen.",
+      "sections": [
+        {
+          "heading": "1. Welche Daten wir erheben",
+          "intro": "Wenn Sie Monkey AI nutzen, können wir folgende Daten erheben:",
+          "body": "",
+          "items": [
+            { "b": "Telegram-Kontodaten:", "t": " Ihre Benutzer-ID, Ihren Benutzernamen, Vor- und Nachnamen sowie die Sprache." },
+            { "b": "Von Ihnen bereitgestellte Inhalte:", "t": " die Nachrichten, Anfragen, Bilder und Audiodateien, die Sie an den Assistenten senden." },
+            { "b": "Nutzungsdaten:", "t": " das ausgewählte Modell, Einstellungen und grundlegende Aktivitätsstatistiken." }
+          ]
+        },
+        {
+          "heading": "2. Verwendung der Informationen",
+          "intro": "Wir verwenden die erhobenen Informationen, um:",
+          "body": "",
+          "items": [
+            { "b": "", "t": "den KI-Assistenten bereitzustellen und zu betreiben, einschließlich Chat, Bildgenerierung und Transkription;" },
+            { "b": "", "t": "Ihren Gesprächsverlauf über Sitzungen hinweg zu speichern;" },
+            { "b": "", "t": "die Sicherheit zu gewährleisten und Missbrauch des Dienstes zu verhindern;" },
+            { "b": "", "t": "auf Ihre Anfragen zu reagieren und Support zu leisten." }
+          ]
+        },
+        {
+          "heading": "3. Dienste von Drittanbietern",
+          "intro": "",
+          "body": "Um KI-Funktionen bereitzustellen, werden die von Ihnen übermittelten Inhalte von OpenAI verarbeitet. Der Dienst wird zudem über Telegram bereitgestellt. Wir verkaufen Ihre personenbezogenen Daten nicht an Dritte.",
+          "items": []
+        },
+        {
+          "heading": "4. Datensicherheit",
+          "intro": "",
+          "body": "Wir treffen angemessene technische Maßnahmen zum Schutz Ihrer Daten, einschließlich der Authentifizierung über Telegram. Allerdings ist keine Übertragungs- oder Speichermethode vollständig sicher, und wir können keine absolute Sicherheit garantieren.",
+          "items": []
+        },
+        {
+          "heading": "5. Ihre Rechte",
+          "intro": "",
+          "body": "Sie können jederzeit Zugang zu Ihren personenbezogenen Daten sowie deren Berichtigung oder Löschung verlangen. Um eine solche Anfrage zu stellen, kontaktieren Sie uns unter {support}.",
+          "items": []
+        },
+        {
+          "heading": "6. Änderungen dieser Richtlinie",
+          "intro": "",
+          "body": "Wir können diese Datenschutzrichtlinie von Zeit zu Zeit aktualisieren. Änderungen treten in Kraft, sobald die aktualisierte Version veröffentlicht wird; wir empfehlen, diese Seite regelmäßig zu überprüfen.",
+          "items": []
+        }
+      ]
+    },
+    "terms": {
+      "intro": "Diese Nutzungsbedingungen („Bedingungen\") regeln Ihre Nutzung von Monkey AI, einschließlich des Telegram-Bots und der Mini App (der „Dienst\"). Durch die Nutzung des Dienstes stimmen Sie diesen Bedingungen zu.",
+      "sections": [
+        {
+          "heading": "1. Annahme der Bedingungen",
+          "intro": "",
+          "body": "Durch den Zugriff auf Monkey AI oder dessen Nutzung bestätigen Sie, dass Sie diese Bedingungen gelesen und verstanden haben und sich damit einverstanden erklären. Wenn Sie nicht einverstanden sind, nutzen Sie den Dienst bitte nicht.",
+          "items": []
+        },
+        {
+          "heading": "2. Beschreibung des Dienstes",
+          "intro": "",
+          "body": "Monkey AI ist ein KI-Assistent in Telegram, der Textgespräche, Bildgenerierung und Audiotranskription bietet. Die verfügbaren Funktionen können sich im Laufe der Zeit ändern.",
+          "items": []
+        },
+        {
+          "heading": "3. Zugang",
+          "intro": "",
+          "body": "Der Zugang zum Dienst kann eingeschränkt sein und wird nach unserem Ermessen gewährt. Sie benötigen ein gültiges Telegram-Konto und müssen die Regeln von Telegram einhalten.",
+          "items": []
+        },
+        {
+          "heading": "4. Zulässige Nutzung",
+          "intro": "Bei der Nutzung des Dienstes verpflichten Sie sich, Folgendes zu unterlassen:",
+          "body": "",
+          "items": [
+            { "b": "", "t": "ihn für rechtswidrige, schädliche oder verbotene Inhalte zu verwenden;" },
+            { "b": "", "t": "den Dienst zu missbrauchen, zu stören oder zu überlasten;" },
+            { "b": "", "t": "zu versuchen, unbefugten Zugriff zu erlangen oder den Dienst auszunutzen." }
+          ]
+        },
+        {
+          "heading": "5. KI-generierte Inhalte",
+          "intro": "",
+          "body": "Antworten und Bilder werden von künstlicher Intelligenz erstellt und können ungenau, unvollständig oder anstößig sein. Sie sind allein dafür verantwortlich, wie Sie die generierten Inhalte verwenden.",
+          "items": []
+        },
+        {
+          "heading": "6. Haftungsbeschränkung",
+          "intro": "",
+          "body": "Der Dienst wird „wie besehen\" und „wie verfügbar\" ohne jegliche Gewährleistung bereitgestellt. Wir haften nicht für Schäden, die aus der Nutzung des Dienstes oder aus Unterbrechungen durch Dienste von Drittanbietern entstehen.",
+          "items": []
+        },
+        {
+          "heading": "7. Anwendbares Recht",
+          "intro": "",
+          "body": "Diese Bedingungen unterliegen dem Recht Russlands.",
+          "items": []
+        },
+        {
+          "heading": "8. Änderungen dieser Bedingungen",
+          "intro": "",
+          "body": "Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Durch die fortgesetzte Nutzung des Dienstes nach Veröffentlichung der Änderungen akzeptieren Sie die aktualisierten Bedingungen.",
+          "items": []
+        },
+        {
+          "heading": "9. Kontakt",
+          "intro": "",
+          "body": "Bei Fragen zu diesen Bedingungen kontaktieren Sie uns unter {support}.",
+          "items": []
+        }
+      ]
+    }
+  }
 }

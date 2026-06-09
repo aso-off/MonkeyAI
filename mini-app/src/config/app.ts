@@ -8,3 +8,5 @@ export const APP_LINKS = {
 
 export const APP_AUTHOR = '@aso_off'
 export const SUPPORT_HANDLE = '@MonkeyAI_Support'
+
+export const LEGAL_LAST_UPDATED = '09.06.2026'
