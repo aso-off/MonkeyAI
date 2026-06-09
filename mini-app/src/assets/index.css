@@ -2624,15 +2624,14 @@ body {
   overflow: hidden;
 }
 
-.swipe-y-off * {
+.swipe-y-off {
+  overflow: hidden;
   touch-action: none;
 }
 
-.swipe-y-off .swipe-y-on,
-.swipe-y-off .swipe-y-on * {
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y !important;
+.swipe-y-on {
+  overscroll-behavior: none;
+  touch-action: pan-y;
 }
 
 .wrapper {
