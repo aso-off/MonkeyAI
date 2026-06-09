@@ -315,6 +315,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    ports:
+      - "127.0.0.1:5540:5540"
     volumes:
       - redisinsight_data:/data
     restart: unless-stopped
@@ -346,7 +348,7 @@ services:
     container_name: monkey_postgres_admin
     restart: always
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
