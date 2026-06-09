@@ -395,7 +395,7 @@ onUnmounted(() => {
 
 .loading-retry-btn {
   display: block;
-  width: 100%;
+  width: 80%;
   padding: 14px;
   border: none;
   border-radius: 12px;
