@@ -194,7 +194,6 @@
     </div>
     <div id="veepn-guard-alert"></div>
     <div id="veepn-breach-alert"></div>
-    <div class="scroll-buffer" aria-hidden="true"></div>
     </div>
   </div>
 </template>
@@ -347,11 +346,6 @@ const openAuthor = () => {
 </script>
 
 <style scoped>
-#root {
-  height: 100%;
-  overflow: hidden;
-}
-
 .scroll-area {
   height: 100%;
   overflow-y: auto;
@@ -367,10 +361,6 @@ const openAuthor = () => {
 .wrapper {
   min-height: 100%;
   padding-bottom: 24px;
-}
-
-.scroll-buffer {
-  height: 1px;
 }
 
 img[src$=".svg"]:not(.line) {
