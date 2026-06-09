@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models.user import Dialog, User
+from db.models.user import Dialog, User, UserStatistics
 from db.repositories.users import get_user
 
 
@@ -12,39 +12,36 @@ async def ensure_active_dialog(session: AsyncSession, user_id: int) -> str:
     """Return active dialog_id for user's current_chat_mode.
 
     Creates a new dialog if none exists for this mode yet.
-    Also updates user.current_dialog_id for backwards compatibility.
     """
     user = await get_user(session, user_id)
     if user is None:
         raise ValueError(f"User {user_id} not found")
 
-    chat_mode = user.current_chat_mode
-    ids = dict(user.current_dialog_ids or {})
+    chat_mode = user.state.current_chat_mode
+    ids = dict(user.state.current_dialog_ids or {})
     dialog_id = ids.get(chat_mode)
 
     if dialog_id:
-        # Ensure dialog exists (handles old/broken state)
         result = await session.execute(
             select(Dialog.id).where(Dialog.id == dialog_id, Dialog.user_id == user_id)
         )
         if result.scalar_one_or_none() is not None:
-            if user.current_dialog_id != dialog_id:
-                user.current_dialog_id = dialog_id
+            if user.state.current_dialog_id != dialog_id:
+                user.state.current_dialog_id = dialog_id
                 await session.commit()
             return dialog_id
 
-    # Create new dialog for this mode
     dialog = Dialog(
         id=str(uuid.uuid4()),
         user_id=user_id,
         chat_mode=chat_mode,
-        model=user.current_model,
+        model=user.state.current_model,
         messages=[],
     )
     session.add(dialog)
     ids[chat_mode] = dialog.id
-    user.current_dialog_ids = ids
-    user.current_dialog_id = dialog.id
+    user.state.current_dialog_ids = ids
+    user.state.current_dialog_id = dialog.id
     await session.commit()
     return dialog.id
 
@@ -57,16 +54,15 @@ async def start_new_dialog(session: AsyncSession, user_id: int, commit: bool = T
     dialog = Dialog(
         id=str(uuid.uuid4()),
         user_id=user_id,
-        chat_mode=user.current_chat_mode,
-        model=user.current_model,
+        chat_mode=user.state.current_chat_mode,
+        model=user.state.current_model,
         messages=[],
     )
     session.add(dialog)
-    # Reset dialog for current mode only
-    ids = dict(user.current_dialog_ids or {})
-    ids[user.current_chat_mode] = dialog.id
-    user.current_dialog_ids = ids
-    user.current_dialog_id = dialog.id
+    ids = dict(user.state.current_dialog_ids or {})
+    ids[user.state.current_chat_mode] = dialog.id
+    user.state.current_dialog_ids = ids
+    user.state.current_dialog_id = dialog.id
     if commit:
         await session.commit()
     return dialog.id
@@ -81,7 +77,7 @@ async def get_dialog_messages(
         user = await get_user(session, user_id)
         if user is None:
             raise ValueError(f"User {user_id} not found")
-        dialog_id = user.current_dialog_id
+        dialog_id = user.state.current_dialog_id
 
     result = await session.execute(
         select(Dialog).where(Dialog.id == dialog_id, Dialog.user_id == user_id)
@@ -96,7 +92,7 @@ async def get_dialog_messages_by_mode(session: AsyncSession, user_id: int) -> di
     if user is None:
         raise ValueError(f"User {user_id} not found")
 
-    ids = dict(user.current_dialog_ids or {})
+    ids = dict(user.state.current_dialog_ids or {})
     if not ids:
         return {}
 
@@ -123,7 +119,7 @@ async def set_dialog_messages(
         user = await get_user(session, user_id)
         if user is None:
             raise ValueError(f"User {user_id} not found")
-        dialog_id = user.current_dialog_id
+        dialog_id = user.state.current_dialog_id
 
     await session.execute(
         update(Dialog)
@@ -143,19 +139,21 @@ async def update_n_used_tokens(
 ) -> None:
     # SELECT FOR UPDATE to prevent lost-update race when two requests finish simultaneously.
     result = await session.execute(
-        select(User).where(User.id == user_id).with_for_update()
+        select(UserStatistics).where(UserStatistics.user_id == user_id).with_for_update()
     )
-    user = result.scalar_one_or_none()
-    if user is None:
+    stats = result.scalar_one_or_none()
+    if stats is None:
         return
 
-    tokens = dict(user.n_used_tokens or {})
+    tokens = dict(stats.n_used_tokens or {})
     entry = tokens.get(model, {"n_input_tokens": 0, "n_output_tokens": 0})
     tokens[model] = {
         "n_input_tokens": entry["n_input_tokens"] + n_input_tokens,
         "n_output_tokens": entry["n_output_tokens"] + n_output_tokens,
     }
-    await session.execute(update(User).where(User.id == user_id).values(n_used_tokens=tokens))
+    await session.execute(
+        update(UserStatistics).where(UserStatistics.user_id == user_id).values(n_used_tokens=tokens)
+    )
     await session.commit()
 
 
@@ -225,8 +223,8 @@ async def ensure_active_mini_app_dialog(session: AsyncSession, user_id: int) -> 
     if user is None:
         raise ValueError(f"User {user_id} not found")
 
-    chat_mode = user.mini_app_chat_mode
-    ids = dict(user.mini_app_dialog_ids or {})
+    chat_mode = user.state.mini_app_chat_mode
+    ids = dict(user.state.mini_app_dialog_ids or {})
     dialog_id = ids.get(chat_mode)
 
     if dialog_id:
@@ -240,12 +238,12 @@ async def ensure_active_mini_app_dialog(session: AsyncSession, user_id: int) -> 
         id=str(uuid.uuid4()),
         user_id=user_id,
         chat_mode=chat_mode,
-        model=user.current_model,
+        model=user.state.current_model,
         messages=[],
     )
     session.add(dialog)
     ids[chat_mode] = dialog.id
-    user.mini_app_dialog_ids = ids
+    user.state.mini_app_dialog_ids = ids
     await session.commit()
     return dialog.id
 
@@ -255,18 +253,18 @@ async def start_new_mini_app_dialog(session: AsyncSession, user_id: int, commit:
     if user is None:
         raise ValueError(f"User {user_id} not found")
 
-    chat_mode = user.mini_app_chat_mode
+    chat_mode = user.state.mini_app_chat_mode
     dialog = Dialog(
         id=str(uuid.uuid4()),
         user_id=user_id,
         chat_mode=chat_mode,
-        model=user.current_model,
+        model=user.state.current_model,
         messages=[],
     )
     session.add(dialog)
-    ids = dict(user.mini_app_dialog_ids or {})
+    ids = dict(user.state.mini_app_dialog_ids or {})
     ids[chat_mode] = dialog.id
-    user.mini_app_dialog_ids = ids
+    user.state.mini_app_dialog_ids = ids
     if commit:
         await session.commit()
     return dialog.id
@@ -280,8 +278,8 @@ async def get_mini_app_dialog_id(
     user = await get_user(session, user_id)
     if user is None:
         return None
-    mode = chat_mode or user.mini_app_chat_mode
-    ids = dict(user.mini_app_dialog_ids or {})
+    mode = chat_mode or user.state.mini_app_chat_mode
+    ids = dict(user.state.mini_app_dialog_ids or {})
     return ids.get(mode)
 
 

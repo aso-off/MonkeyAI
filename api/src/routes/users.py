@@ -118,7 +118,7 @@ async def _get_user_cached(user_id: int, session: AsyncSession) -> UserRead | No
     user = await user_repo.get_user(session, user_id)
     if user is None:
         return None
-    user_read = UserRead.model_validate(user)
+    user_read = UserRead.from_orm_user(user)
     await _redis_write_user(user_read)
     return user_read
 
@@ -204,7 +204,7 @@ async def create_or_get_user(
     )
     if not created:
         response.status_code = status.HTTP_200_OK
-    user_read = UserRead.model_validate(user)
+    user_read = UserRead.from_orm_user(user)
     await _redis_write_user(user_read)
     return user_read
 

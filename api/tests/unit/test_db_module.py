@@ -24,12 +24,12 @@ Faker.seed(42)
 
 def _make_engine_mock():
     mock_conn = mock.AsyncMock()
-    mock_begin_ctx = mock.MagicMock()
-    mock_begin_ctx.__aenter__ = mock.AsyncMock(return_value=mock_conn)
-    mock_begin_ctx.__aexit__ = mock.AsyncMock(return_value=False)
+    mock_connect_ctx = mock.MagicMock()
+    mock_connect_ctx.__aenter__ = mock.AsyncMock(return_value=mock_conn)
+    mock_connect_ctx.__aexit__ = mock.AsyncMock(return_value=False)
 
     mock_engine = mock.MagicMock()
-    mock_engine.begin = mock.MagicMock(return_value=mock_begin_ctx)
+    mock_engine.connect = mock.MagicMock(return_value=mock_connect_ctx)
     return mock_engine, mock_conn
 
 
@@ -101,79 +101,36 @@ class TestGetSession:
 class TestInitDb:
 
     @pytest.mark.asyncio
-    async def test_init_db_calls_create_all(self) -> None:
+    async def test_init_db_runs_migrations_via_connection(self) -> None:
         from db.db import init_db
         mock_engine, mock_conn = _make_engine_mock()
 
         with mock.patch("db.db.engine", mock_engine):
             await init_db()
 
+        mock_engine.connect.assert_called_once()
         mock_conn.run_sync.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_init_db_calls_alter_table_6_times(self) -> None:
-        from db.db import init_db
+    async def test_init_db_passes_run_migrations_callable(self) -> None:
+        from db.db import _run_migrations, init_db
         mock_engine, mock_conn = _make_engine_mock()
 
         with mock.patch("db.db.engine", mock_engine):
             await init_db()
 
-        assert mock_conn.exec_driver_sql.await_count == 6
+        assert mock_conn.run_sync.await_args.args[0] is _run_migrations
 
-    @pytest.mark.asyncio
-    async def test_init_db_adds_is_admin_column(self) -> None:
-        from db.db import init_db
-        mock_engine, mock_conn = _make_engine_mock()
+    def test_run_migrations_upgrades_to_head(self) -> None:
+        from db import db as db_mod
 
-        with mock.patch("db.db.engine", mock_engine):
-            await init_db()
+        connection = mock.MagicMock()
+        with mock.patch.object(db_mod, "_alembic_config", return_value=mock.MagicMock()), \
+             mock.patch("alembic.command.upgrade") as upgrade:
+            db_mod._run_migrations(connection)
 
-        sqls = [str(c.args[0]) for c in mock_conn.exec_driver_sql.call_args_list]
-        assert any("is_admin" in s for s in sqls)
-
-    @pytest.mark.asyncio
-    async def test_init_db_adds_is_whitelisted_column(self) -> None:
-        from db.db import init_db
-        mock_engine, mock_conn = _make_engine_mock()
-
-        with mock.patch("db.db.engine", mock_engine):
-            await init_db()
-
-        sqls = [str(c.args[0]) for c in mock_conn.exec_driver_sql.call_args_list]
-        assert any("is_whitelisted" in s for s in sqls)
-
-    @pytest.mark.asyncio
-    async def test_init_db_adds_theme_column(self) -> None:
-        from db.db import init_db
-        mock_engine, mock_conn = _make_engine_mock()
-
-        with mock.patch("db.db.engine", mock_engine):
-            await init_db()
-
-        sqls = [str(c.args[0]) for c in mock_conn.exec_driver_sql.call_args_list]
-        assert any("theme" in s for s in sqls)
-
-    @pytest.mark.asyncio
-    async def test_init_db_adds_mini_app_chat_mode_column(self) -> None:
-        from db.db import init_db
-        mock_engine, mock_conn = _make_engine_mock()
-
-        with mock.patch("db.db.engine", mock_engine):
-            await init_db()
-
-        sqls = [str(c.args[0]) for c in mock_conn.exec_driver_sql.call_args_list]
-        assert any("mini_app_chat_mode" in s for s in sqls)
-
-    @pytest.mark.asyncio
-    async def test_init_db_uses_add_column_if_not_exists(self) -> None:
-        from db.db import init_db
-        mock_engine, mock_conn = _make_engine_mock()
-
-        with mock.patch("db.db.engine", mock_engine):
-            await init_db()
-
-        sqls = [str(c.args[0]) for c in mock_conn.exec_driver_sql.call_args_list]
-        assert all("ADD COLUMN IF NOT EXISTS" in s for s in sqls)
+        upgrade.assert_called_once()
+        assert upgrade.call_args.args[1] == "head"
 
 
 # ── Base & module-level ───────────────────────────────────────────────────────

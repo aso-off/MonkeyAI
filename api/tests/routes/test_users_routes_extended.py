@@ -77,7 +77,7 @@ class TestGetUserFull:
         import json
         user = user_factory()
         from schemas.user import UserRead
-        user_read = UserRead.model_validate(user)
+        user_read = UserRead.from_orm_user(user)
         cached_payload = json.dumps({
             "user": json.loads(user_read.model_dump_json()),
             "message_count": 42,
@@ -99,7 +99,7 @@ class TestGetUserFull:
              patch("routes.users._get_user_cached",
                    new=AsyncMock(return_value=__import__(
                        "schemas.user", fromlist=["UserRead"]
-                   ).UserRead.model_validate(user))), \
+                   ).UserRead.from_orm_user(user))), \
              patch("routes.users.dialog_repo.get_user_message_count",
                    new=AsyncMock(return_value=7)):
             resp = api_client.get(f"/users/{user.id}/full")
@@ -125,7 +125,7 @@ class TestGetUserFull:
         mock_r.get = AsyncMock(side_effect=Exception("redis timeout"))
         mock_r.set = AsyncMock()
         from schemas.user import UserRead
-        user_read = UserRead.model_validate(user)
+        user_read = UserRead.from_orm_user(user)
         with patch("routes.users.get_redis", return_value=mock_r), \
              patch("routes.users._get_user_cached", new=AsyncMock(return_value=user_read)), \
              patch("routes.users.dialog_repo.get_user_message_count",
@@ -220,7 +220,7 @@ class TestRedisUserHelpers:
         from routes.users import _redis_write_user
         from schemas.user import UserRead
         user = user_factory()
-        user_read = UserRead.model_validate(user)
+        user_read = UserRead.from_orm_user(user)
         pipe = MagicMock()
         pipe.execute = AsyncMock()
         mock_r = MagicMock()
@@ -234,7 +234,7 @@ class TestRedisUserHelpers:
         from routes.users import _redis_write_user
         from schemas.user import UserRead
         user = user_factory()
-        user_read = UserRead.model_validate(user)
+        user_read = UserRead.from_orm_user(user)
         mock_r = MagicMock()
         mock_r.pipeline = MagicMock(side_effect=Exception("boom"))
         with patch("routes.users.get_redis", return_value=mock_r):
@@ -245,7 +245,7 @@ class TestRedisUserHelpers:
         from routes.users import _redis_read_user
         from schemas.user import UserRead
         user = user_factory()
-        user_read = UserRead.model_validate(user)
+        user_read = UserRead.from_orm_user(user)
         mock_r = AsyncMock()
         mock_r.get = AsyncMock(return_value=user_read.model_dump_json().encode())
         with patch("routes.users.get_redis", return_value=mock_r):

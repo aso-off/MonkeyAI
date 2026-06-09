@@ -25,6 +25,7 @@ dependencies = [
 
 [project.optional-dependencies]
 api = [
+    "alembic==1.16.5",
     "asyncpg==0.31.0",
     "openai==2.33.0",
     "python-multipart==0.0.20",
