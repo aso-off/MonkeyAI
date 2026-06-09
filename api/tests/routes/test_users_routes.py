@@ -42,7 +42,7 @@ class TestGetUser:
     def test_user_from_redis_cache_returns_200(self, api_client, user_factory) -> None:
         user = user_factory()
         from schemas.user import UserRead
-        cached = UserRead.model_validate(user)
+        cached = UserRead.from_orm_user(user)
         with patch("routes.users._redis_read_user", new=AsyncMock(return_value=cached)):
             resp = api_client.get(f"/users/{user.id}")
         assert resp.status_code == 200

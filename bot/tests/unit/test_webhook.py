@@ -16,6 +16,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
+# Предзагрузка реальных модулей: внутри фикстур router/app грузятся под
+# patch.dict(sys.modules), который при выходе удаляет ключи, добавленные во
+# время блока. Если fastapi/aiogram импортируются впервые там — они стираются,
+# и тело теста получает второй экземпляр fastapi (isinstance ломается, 404).
+import aiogram  # noqa: F401, E402
+import fastapi  # noqa: F401, E402
+
 import pytest
 from faker import Faker
 

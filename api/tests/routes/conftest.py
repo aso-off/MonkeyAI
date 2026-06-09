@@ -15,7 +15,22 @@ import types
 
 
 def _make_user_ns(fake, **overrides) -> types.SimpleNamespace:
-    """Фабрика: ORM-совместимый объект для UserRead.model_validate()."""
+    """Фабрика: ORM-совместимый объект (users + state + statistics) для UserRead.from_orm_user()."""
+    state = types.SimpleNamespace(
+        current_dialog_id=overrides.get("current_dialog_id", None),
+        current_dialog_ids=overrides.get("current_dialog_ids", {}),
+        current_chat_mode=overrides.get("current_chat_mode", "assistant"),
+        mini_app_chat_mode=overrides.get("mini_app_chat_mode", "assistant"),
+        mini_app_dialog_ids=overrides.get("mini_app_dialog_ids", {}),
+        current_model=overrides.get("current_model", "gpt-4o"),
+        theme=overrides.get("theme", "light"),
+    )
+    statistics = types.SimpleNamespace(
+        n_used_tokens=overrides.get("n_used_tokens", {}),
+        n_generated_images=overrides.get("n_generated_images", 0),
+        n_transcribed_seconds=overrides.get("n_transcribed_seconds", 0.0),
+        last_updated=overrides.get("last_updated", datetime.now(timezone.utc)),
+    )
     return types.SimpleNamespace(
         id=overrides.get("id", fake.random_int(min=100_000, max=999_999_999)),
         chat_id=overrides.get("chat_id", fake.random_int(min=100_000, max=999_999_999)),
@@ -27,14 +42,8 @@ def _make_user_ns(fake, **overrides) -> types.SimpleNamespace:
         is_whitelisted=overrides.get("is_whitelisted", True),
         first_seen=overrides.get("first_seen", datetime.now(timezone.utc)),
         last_interaction=overrides.get("last_interaction", datetime.now(timezone.utc)),
-        current_dialog_id=overrides.get("current_dialog_id", None),
-        current_chat_mode=overrides.get("current_chat_mode", "assistant"),
-        mini_app_chat_mode=overrides.get("mini_app_chat_mode", "assistant"),
-        current_model=overrides.get("current_model", "gpt-4o"),
-        theme=overrides.get("theme", "light"),
-        n_used_tokens=overrides.get("n_used_tokens", {}),
-        n_generated_images=overrides.get("n_generated_images", 0),
-        n_transcribed_seconds=overrides.get("n_transcribed_seconds", 0.0),
+        state=state,
+        statistics=statistics,
     )
 
 

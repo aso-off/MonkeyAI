@@ -118,7 +118,7 @@ async def _require_user(session: AsyncSession, user_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not registered — call GET /webapp/me first",
         )
-    return UserRead.model_validate(user)
+    return UserRead.from_orm_user(user)
 
 
 async def _require_whitelisted(session: AsyncSession, user_id: int):
@@ -288,15 +288,13 @@ async def get_me(
     # Apply Redis-cached prefs on top of DB values.
     # Redis is the source of truth for settings changed via PATCH /me
     # (written there first, then async to PostgreSQL).
+    user_read = UserRead.from_orm_user(user)
     redis_prefs = await _redis_read_prefs(user.id)
     if redis_prefs:
-        user_read = UserRead.model_validate(user)
         for field in _PREFS_FIELDS:
             if field in redis_prefs:
                 setattr(user_read, field, redis_prefs[field])
-        return user_read
-
-    return user
+    return user_read
 
 
 @router.patch("/me", response_model=_OkResponse)
@@ -554,16 +552,16 @@ class _ReactionPayload(BaseModel):
     summary="Record message reaction",
     description=(
         "Save a **like** or **dislike** reaction for a bot response.\n\n"
-        "Stored in `message_reactions` table. Useful for analytics — "
+        "Stored in `reactions` table. Useful for analytics — "
         "query by `model` + `reaction` to see which models need improvement.\n\n"
         "**Analytics queries:**\n"
         "```sql\n"
         "-- Likes/dislikes per model\n"
         "SELECT model, reaction, COUNT(*) AS cnt\n"
-        "FROM message_reactions GROUP BY model, reaction ORDER BY cnt DESC;\n\n"
+        "FROM reactions GROUP BY model, reaction ORDER BY cnt DESC;\n\n"
         "-- Recent dislikes with messages (for review)\n"
         "SELECT model, user_message, bot_message, created_at\n"
-        "FROM message_reactions WHERE reaction = 'dislike'\n"
+        "FROM reactions WHERE reaction = 'dislike'\n"
         "ORDER BY created_at DESC LIMIT 50;\n"
         "```"
     ),
@@ -582,11 +580,11 @@ async def post_reaction(
     if payload.reaction not in ("like", "dislike"):
         raise HTTPException(status_code=400, detail="Invalid reaction value")
 
-    from db.models.user import MessageReaction
+    from db.models.user import Reaction
 
     tg = _extract_tg_user(init_data)
     user_id = tg["id"]
-    reaction = MessageReaction(
+    reaction = Reaction(
         user_id=user_id,
         reaction=payload.reaction,
         model=payload.model,

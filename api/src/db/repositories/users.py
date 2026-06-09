@@ -5,7 +5,15 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from db.models.user import User
+from db.models.user import User, UserState, UserStatistics
+
+_STATE_COLS = frozenset({
+    "current_dialog_id", "current_dialog_ids", "current_chat_mode",
+    "mini_app_chat_mode", "mini_app_dialog_ids", "current_model", "theme",
+})
+_STATS_COLS = frozenset({
+    "n_used_tokens", "n_generated_images", "n_transcribed_seconds", "last_updated",
+})
 
 
 async def get_user(session: AsyncSession, user_id: int) -> User | None:
@@ -43,9 +51,10 @@ async def get_or_create_user(
         first_name=first_name,
         last_name=last_name or None,
         language=language,
-        current_model=default_model,
         is_admin=user_id in settings.admin_ids,
         is_whitelisted=user_id in settings.allowed_user_ids,
+        state=UserState(current_model=default_model),
+        statistics=UserStatistics(),
     )
     session.add(user)
     try:
@@ -59,7 +68,15 @@ async def get_or_create_user(
 
 
 async def update_user(session: AsyncSession, user_id: int, **kwargs) -> None:
-    await session.execute(update(User).where(User.id == user_id).values(**kwargs))
+    state_vals = {k: v for k, v in kwargs.items() if k in _STATE_COLS}
+    stats_vals = {k: v for k, v in kwargs.items() if k in _STATS_COLS}
+    user_vals = {k: v for k, v in kwargs.items() if k not in _STATE_COLS and k not in _STATS_COLS}
+    if user_vals:
+        await session.execute(update(User).where(User.id == user_id).values(**user_vals))
+    if state_vals:
+        await session.execute(update(UserState).where(UserState.user_id == user_id).values(**state_vals))
+    if stats_vals:
+        await session.execute(update(UserStatistics).where(UserStatistics.user_id == user_id).values(**stats_vals))
     await session.commit()
 
 
@@ -73,8 +90,8 @@ async def update_last_interaction(session: AsyncSession, user_id: int, commit: b
 
 async def increment_n_generated_images(session: AsyncSession, user_id: int, count: int) -> None:
     await session.execute(
-        update(User).where(User.id == user_id).values(
-            n_generated_images=User.n_generated_images + count
+        update(UserStatistics).where(UserStatistics.user_id == user_id).values(
+            n_generated_images=UserStatistics.n_generated_images + count
         )
     )
     await session.commit()
@@ -82,8 +99,8 @@ async def increment_n_generated_images(session: AsyncSession, user_id: int, coun
 
 async def increment_n_transcribed_seconds(session: AsyncSession, user_id: int, seconds: float) -> None:
     await session.execute(
-        update(User).where(User.id == user_id).values(
-            n_transcribed_seconds=User.n_transcribed_seconds + seconds
+        update(UserStatistics).where(UserStatistics.user_id == user_id).values(
+            n_transcribed_seconds=UserStatistics.n_transcribed_seconds + seconds
         )
     )
     await session.commit()

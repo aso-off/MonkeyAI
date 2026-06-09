@@ -49,6 +49,28 @@ def _scalars_result(values: list):
     return r
 
 
+def _fake_state():
+    from db.models.user import UserState
+    s = MagicMock(spec=UserState)
+    s.current_model = "gpt-4o"
+    s.current_chat_mode = "assistant"
+    s.current_dialog_id = None
+    s.current_dialog_ids = {}
+    s.mini_app_dialog_ids = {}
+    s.theme = "system"
+    s.mini_app_chat_mode = "assistant"
+    return s
+
+
+def _fake_stats():
+    from db.models.user import UserStatistics
+    st = MagicMock(spec=UserStatistics)
+    st.n_used_tokens = {}
+    st.n_generated_images = 0
+    st.n_transcribed_seconds = 0.0
+    return st
+
+
 def _fake_user_obj(uid: int | None = None):
     from db.models.user import User
     u = MagicMock(spec=User)
@@ -60,16 +82,8 @@ def _fake_user_obj(uid: int | None = None):
     u.language = fake.random_element(["ru", "en", "de"])
     u.is_admin = False
     u.is_whitelisted = True
-    u.n_used_tokens = {}
-    u.n_generated_images = 0
-    u.n_transcribed_seconds = 0.0
-    u.current_model = "gpt-4o"
-    u.current_chat_mode = "assistant"
-    u.current_dialog_id = None
-    u.current_dialog_ids = {}
-    u.mini_app_dialog_ids = {}
-    u.theme = "system"
-    u.mini_app_chat_mode = "assistant"
+    u.state = _fake_state()
+    u.statistics = _fake_stats()
     return u
 
 
@@ -234,7 +248,8 @@ class TestUpdateUser:
 
         await update_user(session, uid, language="en", theme="dark")
 
-        session.execute.assert_awaited_once()
+        # language → users, theme → user_states: два UPDATE, один commit
+        assert session.execute.await_count == 2
         session.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -364,9 +379,9 @@ class TestEnsureActiveDialog:
         uid = _uid()
         did = _did()
         user = _fake_user_obj(uid)
-        user.current_chat_mode = "assistant"
-        user.current_dialog_ids = {"assistant": did}
-        user.current_dialog_id = did
+        user.state.current_chat_mode = "assistant"
+        user.state.current_dialog_ids ={"assistant": did}
+        user.state.current_dialog_id =did
 
         session = _make_session()
         dialog_result = MagicMock()
@@ -388,9 +403,9 @@ class TestEnsureActiveDialog:
         from db.repositories.dialogs import ensure_active_dialog
         uid = _uid()
         user = _fake_user_obj(uid)
-        user.current_chat_mode = "assistant"
-        user.current_dialog_ids = {}
-        user.current_dialog_id = None
+        user.state.current_chat_mode = "assistant"
+        user.state.current_dialog_ids ={}
+        user.state.current_dialog_id =None
 
         session = _make_session()
         session.execute.return_value = _scalar_result(user)
@@ -416,9 +431,9 @@ class TestStartNewDialog:
         from db.repositories.dialogs import start_new_dialog
         uid = _uid()
         user = _fake_user_obj(uid)
-        user.current_chat_mode = "assistant"
-        user.current_dialog_ids = {}
-        user.current_dialog_id = None
+        user.state.current_chat_mode = "assistant"
+        user.state.current_dialog_ids ={}
+        user.state.current_dialog_id =None
 
         session = _make_session()
         session.execute.return_value = _scalar_result(user)
@@ -441,7 +456,7 @@ class TestStartNewDialog:
         from db.repositories.dialogs import start_new_dialog
         uid = _uid()
         user = _fake_user_obj(uid)
-        user.current_dialog_ids = {}
+        user.state.current_dialog_ids ={}
         session = _make_session()
         session.execute.return_value = _scalar_result(user)
 
@@ -481,7 +496,7 @@ class TestGetDialogMessages:
         uid = _uid()
         did = _did()
         user = _fake_user_obj(uid)
-        user.current_dialog_id = did
+        user.state.current_dialog_id =did
         dialog = _fake_dialog_obj(uid, did)
         dialog.messages = []
 
@@ -513,7 +528,7 @@ class TestSetDialogMessages:
         from db.repositories.dialogs import set_dialog_messages
         uid = _uid()
         user = _fake_user_obj(uid)
-        user.current_dialog_id = _did()
+        user.state.current_dialog_id =_did()
         session = _make_session()
         session.execute.side_effect = [
             _scalar_result(user),   # get_user
@@ -531,12 +546,11 @@ class TestUpdateNUsedTokens:
         from db.repositories.dialogs import update_n_used_tokens
         uid = _uid()
         model = "gpt-4o"
-        user = _fake_user_obj(uid)
-        user.n_used_tokens = {}
+        stats = _fake_stats()
 
         session = _make_session()
         session.execute.side_effect = [
-            _scalar_result(user),   # SELECT FOR UPDATE
+            _scalar_result(stats),  # SELECT FOR UPDATE (UserStatistics)
             MagicMock(),            # UPDATE
         ]
         n_in = fake.random_int(min=10, max=1000)
