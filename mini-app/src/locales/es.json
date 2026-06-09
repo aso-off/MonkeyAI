@@ -142,7 +142,7 @@
         {
           "heading": "2. Descripción del servicio",
           "intro": "",
-          "body": "Monkey AI es un asistente de IA disponible en Telegram que ofrece conversaciones de texto, generación de imágenes y transcripción de audio. Las funciones disponibles pueden cambiar con el tiempo.",
+          "body": "Monkey AI es un asistente disponible en Telegram que ofrece conversaciones de texto, generación de imágenes y transcripción de audio. Las funciones disponibles pueden cambiar con el tiempo.",
           "items": []
         },
         {
@@ -162,7 +162,7 @@
           ]
         },
         {
-          "heading": "5. Contenido generado por IA",
+          "heading": "5. Contenido generado",
           "intro": "",
           "body": "Las respuestas e imágenes son generadas por inteligencia artificial y pueden ser inexactas, incompletas u ofensivas. Eres el único responsable del uso que hagas del contenido generado.",
           "items": []
@@ -174,15 +174,15 @@
           "items": []
         },
         {
-          "heading": "7. Legislación aplicable",
+          "heading": "7. Cambios en los términos",
           "intro": "",
-          "body": "Estos Términos se rigen por las leyes de Rusia.",
+          "body": "Podemos actualizar estos Términos de vez en cuando. El uso continuado del Servicio tras la publicación de los cambios implica que aceptas los Términos actualizados.",
           "items": []
         },
         {
-          "heading": "8. Cambios en los términos",
+          "heading": "8. Legislación aplicable",
           "intro": "",
-          "body": "Podemos actualizar estos Términos de vez en cuando. El uso continuado del Servicio tras la publicación de los cambios implica que aceptas los Términos actualizados.",
+          "body": "Estos Términos se rigen por las leyes de Rusia.",
           "items": []
         },
         {
