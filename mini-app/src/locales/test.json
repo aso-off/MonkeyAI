@@ -54,5 +54,20 @@
     "privacy_policy": "",
     "terms_of_service": "",
     "page_in_development": "",
-    "page_in_development_desc": ""
+    "page_in_development_desc": "",
+    "legal": {
+      "updated": "",
+      "privacy": {
+        "intro": "",
+        "sections": [
+          { "heading": "", "intro": "", "body": "", "items": [{ "b": "", "t": "" }] }
+        ]
+      },
+      "terms": {
+        "intro": "",
+        "sections": [
+          { "heading": "", "intro": "", "body": "", "items": [{ "b": "", "t": "" }] }
+        ]
+      }
+    }
   }

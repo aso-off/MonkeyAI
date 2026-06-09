@@ -77,5 +77,121 @@
   "privacy_policy": "Politique de confidentialité",
   "terms_of_service": "Conditions d'utilisation",
   "page_in_development": "Page en cours de développement",
-  "page_in_development_desc": "Cette section sera bientôt disponible. Pour toute question, contactez"
+  "page_in_development_desc": "Cette section sera bientôt disponible. Pour toute question, contactez",
+  "legal": {
+    "updated": "Dernière mise à jour : {date}",
+    "privacy": {
+      "intro": "Cette Politique de confidentialité explique comment Monkey AI («nous» ou «notre») collecte, utilise et protège vos informations lorsque vous utilisez notre service.",
+      "sections": [
+        {
+          "heading": "1. Informations que nous collectons",
+          "intro": "Lorsque vous utilisez Monkey AI, nous pouvons collecter les données suivantes :",
+          "body": "",
+          "items": [
+            { "b": "Données du compte Telegram :", "t": " votre identifiant, votre nom d'utilisateur, vos prénom et nom, ainsi que la langue." },
+            { "b": "Contenu que vous fournissez :", "t": " les messages, requêtes, images et fichiers audio que vous envoyez à l'assistant." },
+            { "b": "Données d'utilisation :", "t": " le modèle sélectionné, les préférences et des statistiques d'activité de base." }
+          ]
+        },
+        {
+          "heading": "2. Utilisation des informations",
+          "intro": "Nous utilisons les informations collectées pour :",
+          "body": "",
+          "items": [
+            { "b": "", "t": "fournir et faire fonctionner l'assistant IA, y compris le chat, la génération d'images et la transcription ;" },
+            { "b": "", "t": "conserver l'historique de vos conversations entre les sessions ;" },
+            { "b": "", "t": "assurer la sécurité et prévenir les abus du service ;" },
+            { "b": "", "t": "répondre à vos demandes et fournir une assistance." }
+          ]
+        },
+        {
+          "heading": "3. Services tiers",
+          "intro": "",
+          "body": "Pour fournir les fonctionnalités d'IA, le contenu que vous soumettez est traité par OpenAI. Le service est également fourni via Telegram. Nous ne vendons pas vos données personnelles à des tiers.",
+          "items": []
+        },
+        {
+          "heading": "4. Sécurité des données",
+          "intro": "",
+          "body": "Nous appliquons des mesures techniques raisonnables pour protéger vos données, y compris l'authentification via Telegram. Cependant, aucune méthode de transmission ou de stockage n'est totalement sécurisée, et nous ne pouvons garantir une sécurité absolue.",
+          "items": []
+        },
+        {
+          "heading": "5. Vos droits",
+          "intro": "",
+          "body": "Vous pouvez à tout moment demander l'accès à vos données personnelles, leur rectification ou leur suppression. Pour faire une telle demande, contactez-nous à {support}.",
+          "items": []
+        },
+        {
+          "heading": "6. Modifications de cette politique",
+          "intro": "",
+          "body": "Nous pouvons mettre à jour cette Politique de confidentialité de temps à autre. Toute modification prend effet dès la publication de la version mise à jour, et nous vous recommandons de consulter cette page régulièrement.",
+          "items": []
+        }
+      ]
+    },
+    "terms": {
+      "intro": "Ces Conditions d'utilisation («Conditions») régissent votre utilisation de Monkey AI, y compris le bot Telegram et la Mini App (le «Service»). En utilisant le Service, vous acceptez ces Conditions.",
+      "sections": [
+        {
+          "heading": "1. Acceptation des conditions",
+          "intro": "",
+          "body": "En accédant à Monkey AI ou en l'utilisant, vous confirmez avoir lu, compris et accepté d'être lié par ces Conditions. Si vous n'êtes pas d'accord, veuillez ne pas utiliser le Service.",
+          "items": []
+        },
+        {
+          "heading": "2. Description du service",
+          "intro": "",
+          "body": "Monkey AI est un assistant IA disponible dans Telegram qui propose des conversations textuelles, la génération d'images et la transcription audio. Les fonctionnalités disponibles peuvent évoluer avec le temps.",
+          "items": []
+        },
+        {
+          "heading": "3. Accès",
+          "intro": "",
+          "body": "L'accès au Service peut être limité et est accordé à notre discrétion. Vous devez disposer d'un compte Telegram valide et respecter les règles de Telegram lors de l'utilisation du Service.",
+          "items": []
+        },
+        {
+          "heading": "4. Utilisation acceptable",
+          "intro": "En utilisant le Service, vous vous engagez à ne pas :",
+          "body": "",
+          "items": [
+            { "b": "", "t": "l'utiliser pour des contenus illicites, nuisibles ou interdits ;" },
+            { "b": "", "t": "abuser du Service, le perturber ou le surcharger ;" },
+            { "b": "", "t": "tenter d'obtenir un accès non autorisé ou d'exploiter le Service." }
+          ]
+        },
+        {
+          "heading": "5. Contenu généré par l'IA",
+          "intro": "",
+          "body": "Les réponses et les images sont générées par une intelligence artificielle et peuvent être inexactes, incomplètes ou offensantes. Vous êtes seul responsable de l'usage que vous faites du contenu généré.",
+          "items": []
+        },
+        {
+          "heading": "6. Limitation de responsabilité",
+          "intro": "",
+          "body": "Le Service est fourni «tel quel» et «selon disponibilité», sans aucune garantie. Nous ne sommes pas responsables des dommages résultant de votre utilisation du Service ou des interruptions causées par des services tiers.",
+          "items": []
+        },
+        {
+          "heading": "7. Droit applicable",
+          "intro": "",
+          "body": "Ces Conditions sont régies par le droit de la Russie.",
+          "items": []
+        },
+        {
+          "heading": "8. Modifications des conditions",
+          "intro": "",
+          "body": "Nous pouvons mettre à jour ces Conditions de temps à autre. En continuant à utiliser le Service après la publication des modifications, vous acceptez les Conditions mises à jour.",
+          "items": []
+        },
+        {
+          "heading": "9. Contact",
+          "intro": "",
+          "body": "Pour toute question concernant ces Conditions, contactez-nous à {support}.",
+          "items": []
+        }
+      ]
+    }
+  }
 }

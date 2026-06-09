@@ -77,5 +77,121 @@
   "privacy_policy": "Política de privacidad",
   "terms_of_service": "Términos de servicio",
   "page_in_development": "Página en desarrollo",
-  "page_in_development_desc": "Esta sección estará disponible pronto. Para preguntas, contacta a"
+  "page_in_development_desc": "Esta sección estará disponible pronto. Para preguntas, contacta a",
+  "legal": {
+    "updated": "Última actualización: {date}",
+    "privacy": {
+      "intro": "Esta Política de privacidad explica cómo Monkey AI («nosotros» o «nuestro») recopila, utiliza y protege tu información cuando usas nuestro servicio.",
+      "sections": [
+        {
+          "heading": "1. Información que recopilamos",
+          "intro": "Cuando usas Monkey AI, podemos recopilar los siguientes datos:",
+          "body": "",
+          "items": [
+            { "b": "Datos de la cuenta de Telegram:", "t": " tu ID de usuario, nombre de usuario, nombre y apellido, e idioma." },
+            { "b": "Contenido que proporcionas:", "t": " los mensajes, solicitudes, imágenes y audios que envías al asistente." },
+            { "b": "Datos de uso:", "t": " el modelo seleccionado, las preferencias y estadísticas básicas de actividad." }
+          ]
+        },
+        {
+          "heading": "2. Uso de la información",
+          "intro": "Utilizamos la información recopilada para:",
+          "body": "",
+          "items": [
+            { "b": "", "t": "proporcionar y operar el asistente de IA, incluyendo chat, generación de imágenes y transcripción;" },
+            { "b": "", "t": "mantener tu historial de conversaciones entre sesiones;" },
+            { "b": "", "t": "garantizar la seguridad y prevenir el uso indebido del servicio;" },
+            { "b": "", "t": "responder a tus solicitudes y ofrecer soporte." }
+          ]
+        },
+        {
+          "heading": "3. Servicios de terceros",
+          "intro": "",
+          "body": "Para ofrecer las funciones de IA, el contenido que envías es procesado por OpenAI. El servicio también se presta a través de Telegram. No vendemos tus datos personales a terceros.",
+          "items": []
+        },
+        {
+          "heading": "4. Seguridad de los datos",
+          "intro": "",
+          "body": "Aplicamos medidas técnicas razonables para proteger tus datos, incluida la autenticación a través de Telegram. Sin embargo, ningún método de transmisión o almacenamiento es completamente seguro, y no podemos garantizar su seguridad absoluta.",
+          "items": []
+        },
+        {
+          "heading": "5. Tus derechos",
+          "intro": "",
+          "body": "Puedes solicitar en cualquier momento el acceso, la corrección o la eliminación de tus datos personales. Para realizar una solicitud, contáctanos en {support}.",
+          "items": []
+        },
+        {
+          "heading": "6. Cambios en esta política",
+          "intro": "",
+          "body": "Podemos actualizar esta Política de privacidad de vez en cuando. Los cambios entran en vigor en cuanto se publica la versión actualizada, y recomendamos revisar esta página periódicamente.",
+          "items": []
+        }
+      ]
+    },
+    "terms": {
+      "intro": "Estos Términos de servicio («Términos») regulan tu uso de Monkey AI, incluido el bot de Telegram y la Mini App (el «Servicio»). Al usar el Servicio, aceptas estos Términos.",
+      "sections": [
+        {
+          "heading": "1. Aceptación de los términos",
+          "intro": "",
+          "body": "Al acceder o usar Monkey AI, confirmas que has leído, entendido y aceptas cumplir estos Términos. Si no estás de acuerdo, por favor no uses el Servicio.",
+          "items": []
+        },
+        {
+          "heading": "2. Descripción del servicio",
+          "intro": "",
+          "body": "Monkey AI es un asistente de IA disponible en Telegram que ofrece conversaciones de texto, generación de imágenes y transcripción de audio. Las funciones disponibles pueden cambiar con el tiempo.",
+          "items": []
+        },
+        {
+          "heading": "3. Acceso",
+          "intro": "",
+          "body": "El acceso al Servicio puede ser limitado y se concede a nuestra discreción. Necesitas una cuenta de Telegram válida y debes cumplir las reglas de Telegram al usar el Servicio.",
+          "items": []
+        },
+        {
+          "heading": "4. Uso aceptable",
+          "intro": "Al usar el Servicio, te comprometes a no:",
+          "body": "",
+          "items": [
+            { "b": "", "t": "utilizarlo para contenido ilícito, dañino o prohibido;" },
+            { "b": "", "t": "abusar, interrumpir o sobrecargar el Servicio;" },
+            { "b": "", "t": "intentar obtener acceso no autorizado o explotar el Servicio." }
+          ]
+        },
+        {
+          "heading": "5. Contenido generado por IA",
+          "intro": "",
+          "body": "Las respuestas e imágenes son generadas por inteligencia artificial y pueden ser inexactas, incompletas u ofensivas. Eres el único responsable del uso que hagas del contenido generado.",
+          "items": []
+        },
+        {
+          "heading": "6. Limitación de responsabilidad",
+          "intro": "",
+          "body": "El Servicio se proporciona «tal cual» y «según disponibilidad», sin garantías de ningún tipo. No nos hacemos responsables de los daños derivados del uso del Servicio ni de las interrupciones causadas por servicios de terceros.",
+          "items": []
+        },
+        {
+          "heading": "7. Legislación aplicable",
+          "intro": "",
+          "body": "Estos Términos se rigen por las leyes de Rusia.",
+          "items": []
+        },
+        {
+          "heading": "8. Cambios en los términos",
+          "intro": "",
+          "body": "Podemos actualizar estos Términos de vez en cuando. El uso continuado del Servicio tras la publicación de los cambios implica que aceptas los Términos actualizados.",
+          "items": []
+        },
+        {
+          "heading": "9. Contacto",
+          "intro": "",
+          "body": "Para cualquier pregunta sobre estos Términos, contáctanos en {support}.",
+          "items": []
+        }
+      ]
+    }
+  }
 }

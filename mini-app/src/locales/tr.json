@@ -77,5 +77,121 @@
   "privacy_policy": "Gizlilik Politikası",
   "terms_of_service": "Kullanım Koşulları",
   "page_in_development": "Sayfa geliştirme aşamasında",
-  "page_in_development_desc": "Bu bölüm yakında kullanılabilir olacak. Sorular için iletişime geçin"
+  "page_in_development_desc": "Bu bölüm yakında kullanılabilir olacak. Sorular için iletişime geçin",
+  "legal": {
+    "updated": "Son güncelleme: {date}",
+    "privacy": {
+      "intro": "Bu Gizlilik Politikası, hizmetimizi kullandığınızda Monkey AI'ın («biz» veya «bizim») bilgilerinizi nasıl topladığını, kullandığını ve koruduğunu açıklar.",
+      "sections": [
+        {
+          "heading": "1. Topladığımız Bilgiler",
+          "intro": "Monkey AI'ı kullandığınızda aşağıdaki verileri toplayabiliriz:",
+          "body": "",
+          "items": [
+            { "b": "Telegram hesap verileri:", "t": " kullanıcı kimliğiniz, kullanıcı adınız, adınız ve soyadınız ve diliniz." },
+            { "b": "Sağladığınız içerik:", "t": " asistana gönderdiğiniz mesajlar, istekler, görseller ve ses dosyaları." },
+            { "b": "Kullanım verileri:", "t": " seçtiğiniz model, tercihleriniz ve temel etkinlik istatistikleri." }
+          ]
+        },
+        {
+          "heading": "2. Bilgilerin Kullanımı",
+          "intro": "Topladığımız bilgileri şu amaçlarla kullanırız:",
+          "body": "",
+          "items": [
+            { "b": "", "t": "sohbet, görsel oluşturma ve transkripsiyon dahil olmak üzere yapay zekâ asistanını sağlamak ve çalıştırmak;" },
+            { "b": "", "t": "oturumlar arasında sohbet geçmişinizi saklamak;" },
+            { "b": "", "t": "güvenliği sağlamak ve hizmetin kötüye kullanımını önlemek;" },
+            { "b": "", "t": "isteklerinize yanıt vermek ve destek sunmak." }
+          ]
+        },
+        {
+          "heading": "3. Üçüncü Taraf Hizmetleri",
+          "intro": "",
+          "body": "Yapay zekâ özelliklerini sağlamak için gönderdiğiniz içerik OpenAI tarafından işlenir. Hizmet ayrıca Telegram üzerinden sunulur. Kişisel verilerinizi üçüncü taraflara satmayız.",
+          "items": []
+        },
+        {
+          "heading": "4. Veri Güvenliği",
+          "intro": "",
+          "body": "Telegram üzerinden kimlik doğrulama dahil olmak üzere verilerinizi korumak için makul teknik önlemler uygularız. Ancak hiçbir iletim veya saklama yöntemi tamamen güvenli değildir ve mutlak güvenliği garanti edemeyiz.",
+          "items": []
+        },
+        {
+          "heading": "5. Haklarınız",
+          "intro": "",
+          "body": "Kişisel verilerinize erişim, bunların düzeltilmesi veya silinmesini istediğiniz zaman talep edebilirsiniz. Böyle bir talepte bulunmak için bizimle iletişime geçin: {support}.",
+          "items": []
+        },
+        {
+          "heading": "6. Bu Politikadaki Değişiklikler",
+          "intro": "",
+          "body": "Bu Gizlilik Politikasını zaman zaman güncelleyebiliriz. Tüm değişiklikler güncellenmiş sürüm yayınlandığı anda yürürlüğe girer ve bu sayfayı düzenli olarak gözden geçirmenizi öneririz.",
+          "items": []
+        }
+      ]
+    },
+    "terms": {
+      "intro": "Bu Kullanım Koşulları («Koşullar»), Telegram botu ve Mini App dahil olmak üzere Monkey AI'ı («Hizmet») kullanımınızı düzenler. Hizmeti kullanarak bu Koşulları kabul etmiş olursunuz.",
+      "sections": [
+        {
+          "heading": "1. Koşulların Kabulü",
+          "intro": "",
+          "body": "Monkey AI'a erişerek veya onu kullanarak, bu Koşulları okuduğunuzu, anladığınızı ve bunlara uymayı kabul ettiğinizi onaylarsınız. Kabul etmiyorsanız lütfen Hizmeti kullanmayın.",
+          "items": []
+        },
+        {
+          "heading": "2. Hizmetin Tanımı",
+          "intro": "",
+          "body": "Monkey AI, Telegram'da metin sohbetleri, görsel oluşturma ve ses transkripsiyonu sunan bir yapay zekâ asistanıdır. Mevcut özellikler zaman içinde değişebilir.",
+          "items": []
+        },
+        {
+          "heading": "3. Erişim",
+          "intro": "",
+          "body": "Hizmete erişim sınırlı olabilir ve kendi takdirimize bağlı olarak verilir. Hizmeti kullanmak için geçerli bir Telegram hesabına ihtiyacınız vardır ve Telegram kurallarına uymalısınız.",
+          "items": []
+        },
+        {
+          "heading": "4. Kabul Edilebilir Kullanım",
+          "intro": "Hizmeti kullanırken şunları yapmamayı kabul edersiniz:",
+          "body": "",
+          "items": [
+            { "b": "", "t": "yasa dışı, zararlı veya yasaklı içerik için kullanmak;" },
+            { "b": "", "t": "Hizmeti kötüye kullanmak, aksatmak veya aşırı yüklemek;" },
+            { "b": "", "t": "yetkisiz erişim elde etmeye veya Hizmeti istismar etmeye çalışmak." }
+          ]
+        },
+        {
+          "heading": "5. Yapay Zekâ Tarafından Üretilen İçerik",
+          "intro": "",
+          "body": "Yanıtlar ve görseller yapay zekâ tarafından üretilir ve yanlış, eksik veya rahatsız edici olabilir. Üretilen içeriği nasıl kullandığınızdan yalnızca siz sorumlusunuz.",
+          "items": []
+        },
+        {
+          "heading": "6. Sorumluluğun Sınırlandırılması",
+          "intro": "",
+          "body": "Hizmet, herhangi bir garanti olmaksızın «olduğu gibi» ve «mevcut olduğu şekliyle» sunulur. Hizmeti kullanmanızdan veya üçüncü taraf hizmetlerinin neden olduğu kesintilerden kaynaklanan herhangi bir zarardan sorumlu değiliz.",
+          "items": []
+        },
+        {
+          "heading": "7. Geçerli Hukuk",
+          "intro": "",
+          "body": "Bu Koşullar Rusya yasalarına tabidir.",
+          "items": []
+        },
+        {
+          "heading": "8. Koşullardaki Değişiklikler",
+          "intro": "",
+          "body": "Bu Koşulları zaman zaman güncelleyebiliriz. Değişiklikler yayınlandıktan sonra Hizmeti kullanmaya devam etmeniz, güncellenmiş Koşulları kabul ettiğiniz anlamına gelir.",
+          "items": []
+        },
+        {
+          "heading": "9. İletişim",
+          "intro": "",
+          "body": "Bu Koşullarla ilgili her türlü soru için bizimle iletişime geçin: {support}.",
+          "items": []
+        }
+      ]
+    }
+  }
 }
