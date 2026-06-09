@@ -119,7 +119,7 @@
         {
           "heading": "5. Ihre Rechte",
           "intro": "",
-          "body": "Sie können jederzeit Zugang zu Ihren personenbezogenen Daten sowie deren Berichtigung oder Löschung verlangen. Um eine solche Anfrage zu stellen, kontaktieren Sie uns unter {support}.",
+          "body": "Sie können jederzeit Zugang zu Ihren personenbezogenen Daten sowie deren Berichtigung oder Löschung verlangen. Um eine solche Anfrage zu stellen, kontaktieren Sie uns unter {support}",
           "items": []
         },
         {
@@ -188,7 +188,7 @@
         {
           "heading": "9. Kontakt",
           "intro": "",
-          "body": "Bei Fragen zu diesen Bedingungen kontaktieren Sie uns unter {support}.",
+          "body": "Bei Fragen zu diesen Bedingungen kontaktieren Sie uns:\nSupport: {support}",
           "items": []
         }
       ]

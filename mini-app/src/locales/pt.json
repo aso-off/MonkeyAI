@@ -119,7 +119,7 @@
         {
           "heading": "5. Os seus direitos",
           "intro": "",
-          "body": "Pode solicitar a qualquer momento o acesso, a correção ou a eliminação dos seus dados pessoais. Para fazer esse pedido, contacte-nos em {support}.",
+          "body": "Pode solicitar a qualquer momento o acesso, a correção ou a eliminação dos seus dados pessoais. Para fazer esse pedido, contacte-nos em {support}",
           "items": []
         },
         {
@@ -188,7 +188,7 @@
         {
           "heading": "9. Contacto",
           "intro": "",
-          "body": "Para qualquer questão sobre estes Termos, contacte-nos em {support}.",
+          "body": "Para qualquer questão sobre estes Termos, contacte-nos:\nSuporte: {support}",
           "items": []
         }
       ]

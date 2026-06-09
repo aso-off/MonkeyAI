@@ -119,7 +119,7 @@
         {
           "heading": "5. Vos droits",
           "intro": "",
-          "body": "Vous pouvez à tout moment demander l'accès à vos données personnelles, leur rectification ou leur suppression. Pour faire une telle demande, contactez-nous à {support}.",
+          "body": "Vous pouvez à tout moment demander l'accès à vos données personnelles, leur rectification ou leur suppression. Pour faire une telle demande, contactez-nous à {support}",
           "items": []
         },
         {
@@ -188,7 +188,7 @@
         {
           "heading": "9. Contact",
           "intro": "",
-          "body": "Pour toute question concernant ces Conditions, contactez-nous à {support}.",
+          "body": "Pour toute question concernant ces Conditions, contactez-nous :\nSupport : {support}",
           "items": []
         }
       ]
