@@ -6,16 +6,16 @@ ingress:
     service: http://bot:5000
   - hostname: api.si881.ru
     service: http://api:8000
-  - hostname: postgres.si881.ru
-    service: http://nginx-proxy-manager:80
-  - hostname: grafana.si881.ru
-    service: http://nginx-proxy-manager:80
-  - hostname: status.si881.ru
-    service: http://uptime-kuma:3001
-  - hostname: analytics.si881.ru
-    service: http://umami:3000
-  - hostname: redis.si881.ru
-    service: http://nginx-proxy-manager:80
+  # - hostname: postgres.si881.ru
+  #   service: http://nginx-proxy-manager:80
+  # - hostname: grafana.si881.ru
+  #   service: http://nginx-proxy-manager:80
+  # - hostname: status.si881.ru
+  #   service: http://uptime-kuma:3001
+  # - hostname: analytics.si881.ru
+  #   service: http://umami:3000
+  # - hostname: redis.si881.ru
+  #   service: http://nginx-proxy-manager:80
   - hostname: npm.si881.ru
     service: http://nginx-proxy-manager:81
 #  - hostname: prometheus.si881.ru
