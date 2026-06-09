@@ -44,7 +44,6 @@
         </div>
       </div>
     </div>
-    <div class="scroll-buffer" aria-hidden="true"></div>
     </div>
   </div>
 </template>
@@ -117,11 +116,6 @@ const updateLanguage = async (lang: string): Promise<void> => {
 </script>
 
 <style scoped>
-#root {
-  height: 100%;
-  overflow: hidden;
-}
-
 .scroll-area {
   height: 100%;
   overflow-y: auto;
@@ -137,10 +131,6 @@ const updateLanguage = async (lang: string): Promise<void> => {
 .wrapper {
   min-height: 100%;
   padding-bottom: 24px;
-}
-
-.scroll-buffer {
-  height: 1px;
 }
 
 .settingschange-select-button {
