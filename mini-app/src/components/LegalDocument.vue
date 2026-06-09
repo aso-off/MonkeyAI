@@ -1,5 +1,6 @@
 <template>
-  <div id="root">
+  <div id="root" class="swipe-y-off">
+    <div class="swipe-y-on scroll-area">
     <div class="wrapper">
       <div class="settingschange-wrapper">
         <div class="settingschange-container">
@@ -42,6 +43,8 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="scroll-buffer" aria-hidden="true"></div>
     </div>
   </div>
 </template>
@@ -103,20 +106,28 @@ function splitSupport(text: string): Seg[] {
 <style scoped>
 #root {
   height: 100%;
+  overflow: hidden;
+}
+
+.scroll-area {
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-#root::-webkit-scrollbar {
+.scroll-area::-webkit-scrollbar {
   display: none;
 }
 
 .wrapper {
   min-height: 100%;
   padding-bottom: 24px;
+}
+
+.scroll-buffer {
+  height: 1px;
 }
 
 .legal-meta {

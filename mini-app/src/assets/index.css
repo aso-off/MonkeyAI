@@ -2624,6 +2624,17 @@ body {
   overflow: hidden;
 }
 
+.swipe-y-off * {
+  touch-action: none;
+}
+
+.swipe-y-off .swipe-y-on,
+.swipe-y-off .swipe-y-on * {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y !important;
+}
+
 .wrapper {
   display: flex;
   flex-direction: column
