@@ -40,6 +40,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 COPY api/main.py ./
 COPY api/src/ ./src/
+COPY api/alembic.ini ./alembic.ini
+COPY api/alembic/ ./alembic/
 COPY api/newrelic.ini ./newrelic.ini
 
 EXPOSE 8000

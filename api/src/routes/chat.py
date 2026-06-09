@@ -28,7 +28,7 @@ async def _persist_chat_result(
     image_buffer: BytesIO | None,
 ) -> None:
     user = await user_repo.get_user(session, req.user_id)
-    dialog_id = req.dialog_id or (user.current_dialog_id if user else None)
+    dialog_id = req.dialog_id or (user.state.current_dialog_id if user else None)
     if user is None or dialog_id is None:
         return
     b64: str | None = None

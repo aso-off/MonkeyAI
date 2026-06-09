@@ -104,7 +104,7 @@ class TestRequireUser:
              patch("routes.webapp.user_repo.get_user",
                    new=AsyncMock(return_value=mock_user)):
             from schemas.user import UserRead
-            with patch.object(UserRead, "model_validate", return_value=MagicMock(id=uid)):
+            with patch.object(UserRead, "from_orm_user", return_value=MagicMock(id=uid)):
                 result = await _require_user(session, uid)
         assert result.id == uid
 
@@ -200,7 +200,7 @@ class TestGetMeExtended:
                    new=AsyncMock(return_value=(mock_user, False))), \
              patch("routes.webapp._redis_read_prefs",
                    new=AsyncMock(return_value=redis_prefs)), \
-             patch("routes.webapp.UserRead.model_validate") as mock_validate:
+             patch("routes.webapp.UserRead.from_orm_user") as mock_validate:
             from schemas.user import UserRead
             mock_ur = MagicMock(spec=UserRead)
             mock_ur.id = uid
@@ -366,9 +366,9 @@ class TestWebappReactions:
     @pytest.mark.api
     def test_like_reaction_returns_204(self, webapp_client, fake) -> None:
         client, tg = webapp_client
-        # MessageReaction импортируется внутри функции — патчим на уровне модуля
+        # Reaction импортируется внутри функции — патчим на уровне модуля
         mock_reaction_cls = MagicMock(return_value=MagicMock())
-        with patch("db.models.user.MessageReaction", mock_reaction_cls):
+        with patch("db.models.user.Reaction", mock_reaction_cls):
             resp = client.post("/webapp/reactions", json={
                 "reaction": "like",
                 "model": "gpt-4o",
