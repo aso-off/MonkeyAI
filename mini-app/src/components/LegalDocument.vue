@@ -127,7 +127,8 @@ function splitSupport(text: string): Seg[] {
 }
 
 .legal-updated {
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--icons-storke-color);
 }
 
