@@ -7,7 +7,8 @@ _SRC = Path(__file__).resolve().parent / "src"
 if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 
 import uuid
 
@@ -106,7 +107,18 @@ async def lifespan(app: FastAPI):
     await whitelist.rebuild(set(s.admin_ids) | set(s.allowed_user_ids))
     logger.info("Auth flags synced from user-ids.yml")
 
+    retention_task: asyncio.Task | None = None
+    if s.retention_enabled:
+        from services.retention import retention_loop
+        retention_task = asyncio.create_task(retention_loop())
+        logger.info("Retention task started")
+
     yield
+
+    if retention_task is not None:
+        retention_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await retention_task
     await engine.dispose()
     await close_redis()
     logger.info("API stopped")

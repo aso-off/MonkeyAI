@@ -13,6 +13,7 @@ export interface ChatMessage {
   type: 'user' | 'bot'
   contentType?: 'text' | 'image'
   imageUrl?: string | null
+  mid?: string
 }
 
 export function dialogMessagesToChat(messages: DialogMessage[]): ChatMessage[] {
@@ -22,8 +23,8 @@ export function dialogMessagesToChat(messages: DialogMessage[]): ChatMessage[] {
       : String(msg.user ?? '')
     const isImageUrl = typeof msg.bot === 'string' && (msg.bot.startsWith('http') || msg.bot.startsWith('data:image/'))
     const botMsg: ChatMessage = isImageUrl
-      ? { type: 'bot', contentType: 'image', imageUrl: msg.bot, text: '' }
-      : { type: 'bot', contentType: 'text', text: msg.bot }
+      ? { type: 'bot', contentType: 'image', imageUrl: msg.bot, text: '', mid: msg.mid }
+      : { type: 'bot', contentType: 'text', text: msg.bot, mid: msg.mid }
     return [{ text: userText, type: 'user' }, botMsg]
   })
 }

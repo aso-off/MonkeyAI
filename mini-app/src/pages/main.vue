@@ -361,14 +361,7 @@
                       :class="{
                         'reacted-like': reactionMap.get(index) === 'like',
                       }"
-                      @click="
-                        onReaction(
-                          index,
-                          'like',
-                          chatMessages[index - 1]?.text ?? '',
-                          msg.text,
-                        )
-                      "
+                      @click="onReaction(index, 'like')"
                     >
                       <svg
                         viewBox="0 -960 960 960"
@@ -389,14 +382,7 @@
                       :class="{
                         'reacted-dislike': reactionMap.get(index) === 'dislike',
                       }"
-                      @click="
-                        onReaction(
-                          index,
-                          'dislike',
-                          chatMessages[index - 1]?.text ?? '',
-                          msg.text,
-                        )
-                      "
+                      @click="onReaction(index, 'dislike')"
                     >
                       <svg
                         viewBox="0 -960 960 960"
@@ -1161,6 +1147,7 @@ async function sendMessage() {
         contentType: "image",
         imageUrl,
         text: "",
+        mid: result.mid,
       };
     } else {
       // Text chat via WebSocket token stream.
@@ -1183,6 +1170,7 @@ async function sendMessage() {
           type: "bot",
           contentType: "text",
           text: result.answer,
+          mid: result.mid,
         };
       }
     }
@@ -1263,12 +1251,7 @@ function toggleMoreMenu(index: number, event: MouseEvent) {
   moreMenuUp.value = spaceBelow < 100;
 }
 
-function onReaction(
-  index: number,
-  reaction: "like" | "dislike",
-  userMsg: string,
-  botMsg: string,
-) {
+function onReaction(index: number, reaction: "like" | "dislike") {
   if (reactionMap.get(index) === reaction) {
     reactionMap.delete(index); // toggle off — снять реакцию
     return;
@@ -1278,8 +1261,8 @@ function onReaction(
     .sendReaction({
       reaction,
       model: currentModelId.value,
-      user_message: userMsg,
-      bot_message: botMsg,
+      dialog_id: store.dialogId,
+      mid: chatMessages.value[index]?.mid,
     })
     .catch((err) => console.warn("[reaction]", err));
 }
@@ -1724,6 +1707,7 @@ onMounted(async () => {
         type: "bot",
         contentType: "text",
         text: isFlagged ? t("message_flagged") : ((msg.answer as string) ?? ""),
+        mid: msg.mid as string | undefined,
       };
     }
     if (msg.dialog_id) store.setDialogId(msg.dialog_id as string);
@@ -1765,6 +1749,7 @@ onMounted(async () => {
         contentType: "image",
         imageUrl,
         text: "",
+        mid: msg.mid as string | undefined,
       };
     }
     if (msg.dialog_id) store.setDialogId(msg.dialog_id as string);

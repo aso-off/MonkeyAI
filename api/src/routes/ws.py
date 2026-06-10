@@ -350,6 +350,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
 
         # 6. Persist to DB.
         resolved_dialog_id = dialog_id
+        mid: str | None = None
         try:
             async with Session() as session:
                 if not resolved_dialog_id:
@@ -360,7 +361,9 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
                     "user": [{"type": "text", "text": message}],
                     "bot": final_answer,
                 }
-                await dialog_repo.append_dialog_message(session, user_id, new_msg, resolved_dialog_id)
+                mid = await dialog_repo.append_dialog_message(
+                    session, user_id, new_msg, resolved_dialog_id
+                )
                 await dialog_repo.update_n_used_tokens(session, user_id, model, n_input, n_output)
                 await user_repo.update_last_interaction(session, user_id)
         except Exception:
@@ -372,6 +375,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
             "id": req_id,
             "answer": final_answer,
             "dialog_id": resolved_dialog_id,
+            "mid": mid,
             "n_input_tokens": n_input,
             "n_output_tokens": n_output,
             "n_first_removed": n_removed,
@@ -475,6 +479,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
 
         # 7. Persist to DB — store the ImgBB URL (~80 bytes) for permanent history.
         resolved_dialog_id = dialog_id
+        mid: str | None = None
         try:
             async with Session() as session:
                 if not resolved_dialog_id:
@@ -482,7 +487,9 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
                         session, user_id
                     )
                 new_msg = {"user": message, "bot": img_url}
-                await dialog_repo.append_dialog_message(session, user_id, new_msg, resolved_dialog_id)
+                mid = await dialog_repo.append_dialog_message(
+                    session, user_id, new_msg, resolved_dialog_id
+                )
                 await user_repo.update_last_interaction(session, user_id)
         except Exception:
             logger.exception("Failed to persist image for user %d", user_id)
@@ -494,6 +501,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
             "url": img_url,
             "size_kb": img_result["size_kb"],
             "dialog_id": resolved_dialog_id,
+            "mid": mid,
         })
 
     finally:
