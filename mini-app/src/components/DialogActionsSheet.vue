@@ -12,7 +12,7 @@
             <div class="sheet-divider"></div>
             <button v-ripple class="sheet-item sheet-item--danger" @click="$emit('delete')">
               <img :src="deleteSvg" alt="" draggable="false" />
-              <span>{{ $t('delete_dialog') }}</span>
+              <span>{{ $t('delete_chat') }}</span>
             </button>
           </div>
         </div>
@@ -41,6 +41,8 @@ defineEmits<{ close: []; rename: []; delete: [] }>();
 .sheet {
   width: 100%;
   padding: 8px 12px calc(env(safe-area-inset-bottom) + 20px);
+  background: var(--backgorund-color);
+  border-radius: 18px 18px 0 0;
 }
 .sheet-handle {
   width: 40px;
