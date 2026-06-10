@@ -4,14 +4,17 @@
       <div v-if="open" class="sheet-backdrop" @click.self="$emit('close')">
         <div class="sheet">
           <div class="sheet-handle"></div>
-          <button v-ripple class="sheet-item" @click="$emit('rename')">
-            <img :src="renameSvg" alt="" draggable="false" />
-            <span>{{ $t('rename') }}</span>
-          </button>
-          <button v-ripple class="sheet-item sheet-item--danger" @click="$emit('delete')">
-            <img :src="deleteSvg" alt="" draggable="false" />
-            <span>{{ $t('delete_dialog') }}</span>
-          </button>
+          <div class="sheet-group">
+            <button v-ripple class="sheet-item" @click="$emit('rename')">
+              <img :src="renameSvg" alt="" draggable="false" />
+              <span>{{ $t('rename') }}</span>
+            </button>
+            <div class="sheet-divider"></div>
+            <button v-ripple class="sheet-item sheet-item--danger" @click="$emit('delete')">
+              <img :src="deleteSvg" alt="" draggable="false" />
+              <span>{{ $t('delete_dialog') }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -37,9 +40,7 @@ defineEmits<{ close: []; rename: []; delete: [] }>();
 }
 .sheet {
   width: 100%;
-  background: var(--second-bg-color);
-  border-radius: 18px 18px 0 0;
-  padding: 8px 12px calc(env(safe-area-inset-bottom) + 12px);
+  padding: 8px 12px calc(env(safe-area-inset-bottom) + 20px);
 }
 .sheet-handle {
   width: 40px;
@@ -47,24 +48,43 @@ defineEmits<{ close: []; rename: []; delete: [] }>();
   border-radius: 2px;
   background: var(--icons-storke-color);
   opacity: 0.4;
-  margin: 6px auto 10px;
+  margin: 4px auto 14px;
+}
+.sheet-group {
+  width: 100%;
+  border-radius: 16px;
+  background: var(--second-bg-color);
+  overflow: hidden;
 }
 .sheet-item {
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 16px 14px;
-  border-radius: 12px;
+  min-height: 58px;
+  padding: 16px 18px;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
   font-size: 16px;
   color: var(--text-color);
   background: transparent;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 .sheet-item img {
   width: 22px;
   height: 22px;
-  filter: brightness(0) saturate(100%) invert(100%);
   pointer-events: none;
+  -webkit-user-drag: none;
+}
+.sheet-item:not(.sheet-item--danger) img {
+  filter: brightness(0) saturate(100%) invert(60%);
+}
+.sheet-divider {
+  height: 2px;
+  background: var(--backgorund-color);
 }
 .sheet-item--danger {
   color: #fa2e52;

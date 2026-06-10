@@ -1,5 +1,16 @@
 {
   "new_chat": "Neuer Chat",
+  "images": "Bilder",
+  "recents": "Letzte Chats",
+  "search": "Suche",
+  "no_chats": "Noch keine Chats",
+  "rename": "Umbenennen",
+  "delete_dialog": "Chat löschen?",
+  "delete_dialog_confirm": "Dieser Chat wird gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+  "delete": "Löschen",
+  "cancel": "Abbrechen",
+  "no_images": "Noch keine Bilder",
+  "save": "Speichern",
   "settings": "Einstellungen",
   "empty_chat": "Wie kann ich dir helfen?",
   "describe_image": "Beschreibe das Bild, das du erstellen möchtest",
@@ -88,9 +99,18 @@
           "intro": "Wenn Sie Monkey AI nutzen, können wir folgende Daten erheben:",
           "body": "",
           "items": [
-            { "b": "Telegram-Kontodaten:", "t": " Ihre Benutzer-ID, Ihren Benutzernamen, Vor- und Nachnamen sowie die Sprache." },
-            { "b": "Von Ihnen bereitgestellte Inhalte:", "t": " die Nachrichten, Anfragen, Bilder und Audiodateien, die Sie an den Assistenten senden." },
-            { "b": "Nutzungsdaten:", "t": " das ausgewählte Modell, Einstellungen und grundlegende Aktivitätsstatistiken." }
+            {
+              "b": "Telegram-Kontodaten:",
+              "t": " Ihre Benutzer-ID, Ihren Benutzernamen, Vor- und Nachnamen sowie die Sprache."
+            },
+            {
+              "b": "Von Ihnen bereitgestellte Inhalte:",
+              "t": " die Nachrichten, Anfragen, Bilder und Audiodateien, die Sie an den Assistenten senden."
+            },
+            {
+              "b": "Nutzungsdaten:",
+              "t": " das ausgewählte Modell, Einstellungen und grundlegende Aktivitätsstatistiken."
+            }
           ]
         },
         {
@@ -98,10 +118,22 @@
           "intro": "Wir verwenden die erhobenen Informationen, um:",
           "body": "",
           "items": [
-            { "b": "", "t": "den KI-Assistenten bereitzustellen und zu betreiben, einschließlich Chat, Bildgenerierung und Transkription;" },
-            { "b": "", "t": "Ihren Gesprächsverlauf über Sitzungen hinweg zu speichern;" },
-            { "b": "", "t": "die Sicherheit zu gewährleisten und Missbrauch des Dienstes zu verhindern;" },
-            { "b": "", "t": "auf Ihre Anfragen zu reagieren und Support zu leisten." }
+            {
+              "b": "",
+              "t": "den KI-Assistenten bereitzustellen und zu betreiben, einschließlich Chat, Bildgenerierung und Transkription;"
+            },
+            {
+              "b": "",
+              "t": "Ihren Gesprächsverlauf über Sitzungen hinweg zu speichern;"
+            },
+            {
+              "b": "",
+              "t": "die Sicherheit zu gewährleisten und Missbrauch des Dienstes zu verhindern;"
+            },
+            {
+              "b": "",
+              "t": "auf Ihre Anfragen zu reagieren und Support zu leisten."
+            }
           ]
         },
         {
@@ -156,9 +188,18 @@
           "intro": "Bei der Nutzung des Dienstes verpflichten Sie sich, Folgendes zu unterlassen:",
           "body": "",
           "items": [
-            { "b": "", "t": "ihn für rechtswidrige, schädliche oder verbotene Inhalte zu verwenden;" },
-            { "b": "", "t": "den Dienst zu missbrauchen, zu stören oder zu überlasten;" },
-            { "b": "", "t": "zu versuchen, unbefugten Zugriff zu erlangen oder den Dienst auszunutzen." }
+            {
+              "b": "",
+              "t": "ihn für rechtswidrige, schädliche oder verbotene Inhalte zu verwenden;"
+            },
+            {
+              "b": "",
+              "t": "den Dienst zu missbrauchen, zu stören oder zu überlasten;"
+            },
+            {
+              "b": "",
+              "t": "zu versuchen, unbefugten Zugriff zu erlangen oder den Dienst auszunutzen."
+            }
           ]
         },
         {

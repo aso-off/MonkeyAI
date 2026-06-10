@@ -48,6 +48,18 @@ export const useDialogsStore = defineStore('dialogs', {
       this.list = this.list.filter((x) => x.dialog_id !== dialogId)
     },
 
+    /** Optimistically add a freshly created dialog to the top of Recents. */
+    prepend(dialogId: string) {
+      if (this.list.some((x) => x.dialog_id === dialogId)) return
+      const now = new Date().toISOString()
+      this.list.unshift({
+        dialog_id: dialogId,
+        title: null,
+        last_activity: now,
+        start_time: now,
+      })
+    },
+
     /** Live title update from WS `dialog_title`. */
     applyTitle(dialogId: string, title: string) {
       const d = this.list.find((x) => x.dialog_id === dialogId)

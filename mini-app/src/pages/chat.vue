@@ -143,8 +143,8 @@
             }}
           </button>
         </div>
-        <!-- Если сообщений ещё нет, показ пустой карточки -->
-        <template v-if="chatMessages.length === 0">
+        <!-- Если сообщений ещё нет, показ пустой карточки (но не во время загрузки диалога) -->
+        <template v-if="chatMessages.length === 0 && !isDialogLoading">
           <div class="ui-emptyChatCard">
             <div class="ui-ecc-title">{{ $t("empty_chat") }}</div>
             <div class="ui-ecc-text">
@@ -948,11 +948,19 @@ async function loadChatHistory(forceScroll = false) {
   }
 }
 
+/** True while switching to a known dialog — suppresses the empty "new chat" card flash. */
+const isDialogLoading = ref(false);
+
 /** Load a specific dialog by id (opened from Recents / page reload) and pin to bottom. */
 async function loadDialogById(id: string) {
   if (streamingBotIdx.value !== -1) return;
   if (isLoadingHistory) return;
   isLoadingHistory = true;
+  // не мелькаем пустой карточкой-стикером, пока грузим известный диалог
+  if (id !== store.dialogId) {
+    applyChatHistory([]);
+    isDialogLoading.value = true;
+  }
   try {
     store.setDialogId(id);
     store.chatHistoryPrefetchOk = false;
@@ -967,6 +975,7 @@ async function loadDialogById(id: string) {
     console.error("Ошибка при загрузке диалога:", e);
   } finally {
     isLoadingHistory = false;
+    isDialogLoading.value = false;
   }
 }
 

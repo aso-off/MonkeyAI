@@ -98,11 +98,24 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
     n_input = n_output = n_removed = 0
     final_answer = ""
 
-    async for status, answer, (n_input, n_output), n_removed in gen:
-        final_answer = answer
+    try:
+        async for status, answer, (n_input, n_output), n_removed in gen:
+            final_answer = answer
+            payload = json.dumps({
+                "status": status,
+                "text": answer,
+                "n_input_tokens": n_input,
+                "n_output_tokens": n_output,
+                "n_first_removed": n_removed,
+                "is_flagged": False,
+            })
+            yield f"data: {payload}\n\n"
+    except Exception:
+        logger.exception("Stream generation failed for user %d", req.user_id)
+        # чистый финальный кадр вместо обрыва chunked
         payload = json.dumps({
-            "status": status,
-            "text": answer,
+            "status": "finished",
+            "text": final_answer,
             "n_input_tokens": n_input,
             "n_output_tokens": n_output,
             "n_first_removed": n_removed,
@@ -111,10 +124,11 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
         yield f"data: {payload}\n\n"
 
     # Persist to DB after full answer
-    try:
-        await _persist_chat_result(session, req, final_answer, n_input, n_output, image_buffer)
-    except Exception:
-        logger.exception("Failed to persist chat result for user %d", req.user_id)
+    if final_answer:
+        try:
+            await _persist_chat_result(session, req, final_answer, n_input, n_output, image_buffer)
+        except Exception:
+            logger.exception("Failed to persist chat result for user %d", req.user_id)
 
 
 @router.post("/complete")

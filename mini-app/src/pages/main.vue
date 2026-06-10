@@ -2,66 +2,75 @@
   <div id="root" class="swipe-y-off">
     <div class="swipe-y-on scroll-area" ref="rootEl" @scroll="onScroll">
       <div class="home">
-        <!-- Шапка: аватар + имя → настройки -->
+        <!-- Шапка: аватар + имя → настройки (без фона) -->
         <div v-ripple class="home__header interactive" @click="router.push('/settings')">
-          <div class="home__avatar">{{ initial }}</div>
+          <div class="home__avatar">
+            <img v-if="photoUrl" :src="photoUrl" alt="" draggable="false" />
+            <span v-else>{{ initial }}</span>
+          </div>
           <div class="home__name">{{ fullName }}</div>
         </div>
 
-        <!-- Кнопка Изображения -->
-        <div v-ripple class="home__images interactive" @click="router.push('/images')">
-          <img class="home__images-icon" :src="imageSvg" alt="" draggable="false" />
-          <span class="home__images-text">{{ $t('images') }}</span>
+        <!-- Кнопка Изображения (карточка как в настройках) -->
+        <div class="home__card">
+          <div v-ripple class="home__row interactive" @click="router.push('/images')">
+            <img class="home__row-icon icon-strong" :src="imageSvg" alt="" draggable="false" />
+            <span class="home__row-text">{{ $t('images') }}</span>
+          </div>
         </div>
 
         <!-- Recents -->
         <div class="home__section-title">{{ $t('recents') }}</div>
 
         <template v-if="dialogs.loading && dialogs.list.length === 0">
-          <div v-for="n in 6" :key="n" class="rec-skeleton"></div>
+          <div class="home__card">
+            <div v-for="n in 5" :key="n" class="rec-skeleton"></div>
+          </div>
         </template>
 
         <div v-else-if="dialogs.list.length === 0" class="home__empty">{{ $t('no_chats') }}</div>
 
-        <TransitionGroup v-else name="rec" tag="div" class="home__list">
-          <div
-            v-for="d in dialogs.list"
-            :key="d.dialog_id"
-            v-ripple
-            class="rec-row interactive"
-            @click="onRowClick(d.dialog_id)"
-            @touchstart.passive="onPressStart(d.dialog_id)"
-            @touchend="onPressEnd"
-            @touchmove.passive="onPressEnd"
-          >
-            <div class="rec-main">
-              <input
-                v-if="editingId === d.dialog_id"
-                v-model="editingTitle"
-                class="rec-edit"
-                enterkeyhint="done"
-                maxlength="40"
-                @click.stop
-                @keyup.enter="commitRename"
-                @blur="commitRename"
-              />
-              <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
-              <div class="rec-date">{{ formatDate(d.start_time) }}</div>
+        <div v-else class="home__card">
+          <TransitionGroup name="rec" tag="div" class="home__list">
+            <div
+              v-for="d in dialogs.list"
+              :key="d.dialog_id"
+              v-ripple
+              class="rec-row interactive"
+              @click="onRowClick(d.dialog_id)"
+              @touchstart.passive="onPressStart(d.dialog_id)"
+              @touchend="onPressEnd"
+              @touchmove.passive="onPressEnd"
+            >
+              <div class="rec-main">
+                <input
+                  v-if="editingId === d.dialog_id"
+                  v-model="editingTitle"
+                  class="rec-edit"
+                  enterkeyhint="done"
+                  maxlength="40"
+                  @click.stop
+                  @keyup.enter="commitRename"
+                  @blur="commitRename"
+                />
+                <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
+                <div class="rec-date">{{ formatDate(d.start_time) }}</div>
+              </div>
+              <span v-ripple class="rec-menu" @click.stop="onMenu(d.dialog_id)">
+                <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
+              </span>
             </div>
-            <button v-ripple class="rec-menu" @click.stop="onMenu(d.dialog_id)">
-              <img :src="editSvg" alt="" draggable="false" />
-            </button>
-          </div>
-        </TransitionGroup>
+          </TransitionGroup>
+        </div>
 
         <div class="home__bottom-spacer"></div>
       </div>
     </div>
 
-    <!-- Нижняя панель -->
+    <!-- Нижняя панель (футер) -->
     <div class="home__bar">
-      <div class="home__search" :class="{ active: searchActive }">
-        <img class="home__search-icon" :src="searchSvg" alt="" draggable="false" />
+      <div class="home__search">
+        <img class="home__search-icon icon-muted" :src="searchSvg" alt="" draggable="false" />
         <input
           ref="searchInput"
           v-model="searchQuery"
@@ -72,12 +81,14 @@
           @input="onSearchInput"
         />
       </div>
-      <button v-ripple class="home__bar-btn" :class="{ hidden: searchActive }" @click="router.push('/settings')">
-        <img :src="settingsSvg" alt="" draggable="false" />
-      </button>
-      <button v-ripple class="home__bar-btn" :class="{ hidden: searchActive }" @click="newChat">
-        <img :src="newChatSvg" alt="" draggable="false" />
-      </button>
+      <div class="home__bar-actions" :class="{ collapsed: searchActive }">
+        <span v-ripple class="home__bar-btn interactive" @click="router.push('/settings')">
+          <img class="icon-muted" :src="settingsSvg" alt="" draggable="false" />
+        </span>
+        <span v-ripple class="home__bar-btn interactive" @click="newChat">
+          <img class="icon-muted" :src="newChatSvg" alt="" draggable="false" />
+        </span>
+      </div>
     </div>
 
     <DialogActionsSheet
@@ -100,6 +111,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { initData } from '@tma.js/sdk-vue';
 import { useUserStore } from '@/store/user';
 import { useDialogsStore } from '@/store/dialogs';
 import { api, wsClient } from '@/services/api';
@@ -116,6 +129,7 @@ defineOptions({ name: 'MainPage' });
 const router = useRouter();
 const store = useUserStore();
 const dialogs = useDialogsStore();
+const { t } = useI18n();
 
 const rootEl = ref<HTMLElement | null>(null);
 const searchInput = ref<HTMLInputElement | null>(null);
@@ -131,11 +145,19 @@ const fullName = computed(() => {
 
 const initial = computed(() => (store.user?.first_name?.[0] ?? '?').toUpperCase());
 
+const photoUrl = computed<string | null>(() => {
+  try {
+    return initData.user()?.photo_url ?? null;
+  } catch {
+    return null;
+  }
+});
+
 function formatDate(iso: string): string {
   const d = new Date(iso);
   const now = new Date();
   if (d.toDateString() === now.toDateString()) {
-    return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
   }
   const diffDays = Math.floor((now.getTime() - d.getTime()) / 86_400_000);
   if (diffDays < 7) return d.toLocaleDateString(undefined, { weekday: 'long' });
@@ -149,6 +171,7 @@ function openChat(id: string) {
 async function newChat() {
   try {
     const { dialog_id } = await api.newDialog();
+    dialogs.prepend(dialog_id);
     router.push({ name: 'chat', params: { dialogId: dialog_id } });
   } catch (e) {
     console.error('[newChat]', e);
@@ -211,13 +234,14 @@ async function commitRename() {
 }
 
 function startDelete() {
+  // sheet остаётся открытым под confirm
   confirmId.value = sheetId.value;
-  sheetId.value = null;
 }
 
 async function confirmDelete() {
   const id = confirmId.value;
   confirmId.value = null;
+  sheetId.value = null;
   if (id) {
     try {
       await dialogs.remove(id);
@@ -242,9 +266,11 @@ function onSearchInput() {
     dialogs.loadInitial(true).catch(() => {});
     return;
   }
+  // "Новый чат" / "New Chat" ищем и среди безымянных диалогов (title IS NULL)
+  const includeUntitled = t('new_chat').toLowerCase().includes(q.toLowerCase());
   searchTimer = setTimeout(async () => {
     try {
-      const r = await api.searchDialogs(q);
+      const r = await api.searchDialogs(q, 50, includeUntitled);
       dialogs.list = r.dialogs;
       dialogs.hasMore = false;
     } catch (e) {
@@ -276,6 +302,7 @@ onMounted(() => {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -288,17 +315,18 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: env(safe-area-inset-top) 16px 0;
+  padding: env(safe-area-inset-top) 14px 0;
 }
 
+/* Шапка — без фона */
 .home__header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 12px;
-  border-radius: 16px;
-  background-color: var(--second-bg-color);
-  margin-top: 12px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  margin-top: 10px;
+  overflow: hidden;
 }
 .home__avatar {
   width: 44px;
@@ -312,6 +340,12 @@ onMounted(() => {
   font-size: 20px;
   font-weight: 600;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.home__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .home__name {
   font-size: 17px;
@@ -319,27 +353,39 @@ onMounted(() => {
   color: var(--text-color);
 }
 
-.home__images {
+/* Карточка-контейнер как в настройках */
+.home__card {
+  width: 100%;
+  border-radius: 16px;
+  background-color: var(--second-bg-color);
+  overflow: hidden;
+}
+.home__row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background-color: var(--second-bg-color);
+  width: 100%;
+  min-height: 54px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
 }
-.home__images-icon {
-  width: 22px;
-  height: 22px;
+.home__row-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
-.home__images-text {
+.home__row-text {
   font-size: 16px;
   color: var(--text-color);
 }
 
 .home__section-title {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--icons-storke-color);
-  padding: 8px 4px 2px;
+  text-transform: uppercase;
+  padding: 8px 16px 0;
 }
 
 .home__list {
@@ -350,8 +396,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 8px;
-  border-radius: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+.rec-row:not(:first-child) {
+  border-top: 2px solid var(--backgorund-color);
 }
 .rec-main {
   flex: 1;
@@ -371,13 +424,12 @@ onMounted(() => {
   background: transparent;
   color: var(--text-color);
   font-size: 16px;
-  border-bottom: 1px solid var(--icons-storke-color);
-  padding: 0 0 2px;
+  padding: 0;
 }
 .rec-date {
   font-size: 13px;
   color: var(--icons-storke-color);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 .rec-menu {
   width: 36px;
@@ -387,6 +439,9 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
 }
 .rec-menu img {
   width: 20px;
@@ -395,9 +450,9 @@ onMounted(() => {
 
 .rec-skeleton {
   height: 44px;
-  border-radius: 12px;
+  border-radius: 10px;
   background-color: #6b6f7438;
-  margin: 6px 0;
+  margin: 8px 16px;
 }
 .rec-enter-active,
 .rec-leave-active {
@@ -415,15 +470,28 @@ onMounted(() => {
   padding: 32px 0;
 }
 .home__bottom-spacer {
-  height: 80px;
+  height: 90px;
 }
 
-img[src$='.svg'] {
-  filter: brightness(0) saturate(100%) invert(100%);
+/* Иконки: единый #999999 (invert 60% от чёрного), кросс-тема */
+.icon-muted {
+  filter: brightness(0) saturate(100%) invert(60%);
   pointer-events: none;
   user-select: none;
+  -webkit-user-drag: none;
+}
+/* Images — полный контраст, как иконка модели в выборе */
+.icon-strong {
+  filter: none;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+body.dark .icon-strong {
+  filter: brightness(0) saturate(100%) invert(100%);
 }
 
+/* Футер */
 .home__bar {
   position: fixed;
   left: 12px;
@@ -437,19 +505,18 @@ img[src$='.svg'] {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 2;
+  flex: 1;
+  min-width: 0;
   height: 48px;
   padding: 0 14px;
+  box-sizing: border-box;
   border-radius: 24px;
   background-color: var(--second-bg-color);
-  transition: flex 250ms ease;
-}
-.home__search.active {
-  flex: 100;
 }
 .home__search-icon {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
 }
 .home__search-input {
   flex: 1;
@@ -460,6 +527,21 @@ img[src$='.svg'] {
   color: var(--text-color);
   font-size: 16px;
 }
+.home__bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 106px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-width 260ms ease, opacity 200ms ease, transform 260ms ease;
+}
+.home__bar-actions.collapsed {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(24px);
+  pointer-events: none;
+}
 .home__bar-btn {
   width: 48px;
   height: 48px;
@@ -469,17 +551,11 @@ img[src$='.svg'] {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: transform 250ms ease, opacity 200ms ease, width 250ms ease, margin 250ms ease;
+  position: relative;
+  overflow: hidden;
 }
 .home__bar-btn img {
   width: 22px;
   height: 22px;
-}
-.home__bar-btn.hidden {
-  transform: translateX(80px);
-  opacity: 0;
-  width: 0;
-  margin-left: -10px;
-  pointer-events: none;
 }
 </style>

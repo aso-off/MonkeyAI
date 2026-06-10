@@ -82,6 +82,7 @@ test_language:
     text_improver_name: ""
     text_improver_welcome: ""
     error_message: ""
+    error_response: ""
     model_description_gpt_5_mini: ""
     model_description_gpt_4o: ""
     model_description_gpt_5_nano: ""

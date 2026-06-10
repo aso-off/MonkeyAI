@@ -1,5 +1,16 @@
 {
   "new_chat": "Nuevo chat",
+  "images": "Imágenes",
+  "recents": "Chats recientes",
+  "search": "Buscar",
+  "no_chats": "Aún no hay chats",
+  "rename": "Renombrar",
+  "delete_dialog": "¿Eliminar chat?",
+  "delete_dialog_confirm": "Este chat se eliminará. Esta acción no se puede deshacer.",
+  "delete": "Eliminar",
+  "cancel": "Cancelar",
+  "no_images": "Aún no hay imágenes",
+  "save": "Guardar",
   "settings": "Ajustes",
   "empty_chat": "¿En qué puedo ayudarte?",
   "describe_image": "Describe la imagen que quieres crear",
@@ -88,9 +99,18 @@
           "intro": "Cuando usas Monkey AI, podemos recopilar los siguientes datos:",
           "body": "",
           "items": [
-            { "b": "Datos de la cuenta de Telegram:", "t": " tu ID de usuario, nombre de usuario, nombre y apellido, e idioma." },
-            { "b": "Contenido que proporcionas:", "t": " los mensajes, solicitudes, imágenes y audios que envías al asistente." },
-            { "b": "Datos de uso:", "t": " el modelo seleccionado, las preferencias y estadísticas básicas de actividad." }
+            {
+              "b": "Datos de la cuenta de Telegram:",
+              "t": " tu ID de usuario, nombre de usuario, nombre y apellido, e idioma."
+            },
+            {
+              "b": "Contenido que proporcionas:",
+              "t": " los mensajes, solicitudes, imágenes y audios que envías al asistente."
+            },
+            {
+              "b": "Datos de uso:",
+              "t": " el modelo seleccionado, las preferencias y estadísticas básicas de actividad."
+            }
           ]
         },
         {
@@ -98,10 +118,22 @@
           "intro": "Utilizamos la información recopilada para:",
           "body": "",
           "items": [
-            { "b": "", "t": "proporcionar y operar el asistente de IA, incluyendo chat, generación de imágenes y transcripción;" },
-            { "b": "", "t": "mantener tu historial de conversaciones entre sesiones;" },
-            { "b": "", "t": "garantizar la seguridad y prevenir el uso indebido del servicio;" },
-            { "b": "", "t": "responder a tus solicitudes y ofrecer soporte." }
+            {
+              "b": "",
+              "t": "proporcionar y operar el asistente de IA, incluyendo chat, generación de imágenes y transcripción;"
+            },
+            {
+              "b": "",
+              "t": "mantener tu historial de conversaciones entre sesiones;"
+            },
+            {
+              "b": "",
+              "t": "garantizar la seguridad y prevenir el uso indebido del servicio;"
+            },
+            {
+              "b": "",
+              "t": "responder a tus solicitudes y ofrecer soporte."
+            }
           ]
         },
         {
@@ -156,9 +188,18 @@
           "intro": "Al usar el Servicio, te comprometes a no:",
           "body": "",
           "items": [
-            { "b": "", "t": "utilizarlo para contenido ilícito, dañino o prohibido;" },
-            { "b": "", "t": "abusar, interrumpir o sobrecargar el Servicio;" },
-            { "b": "", "t": "intentar obtener acceso no autorizado o explotar el Servicio." }
+            {
+              "b": "",
+              "t": "utilizarlo para contenido ilícito, dañino o prohibido;"
+            },
+            {
+              "b": "",
+              "t": "abusar, interrumpir o sobrecargar el Servicio;"
+            },
+            {
+              "b": "",
+              "t": "intentar obtener acceso no autorizado o explotar el Servicio."
+            }
           ]
         },
         {

@@ -240,9 +240,13 @@ async def chat_stream(
     }
     async with get_client().stream("POST", "/chat/stream", json=payload) as resp:
         resp.raise_for_status()
-        async for line in resp.aiter_lines():
-            if line.startswith("data: "):
-                yield _decode(line[6:].encode(), ChatStreamChunk)
+        try:
+            async for line in resp.aiter_lines():
+                if line.startswith("data: "):
+                    yield _decode(line[6:].encode(), ChatStreamChunk)
+        except (httpx.RemoteProtocolError, httpx.ReadError) as exc:
+            # обрыв chunked на полпути — отдаём накопленное
+            logger.warning("chat_stream interrupted for user %d: %s", user_id, exc)
 
 
 # Media

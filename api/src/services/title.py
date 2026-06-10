@@ -26,19 +26,37 @@ def truncate_title(text: str, limit: int = _TITLE_LIMIT) -> str:
     return cut + "…"
 
 
-async def summarize_title(text: str) -> str:
-    from services.openai import make_client
+# Отдельный клиент для заголовков — НЕ общий с генерацией бота.
+# wait_for-отмена общего клиента портила пул httpx → бот ловил incomplete chunked read.
+_title_openai_client = None
 
-    client = make_client()
-    r = await asyncio.wait_for(
-        client.chat.completions.create(
-            model=_TITLE_MODEL,
-            messages=[
-                {"role": "system", "content": _TITLE_PROMPT},
-                {"role": "user", "content": (text or "")[:1000]},
-            ],
-        ),
-        timeout=_TITLE_TIMEOUT,
+
+def _title_client():
+    global _title_openai_client
+    if _title_openai_client is None:
+        from openai import AsyncOpenAI
+
+        from core.config import settings
+
+        client = AsyncOpenAI(
+            api_key=settings.openai_api_key.get_secret_value(),
+            timeout=_TITLE_TIMEOUT,  # SDK-таймаут, без отмены корутины
+            max_retries=0,
+        )
+        if settings.openai_api_base:
+            client.base_url = settings.openai_api_base
+        _title_openai_client = client
+    return _title_openai_client
+
+
+async def summarize_title(text: str) -> str:
+    client = _title_client()
+    r = await client.chat.completions.create(
+        model=_TITLE_MODEL,
+        messages=[
+            {"role": "system", "content": _TITLE_PROMPT},
+            {"role": "user", "content": (text or "")[:1000]},
+        ],
     )
     raw = (r.choices[0].message.content or "").strip().strip('"').strip()
     return truncate_title(raw)
