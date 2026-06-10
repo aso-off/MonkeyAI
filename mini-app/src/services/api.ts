@@ -117,11 +117,13 @@ export interface ChatCompleteResponse {
   n_first_removed: number;
   is_flagged: boolean;
   dialog_id?: string;
+  mid?: string;
 }
 
 export interface DialogMessage {
   user: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
   bot: string;
+  mid?: string;
 }
 
 export interface DialogBootstrapResult {
@@ -192,8 +194,8 @@ export const api = {
   sendReaction(payload: {
     reaction: 'like' | 'dislike';
     model: string;
-    user_message: string;
-    bot_message: string;
+    dialog_id?: string | null;
+    mid?: string | null;
   }): Promise<void> {
     return apiFetch<void>(
       '/webapp/reactions',
@@ -414,6 +416,7 @@ export class WsClient {
             n_first_removed: (msg.n_first_removed as number)  ?? 0,
             is_flagged:      (msg.is_flagged      as boolean) ?? false,
             dialog_id:        msg.dialog_id as string | undefined,
+            mid:              msg.mid as string | undefined,
           });
         } else if (t === 'chat_error') {
           this._handlers.delete(id);
@@ -444,18 +447,22 @@ export class WsClient {
     message:    string,
     dialogId:   string | null | undefined,
     onProgress: (step: string) => void,
-  ): Promise<{ url: string; dialog_id?: string }> {
+  ): Promise<{ url: string; dialog_id?: string; mid?: string }> {
     const ok = await this.connect();
     if (!ok) throw new Error('network error');
     const id = crypto.randomUUID();
-    return new Promise<{ url: string; dialog_id?: string }>((resolve, reject) => {
+    return new Promise<{ url: string; dialog_id?: string; mid?: string }>((resolve, reject) => {
       this._handlers.set(id, (msg) => {
         const t = msg.type as string;
         if (t === 'image_progress') {
           onProgress(msg.step as string);
         } else if (t === 'image_done') {
           this._handlers.delete(id);
-          resolve({ url: msg.url as string, dialog_id: msg.dialog_id as string | undefined });
+          resolve({
+            url: msg.url as string,
+            dialog_id: msg.dialog_id as string | undefined,
+            mid: msg.mid as string | undefined,
+          });
         } else if (t === 'image_error') {
           this._handlers.delete(id);
           reject(new Error((msg.error as string) || 'image generation failed'));
