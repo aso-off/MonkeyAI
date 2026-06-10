@@ -82,9 +82,8 @@ class Dialog(Base):
     chat_mode: Mapped[str] = mapped_column(String(64), nullable=False)
     model: Mapped[str] = mapped_column(String(64), nullable=False)
     start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-    last_activity: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_now, onupdate=_now
-    )
+    last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    title: Mapped[str | None] = mapped_column(String(40), nullable=True)
     messages: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
 
     user: Mapped["User"] = relationship("User", back_populates="dialogs")
@@ -110,4 +109,22 @@ class Reaction(Base):
         Index("ix_reactions_reaction", "reaction"),
         Index("ix_reactions_model", "model"),
         Index("ix_reactions_created_at", "created_at"),
+    )
+
+
+class GeneratedImage(Base):
+    __tablename__ = "generated_images"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
+    dialog_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("dialogs.id", ondelete="CASCADE"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(String, nullable=False)
+    prompt: Mapped[str] = mapped_column(String, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    __table_args__ = (
+        Index("ix_generated_images_user_id", "user_id"),
+        Index("ix_generated_images_created_at", "created_at"),
     )

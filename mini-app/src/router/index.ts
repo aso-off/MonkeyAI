@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Main from '../pages/main.vue'
+import Chat from '@/pages/chat.vue'
+import Images from '@/pages/images.vue'
 import Settings from '@/pages/settings.vue'
 import SettingsTheme from '@/pages/settings_theme.vue'
 import SettingsLang from '@/pages/settings_lang.vue'
@@ -11,6 +13,16 @@ const routes = [
     path: '/',
     name: 'index',
     component: Main
+  },
+  {
+    path: '/chat/:dialogId?',
+    name: 'chat',
+    component: Chat
+  },
+  {
+    path: '/images',
+    name: 'images',
+    component: Images
   },
   {
     path: '/settings',

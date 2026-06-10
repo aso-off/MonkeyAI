@@ -90,6 +90,24 @@ async def test_cleanup_dialogs_uses_inactive_cutoff(monkeypatch) -> None:
     assert abs((captured["cutoff"] - expected).total_seconds()) < 5
 
 
+class _FakeSessionCM:
+    async def __aenter__(self):
+        return AsyncMock()
+
+    async def __aexit__(self, *a):
+        return False
+
+
+@pytest.mark.asyncio
+async def test_run_once_calls_cleanups(monkeypatch) -> None:
+    from services import retention
+    monkeypatch.setattr(retention, "Session", lambda: _FakeSessionCM())
+    monkeypatch.setattr(retention, "cleanup_dialogs", AsyncMock(return_value=3))
+    monkeypatch.setattr(retention, "cleanup_reactions", AsyncMock(return_value=2))
+    n_dialogs, n_reactions = await retention.run_once()
+    assert (n_dialogs, n_reactions) == (3, 2)
+
+
 @pytest.mark.asyncio
 async def test_cleanup_reactions_uses_created_cutoff(monkeypatch) -> None:
     from db.models.user import Reaction

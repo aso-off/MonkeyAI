@@ -133,6 +133,33 @@ export interface DialogBootstrapResult {
   next_before_index: number;
 }
 
+export interface DialogListItem {
+  dialog_id: string;
+  title: string | null;
+  last_activity: string;
+  start_time: string;
+}
+
+export interface DialogListResult {
+  dialogs: DialogListItem[];
+  next_before: string | null;
+  has_more: boolean;
+}
+
+export interface ImageItem {
+  id: number;
+  url: string;
+  prompt: string;
+  dialog_id: string;
+  created_at: string;
+}
+
+export interface ImagesResult {
+  images: ImageItem[];
+  next_before: string | null;
+  has_more: boolean;
+}
+
 export const api = {
   getMe(): Promise<TelegramUser> {
     return apiFetch<TelegramUser>('/webapp/me', {}, 12_000, 3);
@@ -203,6 +230,39 @@ export const api = {
       10_000,
       0,
     );
+  },
+
+  /** List mini-app dialogs (Recents), newest activity first. */
+  listDialogs(before?: string | null, limit = 10): Promise<DialogListResult> {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (before) params.set('before', before);
+    return apiFetch(`/webapp/dialogs?${params}`, {}, 15_000, 1);
+  },
+
+  /** Search dialogs by title. */
+  searchDialogs(q: string, limit = 50): Promise<DialogListResult> {
+    const params = new URLSearchParams({ q, limit: String(limit) });
+    return apiFetch(`/webapp/dialogs/search?${params}`, {}, 15_000, 1);
+  },
+
+  renameDialog(dialogId: string, title: string): Promise<void> {
+    return apiFetch<void>(
+      `/webapp/dialogs/${dialogId}`,
+      { method: 'PATCH', body: JSON.stringify({ title }) },
+      10_000,
+      0,
+    );
+  },
+
+  deleteDialog(dialogId: string): Promise<void> {
+    return apiFetch<void>(`/webapp/dialogs/${dialogId}`, { method: 'DELETE' }, 10_000, 0);
+  },
+
+  /** List the user's generated images (gallery). */
+  listImages(before?: string | null, limit = 30): Promise<ImagesResult> {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (before) params.set('before', before);
+    return apiFetch(`/webapp/images?${params}`, {}, 15_000, 1);
   },
 
 };
