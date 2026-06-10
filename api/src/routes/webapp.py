@@ -26,11 +26,14 @@ from core.security import verify_webapp_init_data
 from services import whitelist
 from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
+from db.repositories import images as image_repo
 from db.repositories import users as user_repo
 from schemas.user import UserRead
 from services.image_generation import IMAGE_MODELS, generate_image_url
 from services.moderation import moderate_content
 from services.openai import ChatGPT
+from services.title import handle_first_message_title
+from routes.ws import _title_broadcast
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webapp", tags=["webapp"])
@@ -435,6 +438,131 @@ async def get_messages(
     return _MessagesResponse(messages=messages)
 
 
+# ---------------------------------------------------------------------------
+# Dialog list / rename / delete / search  (Recents)
+# ---------------------------------------------------------------------------
+
+class _DialogListItem(BaseModel):
+    dialog_id: str
+    title: str | None = None
+    last_activity: datetime
+    start_time: datetime
+
+
+class _DialogListResponse(BaseModel):
+    dialogs: list[_DialogListItem]
+    next_before: datetime | None = None
+    has_more: bool = False
+
+
+class _RenamePayload(BaseModel):
+    title: str
+
+
+def _to_list_item(d) -> _DialogListItem:
+    return _DialogListItem(
+        dialog_id=d.id, title=d.title, last_activity=d.last_activity, start_time=d.start_time
+    )
+
+
+@router.get("/dialogs", response_model=_DialogListResponse, summary="List mini-app dialogs")
+async def list_dialogs(
+    before: datetime | None = None,
+    limit: int = 20,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> _DialogListResponse:
+    user_id = _extract_tg_user(init_data)["id"]
+    limit = max(1, min(limit, 50))
+    rows = await dialog_repo.list_dialogs(session, user_id, before, limit)
+    has_more = len(rows) == limit
+    next_before = rows[-1].last_activity if (has_more and rows) else None
+    return _DialogListResponse(
+        dialogs=[_to_list_item(d) for d in rows], next_before=next_before, has_more=has_more
+    )
+
+
+@router.get("/dialogs/search", response_model=_DialogListResponse, summary="Search dialogs by title")
+async def search_dialogs(
+    q: str,
+    limit: int = 50,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> _DialogListResponse:
+    user_id = _extract_tg_user(init_data)["id"]
+    query = q.strip()
+    if not query:
+        return _DialogListResponse(dialogs=[])
+    rows = await dialog_repo.search_dialogs(session, user_id, query, max(1, min(limit, 50)))
+    return _DialogListResponse(dialogs=[_to_list_item(d) for d in rows])
+
+
+@router.patch("/dialogs/{dialog_id}", status_code=204, summary="Rename dialog")
+async def rename_dialog(
+    dialog_id: str,
+    payload: _RenamePayload,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    user_id = _extract_tg_user(init_data)["id"]
+    title = payload.title.strip()[:40]
+    if not title:
+        raise HTTPException(status_code=400, detail="Empty title")
+    if not await dialog_repo.rename_dialog(session, user_id, dialog_id, title):
+        raise HTTPException(status_code=404, detail="Dialog not found")
+
+
+@router.delete("/dialogs/{dialog_id}", status_code=204, summary="Delete dialog")
+async def delete_dialog(
+    dialog_id: str,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    user_id = _extract_tg_user(init_data)["id"]
+    if not await dialog_repo.delete_dialog(session, user_id, dialog_id):
+        raise HTTPException(status_code=404, detail="Dialog not found")
+
+
+# ---------------------------------------------------------------------------
+# Generated images gallery
+# ---------------------------------------------------------------------------
+
+class _ImageItem(BaseModel):
+    id: int
+    url: str
+    prompt: str
+    dialog_id: str
+    created_at: datetime
+
+
+class _ImagesResponse(BaseModel):
+    images: list[_ImageItem]
+    next_before: datetime | None = None
+    has_more: bool = False
+
+
+@router.get("/images", response_model=_ImagesResponse, summary="List generated images")
+async def list_images(
+    before: datetime | None = None,
+    limit: int = 30,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> _ImagesResponse:
+    user_id = _extract_tg_user(init_data)["id"]
+    limit = max(1, min(limit, 60))
+    rows = await image_repo.list_images(session, user_id, before, limit)
+    has_more = len(rows) == limit
+    next_before = rows[-1].created_at if (has_more and rows) else None
+    return _ImagesResponse(
+        images=[
+            _ImageItem(id=i.id, url=i.url, prompt=i.prompt, dialog_id=i.dialog_id, created_at=i.created_at)
+            for i in rows
+        ],
+        next_before=next_before,
+        has_more=has_more,
+    )
+
+
 @router.post("/chat", response_model=WebAppChatResponse)
 async def chat_complete(
     body: WebAppChatBody,
@@ -488,6 +616,13 @@ async def chat_complete(
                 dialog_id,
             )
             await user_repo.update_last_interaction(session, user_id)
+            await handle_first_message_title(
+                session, dialog_id, body.message,
+                on_refined=_title_broadcast(user_id, dialog_id),
+            )
+            await image_repo.add_generated_image(
+                session, user_id, dialog_id, image_url, body.message
+            )
         except Exception:
             logger.exception("Failed to persist image result for user %d", user_id)
         return WebAppChatResponse(answer=image_url)
@@ -524,6 +659,10 @@ async def chat_complete(
         await dialog_repo.append_dialog_message(session, user_id, new_msg, dialog_id)
         await dialog_repo.update_n_used_tokens(session, user_id, body.model, n_input, n_output)
         await user_repo.update_last_interaction(session, user_id)
+        await handle_first_message_title(
+            session, dialog_id, body.message,
+            on_refined=_title_broadcast(user_id, dialog_id),
+        )
     except Exception:
         logger.exception("Failed to persist webapp chat result for user %d", user_id)
 

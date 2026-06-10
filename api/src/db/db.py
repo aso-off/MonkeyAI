@@ -40,7 +40,9 @@ def _run_migrations(connection) -> None:
 
 
 async def init_db() -> None:
-    from db.models.user import Dialog, Reaction, User, UserState, UserStatistics  # noqa: F401
+    from db.models.user import (  # noqa: F401
+        Dialog, GeneratedImage, Reaction, User, UserState, UserStatistics,
+    )
 
     async with engine.connect() as conn:
         await conn.run_sync(_run_migrations)

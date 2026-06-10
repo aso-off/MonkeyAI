@@ -67,11 +67,13 @@ from core.redis import get_redis_binary
 from core.security import _verify_init_data
 from db.db import Session
 from db.repositories import dialogs as dialog_repo
+from db.repositories import images as image_repo
 from db.repositories import users as user_repo
 from services.image_generation import generate_image_b64
 from services.image_processing import process_generated_image, upload_to_imgbb
 from services.moderation import moderate_content
 from services.openai import ChatGPT
+from services.title import handle_first_message_title
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webapp")
@@ -189,6 +191,12 @@ async def _broadcast(user_id: int, payload: dict, exclude: WebSocket | None = No
     for ws in list(_WS_POOL.get(user_id, set())):
         if ws is not exclude:
             await _send(ws, payload)
+
+
+def _title_broadcast(user_id: int, dialog_id: str):
+    async def _cb(title: str) -> None:
+        await _broadcast(user_id, {"type": "dialog_title", "dialog_id": dialog_id, "title": title})
+    return _cb
 
 
 # ---------------------------------------------------------------------------
@@ -366,6 +374,10 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
                 )
                 await dialog_repo.update_n_used_tokens(session, user_id, model, n_input, n_output)
                 await user_repo.update_last_interaction(session, user_id)
+                await handle_first_message_title(
+                    session, resolved_dialog_id, message,
+                    on_refined=_title_broadcast(user_id, resolved_dialog_id),
+                )
         except Exception:
             logger.exception("Failed to persist chat message for user %d", user_id)
 
@@ -491,6 +503,13 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
                     session, user_id, new_msg, resolved_dialog_id
                 )
                 await user_repo.update_last_interaction(session, user_id)
+                await handle_first_message_title(
+                    session, resolved_dialog_id, message,
+                    on_refined=_title_broadcast(user_id, resolved_dialog_id),
+                )
+                await image_repo.add_generated_image(
+                    session, user_id, resolved_dialog_id, img_url, message
+                )
         except Exception:
             logger.exception("Failed to persist image for user %d", user_id)
 

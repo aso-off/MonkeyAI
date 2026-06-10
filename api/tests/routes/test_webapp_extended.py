@@ -17,6 +17,7 @@
 import base64
 import json
 import uuid
+from datetime import datetime, timezone
 from typing import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -388,6 +389,92 @@ class TestWebappReactions:
             "mid": fake.hexify("^" * 32),
         })
         assert resp.status_code == 400
+
+
+# ── Dialog CRUD / search / images ─────────────────────────────────────────────
+
+
+def _fake_dialog_row(title: str = "Заголовок"):
+    d = MagicMock()
+    d.id = str(uuid.uuid4())
+    d.title = title
+    d.last_activity = datetime.now(timezone.utc)
+    d.start_time = datetime.now(timezone.utc)
+    return d
+
+
+class TestDialogCrud:
+
+    @pytest.mark.api
+    def test_list_dialogs_ok(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp.dialog_repo.list_dialogs", new=AsyncMock(return_value=[_fake_dialog_row()])):
+            resp = client.get("/webapp/dialogs?limit=20")
+        assert resp.status_code == 200
+        assert len(resp.json()["dialogs"]) == 1
+
+    @pytest.mark.api
+    def test_rename_returns_204(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp.dialog_repo.rename_dialog", new=AsyncMock(return_value=True)):
+            resp = client.patch("/webapp/dialogs/abc", json={"title": "Новое имя"})
+        assert resp.status_code == 204
+
+    @pytest.mark.api
+    def test_rename_missing_returns_404(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp.dialog_repo.rename_dialog", new=AsyncMock(return_value=False)):
+            resp = client.patch("/webapp/dialogs/abc", json={"title": "Имя"})
+        assert resp.status_code == 404
+
+    @pytest.mark.api
+    def test_rename_empty_returns_400(self, webapp_client) -> None:
+        client, tg = webapp_client
+        resp = client.patch("/webapp/dialogs/abc", json={"title": "   "})
+        assert resp.status_code == 400
+
+    @pytest.mark.api
+    def test_delete_returns_204(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp.dialog_repo.delete_dialog", new=AsyncMock(return_value=True)):
+            resp = client.delete("/webapp/dialogs/abc")
+        assert resp.status_code == 204
+
+    @pytest.mark.api
+    def test_delete_missing_returns_404(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp.dialog_repo.delete_dialog", new=AsyncMock(return_value=False)):
+            resp = client.delete("/webapp/dialogs/abc")
+        assert resp.status_code == 404
+
+    @pytest.mark.api
+    def test_search_ok(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp.dialog_repo.search_dialogs", new=AsyncMock(return_value=[_fake_dialog_row("Docker")])):
+            resp = client.get("/webapp/dialogs/search?q=doc")
+        assert resp.status_code == 200
+        assert resp.json()["dialogs"][0]["title"] == "Docker"
+
+    @pytest.mark.api
+    def test_search_empty_query_returns_empty(self, webapp_client) -> None:
+        client, tg = webapp_client
+        resp = client.get("/webapp/dialogs/search?q=%20%20")
+        assert resp.status_code == 200
+        assert resp.json()["dialogs"] == []
+
+    @pytest.mark.api
+    def test_images_ok(self, webapp_client) -> None:
+        client, tg = webapp_client
+        img = MagicMock()
+        img.id = 1
+        img.url = "https://cdn/x.webp"
+        img.prompt = "кот в шляпе"
+        img.dialog_id = str(uuid.uuid4())
+        img.created_at = datetime.now(timezone.utc)
+        with patch("routes.webapp.image_repo.list_images", new=AsyncMock(return_value=[img])):
+            resp = client.get("/webapp/images")
+        assert resp.status_code == 200
+        assert resp.json()["images"][0]["id"] == 1
 
 
 # ── GET /webapp/dialogs/messages ──────────────────────────────────────────────

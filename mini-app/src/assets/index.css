@@ -1176,13 +1176,17 @@ body.dark .gpt-model-select-item.active {
   padding: 53px 16px 0;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   height: calc(100% - 15px);
   display: flex;
   flex-direction: column;
   gap: 18px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch
+}
+
+.chat-content::-webkit-scrollbar {
+  display: none;
 }
 
 .chat-content.empty {

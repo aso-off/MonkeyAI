@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.user import Dialog, User, UserStatistics
@@ -288,6 +288,83 @@ async def get_mini_app_dialog_id(
     mode = chat_mode or user.state.mini_app_chat_mode
     ids = dict(user.state.mini_app_dialog_ids or {})
     return ids.get(mode)
+
+
+async def set_initial_title(session: AsyncSession, dialog_id: str, text: str) -> str | None:
+    """Set a word-boundary truncated title if the dialog has none yet.
+
+    Returns the title it set (signal for nano refinement) or None if already titled.
+    """
+    from services.title import truncate_title
+
+    result = await session.execute(select(Dialog).where(Dialog.id == dialog_id))
+    dialog = result.scalar_one_or_none()
+    if dialog is None or dialog.title:
+        return None
+    title = truncate_title(text)
+    if not title:
+        return None
+    dialog.title = title
+    await session.commit()
+    return title
+
+
+async def update_dialog_title(session: AsyncSession, dialog_id: str, title: str) -> None:
+    await session.execute(update(Dialog).where(Dialog.id == dialog_id).values(title=title))
+    await session.commit()
+
+
+_MINI_APP_PREFIX = "mini_app_%"
+
+
+async def list_dialogs(
+    session: AsyncSession,
+    user_id: int,
+    before: datetime | None = None,
+    limit: int = 20,
+) -> list[Dialog]:
+    """Mini-app dialogs, newest activity first. Cursor — last_activity < before."""
+    q = select(Dialog).where(
+        Dialog.user_id == user_id, Dialog.chat_mode.like(_MINI_APP_PREFIX)
+    )
+    if before is not None:
+        q = q.where(Dialog.last_activity < before)
+    q = q.order_by(Dialog.last_activity.desc()).limit(limit)
+    return list((await session.execute(q)).scalars().all())
+
+
+async def search_dialogs(
+    session: AsyncSession, user_id: int, query: str, limit: int = 50
+) -> list[Dialog]:
+    q = (
+        select(Dialog)
+        .where(
+            Dialog.user_id == user_id,
+            Dialog.chat_mode.like(_MINI_APP_PREFIX),
+            Dialog.title.ilike(f"%{query}%"),
+        )
+        .order_by(Dialog.last_activity.desc())
+        .limit(limit)
+    )
+    return list((await session.execute(q)).scalars().all())
+
+
+async def rename_dialog(session: AsyncSession, user_id: int, dialog_id: str, title: str) -> bool:
+    result = await session.execute(
+        update(Dialog)
+        .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
+        .values(title=title)
+    )
+    await session.commit()
+    return result.rowcount > 0
+
+
+async def delete_dialog(session: AsyncSession, user_id: int, dialog_id: str) -> bool:
+    result = await session.execute(
+        delete(Dialog).where(Dialog.id == dialog_id, Dialog.user_id == user_id)
+    )
+    await session.commit()
+    return result.rowcount > 0
 
 
 async def get_all_users_count(session: AsyncSession) -> int:
