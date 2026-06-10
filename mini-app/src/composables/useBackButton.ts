@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router';
 
 /** Map each route to its explicit parent — works correctly even after a hard reload. */
 const PARENT_ROUTE: Record<string, string> = {
+  chat: 'index',
+  images: 'index',
   settings: 'index',
   language: 'settings',
   theme: 'settings',
