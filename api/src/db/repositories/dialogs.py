@@ -163,20 +163,27 @@ async def append_dialog_message(
     new_message: dict,
     dialog_id: str,
     max_messages: int = 200,
-) -> None:
+) -> str | None:
     """Atomically append a message using SELECT FOR UPDATE to prevent race conditions.
     Trims the history to the last max_messages entries so the JSON column stays bounded.
+    Assigns a stable ``mid`` to the message and returns it (for client-side reactions).
     """
+    mid = new_message.get("mid") or uuid.uuid4().hex
+    new_message["mid"] = mid
     result = await session.execute(
         select(Dialog)
         .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
         .with_for_update()
     )
     dialog = result.scalar_one_or_none()
-    if dialog is not None:
-        msgs = list(dialog.messages or []) + [new_message]
-        dialog.messages = msgs[-max_messages:]
+    if dialog is None:
+        await session.commit()
+        return None
+    msgs = list(dialog.messages or []) + [new_message]
+    dialog.messages = msgs[-max_messages:]
+    dialog.last_activity = datetime.now(timezone.utc)
     await session.commit()
+    return mid
 
 
 async def get_dialog_messages_page(

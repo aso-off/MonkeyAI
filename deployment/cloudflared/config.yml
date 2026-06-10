@@ -4,8 +4,8 @@ credentials-file: /etc/cloudflared/b32af5a9-dede-4b09-ae0c-2934cfbfe7b6.json
 ingress:
   - hostname: monkey.si881.ru
     service: http://bot:5000
-  - hostname: api.si881.ru
-    service: http://api:8000
+  # - hostname: api.si881.ru
+  #  service: http://api:8000
   # - hostname: postgres.si881.ru
   #   service: http://nginx-proxy-manager:80
   # - hostname: grafana.si881.ru

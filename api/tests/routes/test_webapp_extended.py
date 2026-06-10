@@ -372,8 +372,8 @@ class TestWebappReactions:
             resp = client.post("/webapp/reactions", json={
                 "reaction": "like",
                 "model": "gpt-4o",
-                "user_message": fake.sentence(),
-                "bot_message": fake.sentence(),
+                "dialog_id": fake.uuid4(),
+                "mid": fake.hexify("^" * 32),
             })
         # 204 успех, 500 если session.commit не сработал в MagicMock
         assert resp.status_code in (200, 204, 500)
@@ -384,8 +384,8 @@ class TestWebappReactions:
         resp = client.post("/webapp/reactions", json={
             "reaction": "neutral",
             "model": "gpt-4o",
-            "user_message": fake.sentence(),
-            "bot_message": fake.sentence(),
+            "dialog_id": fake.uuid4(),
+            "mid": fake.hexify("^" * 32),
         })
         assert resp.status_code == 400
 

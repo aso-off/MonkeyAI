@@ -55,6 +55,11 @@ def _make_fake_settings() -> types.SimpleNamespace:
         whitelist_mode=True,
         dialog_context_limit=20,
         message_max_length=4096,
+        retention_enabled=True,
+        retention_dialogs_inactive_days=90,
+        retention_reactions_days=90,
+        retention_interval_hours=24,
+        retention_batch_size=500,
     )
 
 

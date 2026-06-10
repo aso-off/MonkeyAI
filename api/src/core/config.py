@@ -58,6 +58,13 @@ class Settings(BaseSettings):
     # ImgBB API key for uploading generated images to permanent CDN storage.
     imgbb_api_key: str = ""
 
+    # Retention
+    retention_enabled: bool = True
+    retention_dialogs_inactive_days: int = 90
+    retention_reactions_days: int = 90
+    retention_interval_hours: int = 24
+    retention_batch_size: int = 500
+
     @field_validator("admin_ids", mode="before")
     @classmethod
     def parse_admin_ids(cls, v: Any) -> list[int]:
@@ -85,6 +92,15 @@ class Settings(BaseSettings):
         self.image_rate_limit_window_seconds = cfg.get(
             "image_rate_limit_window_seconds", self.image_rate_limit_window_seconds
         )
+
+        ret = cfg.get("retention") or {}
+        self.retention_enabled = ret.get("enabled", self.retention_enabled)
+        self.retention_dialogs_inactive_days = ret.get(
+            "dialogs_inactive_days", self.retention_dialogs_inactive_days
+        )
+        self.retention_reactions_days = ret.get("reactions_days", self.retention_reactions_days)
+        self.retention_interval_hours = ret.get("interval_hours", self.retention_interval_hours)
+        self.retention_batch_size = ret.get("batch_size", self.retention_batch_size)
 
         self.chat_modes = _load_yaml(CONFIGS_DIR / "chat_modes.yml") or {}
         self.models = _load_yaml(CONFIGS_DIR / "models.yml") or {}

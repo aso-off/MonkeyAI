@@ -542,8 +542,8 @@ async def chat_complete(
 class _ReactionPayload(BaseModel):
     reaction: str        # "like" | "dislike"
     model: str
-    user_message: str
-    bot_message: str
+    dialog_id: str | None = None
+    mid: str | None = None
 
 
 @router.post(
@@ -552,17 +552,13 @@ class _ReactionPayload(BaseModel):
     summary="Record message reaction",
     description=(
         "Save a **like** or **dislike** reaction for a bot response.\n\n"
-        "Stored in `reactions` table. Useful for analytics — "
-        "query by `model` + `reaction` to see which models need improvement.\n\n"
+        "Stores a reference (`dialog_id` + `mid`) to the message — raw text is **not** "
+        "duplicated. Resolve the text by joining `dialogs.messages` on `mid`.\n\n"
         "**Analytics queries:**\n"
         "```sql\n"
         "-- Likes/dislikes per model\n"
         "SELECT model, reaction, COUNT(*) AS cnt\n"
-        "FROM reactions GROUP BY model, reaction ORDER BY cnt DESC;\n\n"
-        "-- Recent dislikes with messages (for review)\n"
-        "SELECT model, user_message, bot_message, created_at\n"
-        "FROM reactions WHERE reaction = 'dislike'\n"
-        "ORDER BY created_at DESC LIMIT 50;\n"
+        "FROM reactions GROUP BY model, reaction ORDER BY cnt DESC;\n"
         "```"
     ),
     responses={
@@ -582,14 +578,11 @@ async def post_reaction(
 
     from db.models.user import Reaction
 
-    tg = _extract_tg_user(init_data)
-    user_id = tg["id"]
     reaction = Reaction(
-        user_id=user_id,
         reaction=payload.reaction,
         model=payload.model,
-        user_message=payload.user_message[:2000],
-        bot_message=payload.bot_message[:6000],
+        dialog_id=payload.dialog_id,
+        mid=payload.mid,
     )
     session.add(reaction)
     await session.commit()
