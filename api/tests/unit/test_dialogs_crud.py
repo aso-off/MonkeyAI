@@ -65,6 +65,15 @@ async def test_search_dialogs_returns_rows() -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_dialogs_include_untitled_branch() -> None:
+    from db.repositories.dialogs import search_dialogs
+    session = _make_session()
+    session.execute.return_value = _scalars([_fake_dialog(), _fake_dialog()])
+    rows = await search_dialogs(session, 123, "Новый чат", 50, include_untitled=True)
+    assert len(rows) == 2
+
+
+@pytest.mark.asyncio
 async def test_rename_dialog_true_when_rowcount() -> None:
     from db.repositories.dialogs import rename_dialog
     session = _make_session()

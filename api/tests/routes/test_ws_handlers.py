@@ -551,6 +551,10 @@ class TestHandleImage:
              patch("routes.ws.Session", cm), \
              patch("routes.ws.dialog_repo.append_dialog_message", new=AsyncMock()), \
              patch("routes.ws.user_repo.update_last_interaction", new=AsyncMock()), \
+             patch("routes.ws.handle_first_message_title", new=AsyncMock()), \
+             patch("routes.ws.image_repo.add_generated_image", new=AsyncMock()), \
+             patch("routes.ws.user_repo.increment_n_generated_images",
+                   new=AsyncMock()) as mock_incr, \
              patch("routes.ws.settings") as mock_settings:
             mock_settings.imgbb_api_key = "fake_key"
             await ws_mod._handle_image(ws, uid, frame)
@@ -560,6 +564,7 @@ class TestHandleImage:
         assert done["url"] == img_url
         assert done["size_kb"] == 120.5
         assert uid not in ws_mod._USER_GENERATING
+        mock_incr.assert_awaited_once_with(session, uid, 1)
 
 
 # ── _message_loop ─────────────────────────────────────────────────────────────

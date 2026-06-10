@@ -84,6 +84,7 @@ tr:
     text_improver_name: "🙈📝 Copywriter Monkey"
     text_improver_welcome: "📝 Merhaba, ben <b>metin yazarlığı becerilerine sahip bir Monkey</b>'yim. Bana herhangi bir metin gönder — geliştiririm ve tüm hataları düzeltirim."
     error_message: "Bir hata oluştu: {}"
+    error_response: "Bağlantı kesildi. Lütfen tekrar dene."
 
     # Model descriptions (models.yml)
     model_description_gpt_5_mini: "GPT-5 mini, hassas ve mantıklı çözümler için tasarlanmış <b>yüksek hızlı</b> ve <b>uygun maliyetli</b> bir modeldir. Analitik görevler için mükemmeldir. Daha çok yönlü bir şeye ihtiyacın varsa <b>GPT-4 Omni</b>'yi denemeyi düşün."

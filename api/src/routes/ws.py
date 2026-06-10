@@ -510,6 +510,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
                 await image_repo.add_generated_image(
                     session, user_id, resolved_dialog_id, img_url, message
                 )
+                await user_repo.increment_n_generated_images(session, user_id, 1)
         except Exception:
             logger.exception("Failed to persist image for user %d", user_id)
 

@@ -84,6 +84,7 @@ en:
     text_improver_name: "🙈📝 Copywriter Monkey"
     text_improver_welcome: "📝 Hello, I'm a <b>Monkey with copywriting skills</b>. Send me any text - I'll improve it and fix all errors."
     error_message: "An error occurred: {}"
+    error_response: "The connection was interrupted. Please try again."
 
     # Model descriptions (models.yml)
     model_description_gpt_5_mini: "GPT-5 mini is a <b>high-speed</b> and <b>cost-effective</b> model designed for precise and logical solutions. Perfect for analytical tasks. If you need something more versatile, consider trying <b>GPT-4 Omni</b>."
