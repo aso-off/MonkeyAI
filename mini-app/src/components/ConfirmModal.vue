@@ -8,8 +8,8 @@
             <div class="cm-text">{{ text }}</div>
           </div>
           <div class="cm-actions">
-            <button v-ripple class="cm-btn" @click="$emit('cancel')">{{ $t('cancel') }}</button>
-            <button v-ripple class="cm-btn cm-btn--danger" @click="$emit('confirm')">{{ confirmText }}</button>
+            <button class="cm-btn" @click="$emit('cancel')">{{ $t('cancel') }}</button>
+            <button class="cm-btn cm-btn--danger" @click="$emit('confirm')">{{ confirmText }}</button>
           </div>
         </div>
       </div>
@@ -57,21 +57,18 @@ defineEmits<{ cancel: []; confirm: [] }>();
 }
 .cm-actions {
   display: flex;
-  gap: 10px;
-  padding: 0 16px 16px;
+  gap: 8px;
+  padding: 4px 12px 14px;
 }
 .cm-btn {
   flex: 1;
-  padding: 13px 8px;
+  padding: 12px 8px;
   border: none;
   outline: none;
-  border-radius: 12px;
+  background: transparent;
   font-size: 16px;
   font-weight: 500;
   color: var(--text-color);
-  background: var(--backgorund-color);
-  position: relative;
-  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 .cm-btn--danger {

@@ -6,6 +6,7 @@
   "no_chats": "Aún no hay chats",
   "rename": "Renombrar",
   "delete_dialog": "¿Eliminar chat?",
+  "delete_chat": "Eliminar chat",
   "delete_dialog_confirm": "Este chat se eliminará. Esta acción no se puede deshacer.",
   "delete": "Eliminar",
   "cancel": "Cancelar",
