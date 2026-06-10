@@ -6,6 +6,7 @@
   "no_chats": "Aucune discussion",
   "rename": "Renommer",
   "delete_dialog": "Supprimer la discussion ?",
+  "delete_chat": "Supprimer la discussion",
   "delete_dialog_confirm": "Cette discussion sera supprimée. Cette action est irréversible.",
   "delete": "Supprimer",
   "cancel": "Annuler",

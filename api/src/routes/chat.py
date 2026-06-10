@@ -14,7 +14,6 @@ from db.repositories import users as user_repo
 from schemas.chat import ChatCompleteRequest, ChatCompleteResponse
 from services.moderation import moderate_content
 from services.openai import ChatGPT
-from services.title import handle_first_message_title
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -47,7 +46,6 @@ async def _persist_chat_result(
     await dialog_repo.append_dialog_message(session, req.user_id, new_msg, dialog_id)
     await dialog_repo.update_n_used_tokens(session, req.user_id, req.model, n_input, n_output)
     await user_repo.update_last_interaction(session, req.user_id)
-    await handle_first_message_title(session, dialog_id, req.message)
 
 
 async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):

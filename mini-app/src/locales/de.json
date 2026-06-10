@@ -6,6 +6,7 @@
   "no_chats": "Noch keine Chats",
   "rename": "Umbenennen",
   "delete_dialog": "Chat löschen?",
+  "delete_chat": "Chat löschen",
   "delete_dialog_confirm": "Dieser Chat wird gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
   "delete": "Löschen",
   "cancel": "Abbrechen",
