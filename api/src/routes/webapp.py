@@ -486,6 +486,7 @@ async def list_dialogs(
 async def search_dialogs(
     q: str,
     limit: int = 50,
+    include_untitled: bool = False,
     init_data: dict = Depends(verify_webapp_init_data),
     session: AsyncSession = Depends(get_session),
 ) -> _DialogListResponse:
@@ -493,7 +494,9 @@ async def search_dialogs(
     query = q.strip()
     if not query:
         return _DialogListResponse(dialogs=[])
-    rows = await dialog_repo.search_dialogs(session, user_id, query, max(1, min(limit, 50)))
+    rows = await dialog_repo.search_dialogs(
+        session, user_id, query, max(1, min(limit, 50)), include_untitled
+    )
     return _DialogListResponse(dialogs=[_to_list_item(d) for d in rows])
 
 
@@ -623,6 +626,7 @@ async def chat_complete(
             await image_repo.add_generated_image(
                 session, user_id, dialog_id, image_url, body.message
             )
+            await user_repo.increment_n_generated_images(session, user_id, 1)
         except Exception:
             logger.exception("Failed to persist image result for user %d", user_id)
         return WebAppChatResponse(answer=image_url)

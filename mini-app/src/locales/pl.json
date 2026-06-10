@@ -1,5 +1,16 @@
 {
   "new_chat": "Nowy czat",
+  "images": "Obrazy",
+  "recents": "Ostatnie czaty",
+  "search": "Szukaj",
+  "no_chats": "Brak czatów",
+  "rename": "Zmień nazwę",
+  "delete_dialog": "Usunąć czat?",
+  "delete_dialog_confirm": "Ten czat zostanie usunięty. Tej operacji nie można cofnąć.",
+  "delete": "Usuń",
+  "cancel": "Anuluj",
+  "no_images": "Brak obrazów",
+  "save": "Zapisz",
   "settings": "Ustawienia",
   "empty_chat": "Jak mogę ci pomóc?",
   "describe_image": "Opisz obraz, który chcesz stworzyć",
@@ -88,9 +99,18 @@
           "intro": "Podczas korzystania z Monkey AI możemy zbierać następujące dane:",
           "body": "",
           "items": [
-            { "b": "Dane konta Telegram:", "t": " Twój identyfikator, nazwę użytkownika, imię i nazwisko oraz język." },
-            { "b": "Przekazywane treści:", "t": " wiadomości, zapytania, obrazy i pliki audio wysyłane do asystenta." },
-            { "b": "Dane o korzystaniu:", "t": " wybrany model, ustawienia oraz podstawowe statystyki aktywności." }
+            {
+              "b": "Dane konta Telegram:",
+              "t": " Twój identyfikator, nazwę użytkownika, imię i nazwisko oraz język."
+            },
+            {
+              "b": "Przekazywane treści:",
+              "t": " wiadomości, zapytania, obrazy i pliki audio wysyłane do asystenta."
+            },
+            {
+              "b": "Dane o korzystaniu:",
+              "t": " wybrany model, ustawienia oraz podstawowe statystyki aktywności."
+            }
           ]
         },
         {
@@ -98,10 +118,22 @@
           "intro": "Wykorzystujemy zebrane informacje, aby:",
           "body": "",
           "items": [
-            { "b": "", "t": "udostępniać i obsługiwać asystenta AI, w tym czat, generowanie obrazów i transkrypcję;" },
-            { "b": "", "t": "przechowywać historię Twoich rozmów między sesjami;" },
-            { "b": "", "t": "zapewniać bezpieczeństwo i zapobiegać nadużyciom serwisu;" },
-            { "b": "", "t": "odpowiadać na Twoje zapytania i zapewniać wsparcie." }
+            {
+              "b": "",
+              "t": "udostępniać i obsługiwać asystenta AI, w tym czat, generowanie obrazów i transkrypcję;"
+            },
+            {
+              "b": "",
+              "t": "przechowywać historię Twoich rozmów między sesjami;"
+            },
+            {
+              "b": "",
+              "t": "zapewniać bezpieczeństwo i zapobiegać nadużyciom serwisu;"
+            },
+            {
+              "b": "",
+              "t": "odpowiadać na Twoje zapytania i zapewniać wsparcie."
+            }
           ]
         },
         {
@@ -156,9 +188,18 @@
           "intro": "Korzystając z Serwisu, zobowiązujesz się nie:",
           "body": "",
           "items": [
-            { "b": "", "t": "wykorzystywać go do treści niezgodnych z prawem, szkodliwych lub zabronionych;" },
-            { "b": "", "t": "nadużywać Serwisu, zakłócać jego działania ani go przeciążać;" },
-            { "b": "", "t": "próbować uzyskać nieautoryzowany dostęp lub wykorzystywać Serwis." }
+            {
+              "b": "",
+              "t": "wykorzystywać go do treści niezgodnych z prawem, szkodliwych lub zabronionych;"
+            },
+            {
+              "b": "",
+              "t": "nadużywać Serwisu, zakłócać jego działania ani go przeciążać;"
+            },
+            {
+              "b": "",
+              "t": "próbować uzyskać nieautoryzowany dostęp lub wykorzystywać Serwis."
+            }
           ]
         },
         {

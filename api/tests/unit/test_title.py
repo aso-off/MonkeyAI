@@ -56,7 +56,7 @@ async def test_summarize_title_clamps_and_strips(monkeypatch) -> None:
     resp.choices[0].message.content = '"Очень длинный заголовок который точно больше сорока символов ага"'
     client = MagicMock()
     client.chat.completions.create = AsyncMock(return_value=resp)
-    monkeypatch.setattr("services.openai.make_client", lambda: client)
+    monkeypatch.setattr(title, "_title_client", lambda: client)
 
     out = await title.summarize_title("длинный текст пользователя")
     assert len(out) <= 40

@@ -1,5 +1,16 @@
 {
   "new_chat": "Yeni sohbet",
+  "images": "Görseller",
+  "recents": "Son sohbetler",
+  "search": "Ara",
+  "no_chats": "Henüz sohbet yok",
+  "rename": "Yeniden adlandır",
+  "delete_dialog": "Sohbet silinsin mi?",
+  "delete_dialog_confirm": "Bu sohbet silinecek. Bu işlem geri alınamaz.",
+  "delete": "Sil",
+  "cancel": "İptal",
+  "no_images": "Henüz görsel yok",
+  "save": "Kaydet",
   "settings": "Ayarlar",
   "empty_chat": "Sana nasıl yardımcı olabilirim?",
   "describe_image": "Oluşturmak istediğin görüntüyü tanımla",
@@ -88,9 +99,18 @@
           "intro": "Monkey AI'ı kullandığınızda aşağıdaki verileri toplayabiliriz:",
           "body": "",
           "items": [
-            { "b": "Telegram hesap verileri:", "t": " kullanıcı kimliğiniz, kullanıcı adınız, adınız ve soyadınız ve diliniz." },
-            { "b": "Sağladığınız içerik:", "t": " asistana gönderdiğiniz mesajlar, istekler, görseller ve ses dosyaları." },
-            { "b": "Kullanım verileri:", "t": " seçtiğiniz model, tercihleriniz ve temel etkinlik istatistikleri." }
+            {
+              "b": "Telegram hesap verileri:",
+              "t": " kullanıcı kimliğiniz, kullanıcı adınız, adınız ve soyadınız ve diliniz."
+            },
+            {
+              "b": "Sağladığınız içerik:",
+              "t": " asistana gönderdiğiniz mesajlar, istekler, görseller ve ses dosyaları."
+            },
+            {
+              "b": "Kullanım verileri:",
+              "t": " seçtiğiniz model, tercihleriniz ve temel etkinlik istatistikleri."
+            }
           ]
         },
         {
@@ -98,10 +118,22 @@
           "intro": "Topladığımız bilgileri şu amaçlarla kullanırız:",
           "body": "",
           "items": [
-            { "b": "", "t": "sohbet, görsel oluşturma ve transkripsiyon dahil olmak üzere yapay zekâ asistanını sağlamak ve çalıştırmak;" },
-            { "b": "", "t": "oturumlar arasında sohbet geçmişinizi saklamak;" },
-            { "b": "", "t": "güvenliği sağlamak ve hizmetin kötüye kullanımını önlemek;" },
-            { "b": "", "t": "isteklerinize yanıt vermek ve destek sunmak." }
+            {
+              "b": "",
+              "t": "sohbet, görsel oluşturma ve transkripsiyon dahil olmak üzere yapay zekâ asistanını sağlamak ve çalıştırmak;"
+            },
+            {
+              "b": "",
+              "t": "oturumlar arasında sohbet geçmişinizi saklamak;"
+            },
+            {
+              "b": "",
+              "t": "güvenliği sağlamak ve hizmetin kötüye kullanımını önlemek;"
+            },
+            {
+              "b": "",
+              "t": "isteklerinize yanıt vermek ve destek sunmak."
+            }
           ]
         },
         {
@@ -156,9 +188,18 @@
           "intro": "Hizmeti kullanırken şunları yapmamayı kabul edersiniz:",
           "body": "",
           "items": [
-            { "b": "", "t": "yasa dışı, zararlı veya yasaklı içerik için kullanmak;" },
-            { "b": "", "t": "Hizmeti kötüye kullanmak, aksatmak veya aşırı yüklemek;" },
-            { "b": "", "t": "yetkisiz erişim elde etmeye veya Hizmeti istismar etmeye çalışmak." }
+            {
+              "b": "",
+              "t": "yasa dışı, zararlı veya yasaklı içerik için kullanmak;"
+            },
+            {
+              "b": "",
+              "t": "Hizmeti kötüye kullanmak, aksatmak veya aşırı yüklemek;"
+            },
+            {
+              "b": "",
+              "t": "yetkisiz erişim elde etmeye veya Hizmeti istismar etmeye çalışmak."
+            }
           ]
         },
         {

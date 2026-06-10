@@ -60,7 +60,9 @@ async function apiFetch<T>(
         }
         throw new Error(detail);
       }
-      return (await response.json()) as T;
+      if (response.status === 204) return undefined as T;
+      const text = await response.text();
+      return (text ? JSON.parse(text) : undefined) as T;
     } catch (e) {
       lastError = e;
       const msg = e instanceof Error ? e.message : String(e);
@@ -239,9 +241,10 @@ export const api = {
     return apiFetch(`/webapp/dialogs?${params}`, {}, 15_000, 1);
   },
 
-  /** Search dialogs by title. */
-  searchDialogs(q: string, limit = 50): Promise<DialogListResult> {
+  /** Search dialogs by title. `includeUntitled` also matches default-named (NULL-title) chats. */
+  searchDialogs(q: string, limit = 50, includeUntitled = false): Promise<DialogListResult> {
     const params = new URLSearchParams({ q, limit: String(limit) });
+    if (includeUntitled) params.set('include_untitled', '1');
     return apiFetch(`/webapp/dialogs/search?${params}`, {}, 15_000, 1);
   },
 

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.user import Dialog, User, UserStatistics
@@ -334,14 +334,21 @@ async def list_dialogs(
 
 
 async def search_dialogs(
-    session: AsyncSession, user_id: int, query: str, limit: int = 50
+    session: AsyncSession,
+    user_id: int,
+    query: str,
+    limit: int = 50,
+    include_untitled: bool = False,
 ) -> list[Dialog]:
+    match = Dialog.title.ilike(f"%{query}%")
+    # «Новый чат» — безымянные диалоги (title IS NULL)
+    cond = or_(match, Dialog.title.is_(None)) if include_untitled else match
     q = (
         select(Dialog)
         .where(
             Dialog.user_id == user_id,
             Dialog.chat_mode.like(_MINI_APP_PREFIX),
-            Dialog.title.ilike(f"%{query}%"),
+            cond,
         )
         .order_by(Dialog.last_activity.desc())
         .limit(limit)

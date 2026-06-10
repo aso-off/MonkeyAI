@@ -335,6 +335,11 @@ async def _handle_text_or_vision(
             await message.answer(t("content_moderation_failed", language), parse_mode="HTML")
             return
 
+        if not answer.strip():
+            await monkey.send(bot, message.chat.id, "error")
+            await message.answer(t("error_response", language), parse_mode="HTML")
+            return
+
         answer = answer[: settings.message_max_length]
         final_raw = answer.strip()
         if parse_mode == "MarkdownV2":

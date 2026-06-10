@@ -46,6 +46,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { miniApp, initData } from '@tma.js/sdk-vue';
 import { useUserStore } from '@/store/user';
+import { useDialogsStore } from '@/store/dialogs';
 import lottie, { type AnimationItem } from 'lottie-web';
 
 defineOptions({ name: 'AppLoading' });
@@ -54,6 +55,7 @@ const emit = defineEmits<{ done: [] }>();
 
 const { t, tm, locale } = useI18n();
 const store = useUserStore();
+const dialogs = useDialogsStore();
 
 const progress = ref(0);
 const stepText = ref('');
@@ -187,7 +189,10 @@ async function runLoading(): Promise<void> {
     // init() swallows its own errors — check explicitly so we retry if getMe failed.
     if (!store.user) throw new Error('user not loaded');
     if (store.user.is_whitelisted) {
-      await store.prefetchChatHistory();
+      await Promise.all([
+        store.prefetchChatHistory(),
+        dialogs.loadInitial().catch(() => {}),
+      ]);
     }
   } catch {
     // API failed — retry up to 3 times with 3 s delay, then show error.
