@@ -68,7 +68,7 @@ defineEmits<{ close: []; rename: []; delete: [] }>();
   outline: none;
   font-size: 16px;
   color: var(--text-color);
-  background: transparent;
+  background: var(--second-bg-color);
   position: relative;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;

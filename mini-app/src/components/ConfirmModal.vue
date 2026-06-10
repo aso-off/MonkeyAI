@@ -27,7 +27,7 @@ defineEmits<{ cancel: []; confirm: [] }>();
   position: fixed;
   inset: 0;
   z-index: 1001;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.32);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,23 +57,22 @@ defineEmits<{ cancel: []; confirm: [] }>();
 }
 .cm-actions {
   display: flex;
-  border-top: 2px solid var(--backgorund-color);
+  gap: 10px;
+  padding: 0 16px 16px;
 }
 .cm-btn {
   flex: 1;
-  padding: 14px 8px;
+  padding: 13px 8px;
   border: none;
   outline: none;
+  border-radius: 12px;
   font-size: 16px;
   font-weight: 500;
   color: var(--text-color);
-  background: transparent;
+  background: var(--backgorund-color);
   position: relative;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-}
-.cm-btn + .cm-btn {
-  border-left: 2px solid var(--backgorund-color);
 }
 .cm-btn--danger {
   color: #fa2e52;

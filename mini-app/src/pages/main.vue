@@ -14,7 +14,7 @@
         <!-- Кнопка Изображения (карточка как в настройках) -->
         <div class="home__card">
           <div v-ripple class="home__row interactive" @click="router.push('/images')">
-            <img class="home__row-icon icon-strong" :src="imageSvg" alt="" draggable="false" />
+            <img class="home__row-icon icon-muted" :src="imageSvg" alt="" draggable="false" />
             <span class="home__row-text">{{ $t('images') }}</span>
           </div>
         </div>
@@ -56,7 +56,7 @@
                 <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
                 <div class="rec-date">{{ formatDate(d.start_time) }}</div>
               </div>
-              <span v-ripple class="rec-menu" @click.stop="onMenu(d.dialog_id)">
+              <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(d.dialog_id)">
                 <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
               </span>
             </div>
@@ -331,7 +331,7 @@ onMounted(() => {
 .home__avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: 13px;
   background-color: #2e7d6b;
   color: #fff;
   display: flex;
@@ -494,12 +494,15 @@ body.dark .icon-strong {
 /* Футер */
 .home__bar {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(env(safe-area-inset-bottom) + 10px);
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 10px 14px calc(env(safe-area-inset-bottom) + 12px);
+  box-sizing: border-box;
+  background: var(--backgorund-color);
 }
 .home__search {
   display: flex;
@@ -511,7 +514,7 @@ body.dark .icon-strong {
   padding: 0 14px;
   box-sizing: border-box;
   border-radius: 24px;
-  background-color: var(--second-bg-color);
+  background-color: var(--third-bg-color);
 }
 .home__search-icon {
   width: 20px;
@@ -546,7 +549,7 @@ body.dark .icon-strong {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: var(--second-bg-color);
+  background-color: var(--third-bg-color);
   display: flex;
   align-items: center;
   justify-content: center;
