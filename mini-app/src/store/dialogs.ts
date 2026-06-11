@@ -5,6 +5,8 @@ export const useDialogsStore = defineStore('dialogs', {
   state: () => ({
     list: [] as DialogListItem[],
     pinned: [] as DialogListItem[],
+    searchResults: [] as DialogListItem[],
+    searching: false,
     nextBefore: null as string | null,
     hasMore: false,
     loading: false,
@@ -39,9 +41,25 @@ export const useDialogsStore = defineStore('dialogs', {
       }
     },
 
+    /** Поиск держим отдельно, чтобы при стирании recents показывались мгновенно. */
+    async runSearch(q: string, includeUntitled: boolean) {
+      this.searching = true
+      try {
+        const r = await api.searchDialogs(q, 50, includeUntitled)
+        this.searchResults = r.dialogs
+      } finally {
+        this.searching = false
+      }
+    },
+
+    clearSearch() {
+      this.searchResults = []
+      this.searching = false
+    },
+
     async rename(dialogId: string, title: string) {
       await api.renameDialog(dialogId, title)
-      for (const arr of [this.list, this.pinned]) {
+      for (const arr of [this.list, this.pinned, this.searchResults]) {
         const d = arr.find((x) => x.dialog_id === dialogId)
         if (d) d.title = title
       }
@@ -51,6 +69,7 @@ export const useDialogsStore = defineStore('dialogs', {
       await api.deleteDialog(dialogId)
       this.list = this.list.filter((x) => x.dialog_id !== dialogId)
       this.pinned = this.pinned.filter((x) => x.dialog_id !== dialogId)
+      this.searchResults = this.searchResults.filter((x) => x.dialog_id !== dialogId)
     },
 
     async pin(dialogId: string) {

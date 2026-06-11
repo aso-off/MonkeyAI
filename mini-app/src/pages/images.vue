@@ -215,10 +215,11 @@ onMounted(() => {
 }
 .img-gallery-title {
   text-align: center;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-color);
-  padding: 4px 0 14px;
+  padding: 0 0 20px;
+  margin-top: -8px;
 }
 .img-grid {
   display: grid;
