@@ -10,10 +10,19 @@ _TITLE_LIMIT = 40
 # ссылки на фоновые задачи — иначе GC может убить их до завершения
 _bg_tasks: set = set()
 _TITLE_PROMPT = (
-    "Придумай короткий заголовок чата по первому сообщению пользователя. "
-    "2–5 слов, на языке сообщения, отражает основную тему или намерение запроса. "
-    "Без кавычек, без точки в конце, без markdown и эмодзи. "
-    "Не выдумывай факты и не расшифровывай сокращения. "
+    "Сформулируй короткий заголовок диалога по первому сообщению пользователя "
+    "и ответу ассистента (если он дан). "
+    "2–4 слова, именная фраза на языке пользователя. "
+    "Заголовок описывает тему, а не повторяет формулировку запроса: "
+    "без глаголов в повелительном наклонении. "
+    "Если сообщение короткое или неинформативное — определи тему по ответу ассистента. "
+    "Без кавычек, точки в конце, markdown и эмодзи. "
+    "Не выдумывай факты и не расшифровывай сокращения.\n"
+    "Примеры:\n"
+    "«напиши сказку про дракона» → Сказка про дракона\n"
+    "«помоги составить резюме» → Помощь с резюме\n"
+    "«what is the difference between tcp and udp» → TCP и UDP\n"
+    "«привет» → Приветствие\n"
     "В ответе только заголовок."
 )
 
@@ -51,13 +60,16 @@ def _title_client():
     return _title_openai_client
 
 
-async def summarize_title(text: str) -> str:
+async def summarize_title(text: str, reply: str | None = None) -> str:
+    content = (text or "")[:600]
+    if reply:
+        content = f"Сообщение пользователя: {content}\nОтвет ассистента: {reply[:800]}"
     client = _title_client()
     r = await client.chat.completions.create(
         model=_TITLE_MODEL,
         messages=[
             {"role": "system", "content": _TITLE_PROMPT},
-            {"role": "user", "content": (text or "")[:1000]},
+            {"role": "user", "content": content},
         ],
     )
     raw = (r.choices[0].message.content or "").strip().strip('"').strip()
@@ -67,13 +79,14 @@ async def summarize_title(text: str) -> str:
 async def _refine_title(
     dialog_id: str,
     text: str,
+    reply: str | None,
     on_refined: Callable[[str], Awaitable[None]] | None,
 ) -> None:
     from db.db import Session
     from db.repositories.dialogs import update_dialog_title
 
     try:
-        title = await summarize_title(text)
+        title = await summarize_title(text, reply)
         if not title:
             return
         async with Session() as session:
@@ -88,6 +101,7 @@ async def handle_first_message_title(
     session,
     dialog_id: str,
     text: str,
+    reply: str | None = None,
     on_refined: Callable[[str], Awaitable[None]] | None = None,
 ) -> None:
     """Set instant title on first message, then schedule nano refinement in background."""
@@ -96,9 +110,6 @@ async def handle_first_message_title(
     initial = await set_initial_title(session, dialog_id, text)
     if initial is None:
         return
-    # слишком короткое сообщение — nano выдумывает; оставляем как есть
-    if len((text or "").strip()) < 5:
-        return
-    task = asyncio.create_task(_refine_title(dialog_id, text, on_refined))
+    task = asyncio.create_task(_refine_title(dialog_id, text, reply, on_refined))
     _bg_tasks.add(task)
     task.add_done_callback(_bg_tasks.discard)

@@ -167,7 +167,7 @@ async def test_refine_title_updates_and_broadcasts(monkeypatch) -> None:
     monkeypatch.setattr("db.db.Session", lambda: _FakeSessionCM())
     on_ref = AsyncMock()
 
-    await title._refine_title("did", "текст", on_ref)
+    await title._refine_title("did", "текст", "ответ", on_ref)
     upd.assert_awaited_once()
     on_ref.assert_awaited_once_with("Готовый заголовок")
 
@@ -179,7 +179,7 @@ async def test_refine_title_skips_when_empty(monkeypatch) -> None:
     upd = AsyncMock()
     monkeypatch.setattr("db.repositories.dialogs.update_dialog_title", upd)
 
-    await title._refine_title("did", "текст", None)
+    await title._refine_title("did", "текст", None, None)
     upd.assert_not_awaited()
 
 
@@ -187,4 +187,4 @@ async def test_refine_title_skips_when_empty(monkeypatch) -> None:
 async def test_refine_title_swallows_errors(monkeypatch) -> None:
     from services import title
     monkeypatch.setattr(title, "summarize_title", AsyncMock(side_effect=RuntimeError("boom")))
-    await title._refine_title("did", "текст", None)  # не должно бросить
+    await title._refine_title("did", "текст", None, None)  # не должно бросить
