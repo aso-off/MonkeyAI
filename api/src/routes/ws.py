@@ -81,13 +81,13 @@ router = APIRouter(prefix="/webapp")
 # user_id → set of active WebSocket connections (one per device).
 _WS_POOL: dict[int, set[WebSocket]] = defaultdict(set)
 
-# user_id → req_id of the active generation.
-# Only one generation per user allowed at a time — all devices see the stream.
-_USER_GENERATING: dict[int, str] = {}
+# (user_id, dialog_id) → req_id of the active generation.
+# Блокировка на диалог: разные чаты можно генерировать одновременно, один — нет.
+_USER_GENERATING: dict[tuple[int, str | None], str] = {}
 
-# user_id → original user message text for the active generation.
+# (user_id, dialog_id) → original user message text for the active generation.
 # Sent in connection_ack so late-joining devices can display the user message.
-_USER_GENERATING_TEXT: dict[int, str] = {}
+_USER_GENERATING_TEXT: dict[tuple[int, str | None], str] = {}
 
 # Strong references prevent asyncio from GC-collecting running tasks.
 _BG_TASKS: set[asyncio.Task] = set()
@@ -302,8 +302,9 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "empty message"})
         return
 
-    # Guard: one generation per user at a time.
-    if user_id in _USER_GENERATING:
+    # Guard: одна генерация на диалог (разные диалоги — параллельно).
+    gen_key = (user_id, dialog_id)
+    if gen_key in _USER_GENERATING:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "already generating"})
         return
 
@@ -316,8 +317,8 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
     }, exclude=ws)
 
     # 2. Mark generation as active and notify ALL devices (incl. sender).
-    _USER_GENERATING[user_id] = req_id
-    _USER_GENERATING_TEXT[user_id] = message
+    _USER_GENERATING[gen_key] = req_id
+    _USER_GENERATING_TEXT[gen_key] = message
     await _broadcast(user_id, {"type": "generation_start", "id": req_id})
 
     try:
@@ -395,8 +396,8 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         })
 
     finally:
-        _USER_GENERATING.pop(user_id, None)
-        _USER_GENERATING_TEXT.pop(user_id, None)
+        _USER_GENERATING.pop(gen_key, None)
+        _USER_GENERATING_TEXT.pop(gen_key, None)
 
 
 # ---------------------------------------------------------------------------
@@ -412,8 +413,9 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         await _send(ws, {"type": "image_error", "id": req_id, "error": "empty prompt"})
         return
 
-    # Guard: one generation per user at a time.
-    if user_id in _USER_GENERATING:
+    # Guard: одна генерация на диалог (разные диалоги — параллельно).
+    gen_key = (user_id, dialog_id)
+    if gen_key in _USER_GENERATING:
         await _send(ws, {"type": "image_error", "id": req_id, "error": "already generating"})
         return
 
@@ -426,8 +428,8 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
     }, exclude=ws)
 
     # 2. Mark as generating and notify ALL devices.
-    _USER_GENERATING[user_id] = req_id
-    _USER_GENERATING_TEXT[user_id] = message
+    _USER_GENERATING[gen_key] = req_id
+    _USER_GENERATING_TEXT[gen_key] = message
     await _broadcast(user_id, {"type": "generation_start", "id": req_id})
 
     try:
@@ -525,8 +527,8 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         })
 
     finally:
-        _USER_GENERATING.pop(user_id, None)
-        _USER_GENERATING_TEXT.pop(user_id, None)
+        _USER_GENERATING.pop(gen_key, None)
+        _USER_GENERATING_TEXT.pop(gen_key, None)
 
 
 # ---------------------------------------------------------------------------
@@ -582,16 +584,18 @@ async def websocket_endpoint(ws: WebSocket) -> None:
         await _send(ws, {"type": "auth_ok", "user_id": user_id})
 
         # Let the newly connected device know if a generation is already running.
+        _user_gen_keys = [k for k in _USER_GENERATING if k[0] == user_id]
+        _first_key = _user_gen_keys[0] if _user_gen_keys else None
         await _send(ws, {
             "type": "connection_ack",
-            "is_generating": user_id in _USER_GENERATING,
-            "generating_id": _USER_GENERATING.get(user_id),
-            "generating_text": _USER_GENERATING_TEXT.get(user_id),
+            "is_generating": bool(_user_gen_keys),
+            "generating_id": _USER_GENERATING.get(_first_key) if _first_key else None,
+            "generating_text": _USER_GENERATING_TEXT.get(_first_key) if _first_key else None,
         })
 
         logger.info(
             "WS connected: user_id=%d  devices=%d  is_generating=%s",
-            user_id, len(_WS_POOL[user_id]), user_id in _USER_GENERATING,
+            user_id, len(_WS_POOL[user_id]), bool(_user_gen_keys),
         )
 
         # Run heartbeat and message-loop concurrently.

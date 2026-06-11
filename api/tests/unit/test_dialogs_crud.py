@@ -21,6 +21,22 @@ def _scalars(values: list) -> MagicMock:
     return r
 
 
+def _rows(values: list) -> MagicMock:
+    r = MagicMock()
+    r.all.return_value = values
+    return r
+
+
+def _fake_row(title) -> MagicMock:
+    d = MagicMock()
+    d.id = str(uuid.uuid4())
+    d.title = title
+    d.last_activity = datetime.now(timezone.utc)
+    d.start_time = datetime.now(timezone.utc)
+    d.pinned_at = None
+    return d
+
+
 def _rowcount(n: int) -> MagicMock:
     r = MagicMock()
     r.rowcount = n
@@ -59,18 +75,29 @@ async def test_list_dialogs_with_cursor() -> None:
 async def test_search_dialogs_returns_rows() -> None:
     from db.repositories.dialogs import search_dialogs
     session = _make_session()
-    session.execute.return_value = _scalars([_fake_dialog()])
-    rows = await search_dialogs(session, 123, "doc", 50)
+    session.execute.return_value = _rows([_fake_row("Docker"), _fake_row("прочее")])
+    rows = await search_dialogs(session, 123, "doc", 50)  # регистр игнорируется
     assert len(rows) == 1
+
+
+@pytest.mark.asyncio
+async def test_search_dialogs_case_insensitive_cyrillic() -> None:
+    from db.repositories.dialogs import search_dialogs
+    session = _make_session()
+    session.execute.return_value = _rows([_fake_row("Мультяшка"), _fake_row("Docker")])
+    rows = await search_dialogs(session, 123, "мульт", 50)
+    assert len(rows) == 1
+    assert rows[0].title == "Мультяшка"
 
 
 @pytest.mark.asyncio
 async def test_search_dialogs_include_untitled_branch() -> None:
     from db.repositories.dialogs import search_dialogs
     session = _make_session()
-    session.execute.return_value = _scalars([_fake_dialog(), _fake_dialog()])
+    session.execute.return_value = _rows([_fake_row(None), _fake_row("прочее")])
     rows = await search_dialogs(session, 123, "Новый чат", 50, include_untitled=True)
-    assert len(rows) == 2
+    assert len(rows) == 1
+    assert rows[0].title is None
 
 
 @pytest.mark.asyncio

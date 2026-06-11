@@ -447,6 +447,8 @@ import {
   dialogMessagesToChat,
   type ChatMessage,
 } from "@/store/user";
+import { useDialogsStore } from "@/store/dialogs";
+import { useImagesStore } from "@/store/images";
 import ChatLoader from "@/components/ChatLoader.vue";
 
 defineOptions({ name: "ChatPage" });
@@ -472,6 +474,8 @@ const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const store = useUserStore();
+const dialogsStore = useDialogsStore();
+const imagesStore = useImagesStore();
 
 const copiedIndex = ref<number | null>(null);
 const reactionMap = reactive(new Map<number, "like" | "dislike">());
@@ -1020,6 +1024,8 @@ async function sendMessage() {
   chatMessages.value.push({ text, type: "user" });
   messageText.value = "";
   if (editableDiv.value) editableDiv.value.innerText = "";
+  // живое обновление времени диалога в списке (поднимается в «Сегодня»)
+  if (genDialogId) dialogsStore.touch(genDialogId);
 
   await nextTick();
   scrollToBottom();
@@ -1059,6 +1065,16 @@ async function sendMessage() {
           text: "",
           mid: result.mid,
         };
+      }
+      // в галерею сразу, без перезагрузки
+      if (result.url) {
+        imagesStore.prepend({
+          id: Date.now(),
+          url: result.url,
+          prompt: text,
+          dialog_id: result.dialog_id ?? genDialogId ?? "",
+          created_at: new Date().toISOString(),
+        });
       }
     } else {
       // Text chat via WebSocket token stream.
