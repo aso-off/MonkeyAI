@@ -48,7 +48,7 @@
                     @blur="commitRename"
                   />
                   <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
-                  <div class="rec-date">{{ formatDate(d.start_time) }}</div>
+                  <div class="rec-date">{{ formatDate(d.last_activity) }}</div>
                 </div>
                 <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(d.dialog_id)">
                   <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
@@ -59,9 +59,8 @@
         </template>
 
         <!-- Recents -->
-        <div class="home__section-title">{{ $t('recents') }}</div>
-
         <template v-if="dialogs.loading && dialogs.list.length === 0">
+          <div class="home__section-title">{{ $t('recents') }}</div>
           <div class="home__card">
             <div v-for="n in skeletonCount" :key="n" class="rec-skeleton-row">
               <div class="rec-skeleton-line"></div>
@@ -74,38 +73,43 @@
           {{ searchQuery.trim() ? $t('no_search_results') : $t('no_chats') }}
         </div>
 
-        <div v-else class="home__card">
-          <TransitionGroup name="rec" tag="div" class="home__list">
-            <div
-              v-for="d in dialogs.list"
-              :key="d.dialog_id"
-              v-ripple
-              class="rec-row interactive"
-              @click="onRowClick(d.dialog_id)"
-              @touchstart.passive="onPressStart(d.dialog_id)"
-              @touchend="onPressEnd"
-              @touchmove.passive="onPressEnd"
-            >
-              <div class="rec-main">
-                <input
-                  v-if="editingId === d.dialog_id"
-                  v-model="editingTitle"
-                  class="rec-edit"
-                  enterkeyhint="done"
-                  maxlength="40"
-                  @click.stop
-                  @keyup.enter="commitRename"
-                  @blur="commitRename"
-                />
-                <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
-                <div class="rec-date">{{ formatDate(d.start_time) }}</div>
-              </div>
-              <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(d.dialog_id)">
-                <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
-              </span>
+        <template v-else>
+          <template v-for="g in recentSections" :key="g.key">
+            <div v-if="g.label" class="home__section-title">{{ g.label }}</div>
+            <div class="home__card">
+              <TransitionGroup name="rec" tag="div" class="home__list">
+                <div
+                  v-for="d in g.items"
+                  :key="d.dialog_id"
+                  v-ripple
+                  class="rec-row interactive"
+                  @click="onRowClick(d.dialog_id)"
+                  @touchstart.passive="onPressStart(d.dialog_id)"
+                  @touchend="onPressEnd"
+                  @touchmove.passive="onPressEnd"
+                >
+                  <div class="rec-main">
+                    <input
+                      v-if="editingId === d.dialog_id"
+                      v-model="editingTitle"
+                      class="rec-edit"
+                      enterkeyhint="done"
+                      maxlength="40"
+                      @click.stop
+                      @keyup.enter="commitRename"
+                      @blur="commitRename"
+                    />
+                    <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
+                    <div class="rec-date">{{ formatDate(d.last_activity) }}</div>
+                  </div>
+                  <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(d.dialog_id)">
+                    <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
+                  </span>
+                </div>
+              </TransitionGroup>
             </div>
-          </TransitionGroup>
-        </div>
+          </template>
+        </template>
 
         <div class="home__bottom-spacer"></div>
       </div>
@@ -220,6 +224,35 @@ function formatDate(iso: string): string {
   }
   return d.toLocaleDateString(lc, { month: 'short', day: '2-digit' });
 }
+
+// Группировка недавних по дате: Сегодня / Вчера / На этой неделе / Ранее.
+// При поиске — одна плоская секция без заголовка.
+const recentSections = computed(() => {
+  if (searchQuery.value.trim()) {
+    return dialogs.list.length ? [{ key: 'search', label: '', items: dialogs.list }] : [];
+  }
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startYesterday = startToday - 86_400_000;
+  const startWeek = startToday - 6 * 86_400_000;
+  const buckets: Record<string, typeof dialogs.list> = { today: [], yesterday: [], week: [], earlier: [] };
+  for (const d of dialogs.list) {
+    const ts = new Date(d.last_activity).getTime();
+    if (ts >= startToday) buckets.today.push(d);
+    else if (ts >= startYesterday) buckets.yesterday.push(d);
+    else if (ts >= startWeek) buckets.week.push(d);
+    else buckets.earlier.push(d);
+  }
+  const order: [string, string][] = [
+    ['today', 'group_today'],
+    ['yesterday', 'group_yesterday'],
+    ['week', 'group_week'],
+    ['earlier', 'group_earlier'],
+  ];
+  return order
+    .filter(([k]) => buckets[k].length)
+    .map(([k, lk]) => ({ key: k, label: t(lk), items: buckets[k] }));
+});
 
 function openChat(id: string) {
   router.push({ name: 'chat', params: { dialogId: id } });
@@ -526,6 +559,11 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.rec-date {
+  font-size: 13px;
+  color: var(--icons-storke-color);
+  margin-top: 3px;
+}
 .rec-edit {
   width: 100%;
   border: none;
@@ -534,11 +572,6 @@ onMounted(() => {
   color: var(--text-color);
   font-size: 16px;
   padding: 0;
-}
-.rec-date {
-  font-size: 13px;
-  color: var(--icons-storke-color);
-  margin-top: 3px;
 }
 .rec-menu {
   width: 36px;
