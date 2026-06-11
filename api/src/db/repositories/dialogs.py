@@ -297,6 +297,9 @@ async def set_initial_title(session: AsyncSession, dialog_id: str, text: str) ->
     """
     from services.title import truncate_title
 
+    # ультракороткое сообщение («у», «цу») — не делаем заголовок, остаётся «Новый чат»
+    if len((text or "").strip()) < 4:
+        return None
     result = await session.execute(select(Dialog).where(Dialog.id == dialog_id))
     dialog = result.scalar_one_or_none()
     if dialog is None or dialog.title:

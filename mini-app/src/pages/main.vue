@@ -22,7 +22,7 @@
         </div>
 
         <!-- Pinned -->
-        <template v-if="dialogs.pinned.length">
+        <template v-if="dialogs.pinned.length && !searchQuery.trim()">
           <div class="home__section-title">{{ $t('pinned_dialogs') }}</div>
           <div class="home__card">
             <TransitionGroup name="rec" tag="div" class="home__list">
@@ -70,7 +70,9 @@
           </div>
         </template>
 
-        <div v-else-if="dialogs.list.length === 0" class="home__empty">{{ $t('no_chats') }}</div>
+        <div v-else-if="dialogs.list.length === 0" class="home__empty">
+          {{ searchQuery.trim() ? $t('no_search_results') : $t('no_chats') }}
+        </div>
 
         <div v-else class="home__card">
           <TransitionGroup name="rec" tag="div" class="home__list">

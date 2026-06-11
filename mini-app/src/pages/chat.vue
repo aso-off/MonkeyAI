@@ -1002,6 +1002,9 @@ async function sendMessage() {
   if (isStreaming.value) return;
   const text = messageText.value.trim();
   if (!text) return;
+  // генерация привязана к диалогу: если переключимся — UI этого диалога не трогаем
+  const genDialogId = store.dialogId;
+  const stillActive = () => store.dialogId === genDialogId;
 
   // Собираем последние 10 пар user/bot для контекста (только текстовые)
   const pairs: { user: string; bot: string }[] = [];
@@ -1039,6 +1042,7 @@ async function sendMessage() {
       wsClient.connect().catch(() => {});
     }
   }, 5_000);
+  const myWatchdog = generationWatchdog;
 
   try {
     if (isImageModel) {
@@ -1046,15 +1050,16 @@ async function sendMessage() {
       const result = await wsClient.generateImage(text, store.dialogId, () => {
         // Keep the empty bot slot (spinner) during both moderation and generation.
       });
-      if (result.dialog_id) store.setDialogId(result.dialog_id);
-      const imageUrl = result.url ?? "";
-      chatMessages.value[botIdx] = {
-        type: "bot",
-        contentType: "image",
-        imageUrl,
-        text: "",
-        mid: result.mid,
-      };
+      if (stillActive()) {
+        if (result.dialog_id) store.setDialogId(result.dialog_id);
+        chatMessages.value[botIdx] = {
+          type: "bot",
+          contentType: "image",
+          imageUrl: result.url ?? "",
+          text: "",
+          mid: result.mid,
+        };
+      }
     } else {
       // Text chat via WebSocket token stream.
       const result = await wsClient.chatStream({
@@ -1064,26 +1069,19 @@ async function sendMessage() {
         model: currentModelId.value,
         chat_mode: store.user?.mini_app_chat_mode ?? "mini_app_assistant",
       });
-      if (result.dialog_id) store.setDialogId(result.dialog_id);
-      if (result.is_flagged) {
-        chatMessages.value[botIdx] = {
-          type: "bot",
-          contentType: "text",
-          text: t("message_flagged"),
-        };
-      } else {
-        chatMessages.value[botIdx] = {
-          type: "bot",
-          contentType: "text",
-          text: result.answer,
-          mid: result.mid,
-        };
+      if (stillActive()) {
+        if (result.dialog_id) store.setDialogId(result.dialog_id);
+        chatMessages.value[botIdx] = result.is_flagged
+          ? { type: "bot", contentType: "text", text: t("message_flagged") }
+          : { type: "bot", contentType: "text", text: result.answer, mid: result.mid };
       }
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const reqId = (e as { reqId?: string }).reqId;
-    if (msg === "network error" && reqId) {
+    if (!stillActive()) {
+      // переключились на другой диалог — результат досчитается на сервере, UI не трогаем
+    } else if (msg === "network error" && reqId) {
       // WS dropped mid-generation (text or image) — keep the spinner and wait for reconnect.
       pendingReconnectReqId.value = reqId;
       pendingReconnectBotIdx.value = botIdx;
@@ -1116,11 +1114,13 @@ async function sendMessage() {
     }
   }
 
-  if (!pendingReconnectReqId.value) streamingBotIdx.value = -1;
-  if (generationWatchdog) {
-    clearInterval(generationWatchdog);
+  if (generationWatchdog === myWatchdog) {
+    clearInterval(myWatchdog);
     generationWatchdog = null;
   }
+  // дальнейшее — только для активного диалога (иначе затрём состояние другого чата)
+  if (!stillActive()) return;
+  if (!pendingReconnectReqId.value) streamingBotIdx.value = -1;
   await nextTick();
   scrollToBottom(); // always scroll after own message receives a response
   store.setChatHistory(chatMessages.value);
