@@ -7,6 +7,7 @@ export const useDialogsStore = defineStore('dialogs', {
     pinned: [] as DialogListItem[],
     searchResults: [] as DialogListItem[],
     searching: false,
+    searchSeq: 0,
     nextBefore: null as string | null,
     hasMore: false,
     loading: false,
@@ -43,16 +44,25 @@ export const useDialogsStore = defineStore('dialogs', {
 
     /** Поиск держим отдельно, чтобы при стирании recents показывались мгновенно. */
     async runSearch(q: string, includeUntitled: boolean) {
+      const seq = ++this.searchSeq
       this.searching = true
       try {
         const r = await api.searchDialogs(q, 50, includeUntitled)
+        if (seq !== this.searchSeq) return
         this.searchResults = r.dialogs
       } finally {
-        this.searching = false
+        if (seq === this.searchSeq) this.searching = false
       }
     },
 
+    /** Ввод начался — «Ничего не найдено» не показываем, пока ответ не пришёл. */
+    markSearching() {
+      this.searchSeq++
+      this.searching = true
+    },
+
     clearSearch() {
+      this.searchSeq++
       this.searchResults = []
       this.searching = false
     },
@@ -72,25 +82,41 @@ export const useDialogsStore = defineStore('dialogs', {
       this.searchResults = this.searchResults.filter((x) => x.dialog_id !== dialogId)
     },
 
+    /** Pin/unpin бампит last_activity — диалог встаёт наверх свежим (как у Grok). */
     async pin(dialogId: string) {
       await api.pinDialog(dialogId, true)
+      const now = new Date().toISOString()
       const idx = this.list.findIndex((x) => x.dialog_id === dialogId)
-      const d = idx !== -1 ? this.list.splice(idx, 1)[0] : this.pinned.find((x) => x.dialog_id === dialogId)
+      const d =
+        idx !== -1
+          ? this.list.splice(idx, 1)[0]
+          : this.pinned.find((x) => x.dialog_id === dialogId) ??
+            this.searchResults.find((x) => x.dialog_id === dialogId)
       if (!d) return
       d.pinned = true
+      d.last_activity = now
       if (!this.pinned.some((x) => x.dialog_id === dialogId)) this.pinned.unshift(d)
+      this.syncSearchItem(dialogId, true, now)
     },
 
     async unpin(dialogId: string) {
       await api.pinDialog(dialogId, false)
+      const now = new Date().toISOString()
       const idx = this.pinned.findIndex((x) => x.dialog_id === dialogId)
       if (idx === -1) return
       const d = this.pinned.splice(idx, 1)[0]
       d.pinned = false
-      // вернуть в общий список на место по времени
-      const at = this.list.findIndex((x) => x.last_activity < d.last_activity)
-      if (at === -1) this.list.push(d)
-      else this.list.splice(at, 0, d)
+      d.last_activity = now
+      if (!this.list.some((x) => x.dialog_id === dialogId)) this.list.unshift(d)
+      this.syncSearchItem(dialogId, false, now)
+    },
+
+    syncSearchItem(dialogId: string, pinned: boolean, now: string) {
+      const s = this.searchResults.find((x) => x.dialog_id === dialogId)
+      if (s) {
+        s.pinned = pinned
+        s.last_activity = now
+      }
     },
 
     /** Сообщение отправлено — обновляем время и поднимаем диалог наверх (живое «Сегодня»). */
@@ -124,7 +150,7 @@ export const useDialogsStore = defineStore('dialogs', {
 
     /** Live title update from WS `dialog_title`. */
     applyTitle(dialogId: string, title: string) {
-      for (const arr of [this.list, this.pinned]) {
+      for (const arr of [this.list, this.pinned, this.searchResults]) {
         const d = arr.find((x) => x.dialog_id === dialogId)
         if (d) d.title = title
       }

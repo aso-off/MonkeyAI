@@ -297,9 +297,6 @@ async def set_initial_title(session: AsyncSession, dialog_id: str, text: str) ->
     """
     from services.title import truncate_title
 
-    # ультракороткое сообщение («у», «цу») — не делаем заголовок, остаётся «Новый чат»
-    if len((text or "").strip()) < 4:
-        return None
     result = await session.execute(select(Dialog).where(Dialog.id == dialog_id))
     dialog = result.scalar_one_or_none()
     if dialog is None or dialog.title:
@@ -353,11 +350,12 @@ async def list_pinned_dialogs(session: AsyncSession, user_id: int) -> list[Dialo
 
 
 async def set_pinned(session: AsyncSession, user_id: int, dialog_id: str, pinned: bool) -> bool:
-    value = datetime.now(timezone.utc) if pinned else None
+    now = datetime.now(timezone.utc)
     result = await session.execute(
         update(Dialog)
         .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
-        .values(pinned_at=value)
+        # бамп last_activity — диалог встаёт наверх свежим (как у Grok)
+        .values(pinned_at=now if pinned else None, last_activity=now)
     )
     await session.commit()
     return result.rowcount > 0

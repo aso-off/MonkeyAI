@@ -696,6 +696,7 @@ async def chat_complete(
         await user_repo.update_last_interaction(session, user_id)
         await handle_first_message_title(
             session, dialog_id, body.message,
+            reply=answer,
             on_refined=_title_broadcast(user_id, dialog_id),
         )
     except Exception:
