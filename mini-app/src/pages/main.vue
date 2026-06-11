@@ -60,7 +60,6 @@
 
         <!-- Recents -->
         <template v-if="dialogs.loading && dialogs.list.length === 0">
-          <div class="home__section-title">{{ $t('recents') }}</div>
           <div class="home__card">
             <div v-for="n in skeletonCount" :key="n" class="rec-skeleton-row">
               <div class="rec-skeleton-line"></div>
@@ -366,7 +365,8 @@ async function confirmDelete() {
 
 function onScroll() {
   const el = rootEl.value;
-  if (!el || searchActive.value) return;
+  // подгружаем старые только когда не идёт активный поиск (пустой фокус — можно)
+  if (!el || searchQuery.value.trim()) return;
   if (el.scrollHeight - el.scrollTop - el.clientHeight < 300) {
     dialogs.loadMore().catch(() => {});
   }
@@ -542,8 +542,6 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   background: var(--second-bg-color);
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 .rec-row:not(:first-child) {
   border-top: 2px solid var(--backgorund-color);
@@ -614,22 +612,20 @@ onMounted(() => {
   width: 32%;
   height: 12px;
 }
+/* Коллапс по высоте (без transform-слоёв → нет белых швов), плавно и бесшовно */
 .rec-enter-active,
 .rec-leave-active {
-  transition: opacity 200ms ease;
+  transition: opacity 200ms ease, max-height 240ms ease;
+  overflow: hidden;
 }
 .rec-enter-from,
 .rec-leave-to {
   opacity: 0;
+  max-height: 0;
 }
-.rec-leave-active {
-  position: absolute;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-.rec-move {
-  transition: transform 220ms ease;
+.rec-enter-to,
+.rec-leave-from {
+  max-height: 90px;
 }
 
 .home__empty {

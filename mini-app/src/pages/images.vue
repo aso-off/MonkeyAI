@@ -33,6 +33,8 @@
         </div>
 
         <!-- Галерея снизу -->
+        <div class="img-gallery-title">{{ $t('my_images') }}</div>
+
         <template v-if="images.loading && images.list.length === 0">
           <div class="img-grid">
             <div v-for="n in 6" :key="n" class="img-skeleton"></div>
@@ -73,12 +75,14 @@ import { retrieveLaunchParams } from '@tma.js/sdk-vue';
 import { api } from '@/services/api';
 import { useUserStore } from '@/store/user';
 import { useImagesStore } from '@/store/images';
+import { useDialogsStore } from '@/store/dialogs';
 
 defineOptions({ name: 'ImagesPage' });
 
 const router = useRouter();
 const store = useUserStore();
 const images = useImagesStore();
+const dialogs = useDialogsStore();
 
 const rootEl = ref<HTMLElement | null>(null);
 const inputEl = ref<HTMLTextAreaElement | null>(null);
@@ -118,6 +122,7 @@ async function submitImage() {
   try {
     await store.setModel('gpt-image-1.5');
     const { dialog_id } = await api.newDialog();
+    dialogs.prepend(dialog_id);
     router.push({ name: 'chat', params: { dialogId: dialog_id }, query: { gen: text } });
   } catch (e) {
     console.error('[submitImage]', e);
@@ -207,6 +212,13 @@ onMounted(() => {
   justify-content: center;
   min-height: 42vh;
   padding: 12px 0 24px;
+}
+.img-gallery-title {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-color);
+  padding: 4px 0 14px;
 }
 .img-grid {
   display: grid;
