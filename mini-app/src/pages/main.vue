@@ -68,7 +68,10 @@
           </div>
         </template>
 
-        <div v-else-if="dialogs.list.length === 0" class="home__empty">
+        <div
+          v-else-if="searchQuery.trim() ? dialogs.searchResults.length === 0 : dialogs.list.length === 0"
+          class="home__empty"
+        >
           {{ searchQuery.trim() ? $t('no_search_results') : $t('no_chats') }}
         </div>
 
@@ -228,7 +231,9 @@ function formatDate(iso: string): string {
 // При поиске — одна плоская секция без заголовка.
 const recentSections = computed(() => {
   if (searchQuery.value.trim()) {
-    return dialogs.list.length ? [{ key: 'search', label: '', items: dialogs.list }] : [];
+    return dialogs.searchResults.length
+      ? [{ key: 'search', label: '', items: dialogs.searchResults }]
+      : [];
   }
   const now = new Date();
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -376,26 +381,20 @@ function onSearchInput() {
   if (searchTimer) clearTimeout(searchTimer);
   const q = searchQuery.value.trim();
   if (!q) {
-    dialogs.loadInitial(true).catch(() => {});
+    dialogs.clearSearch();
     return;
   }
   // "Новый чат" / "New Chat" ищем и среди безымянных диалогов (title IS NULL)
   const includeUntitled = t('new_chat').toLowerCase().includes(q.toLowerCase());
-  searchTimer = setTimeout(async () => {
-    try {
-      const r = await api.searchDialogs(q, 50, includeUntitled);
-      dialogs.list = r.dialogs;
-      dialogs.hasMore = false;
-    } catch (e) {
-      console.error('[search]', e);
-    }
+  searchTimer = setTimeout(() => {
+    dialogs.runSearch(q, includeUntitled).catch((e) => console.error('[search]', e));
   }, 300);
 }
 
 function onSearchBlur() {
   if (!searchQuery.value.trim()) {
     searchActive.value = false;
-    dialogs.loadInitial(true).catch(() => {});
+    dialogs.clearSearch();
   }
 }
 
@@ -612,20 +611,14 @@ onMounted(() => {
   width: 32%;
   height: 12px;
 }
-/* Коллапс по высоте (без transform-слоёв → нет белых швов), плавно и бесшовно */
+/* Только opacity — без max-height/transform/absolute (они давали белый шов) */
 .rec-enter-active,
 .rec-leave-active {
-  transition: opacity 200ms ease, max-height 240ms ease;
-  overflow: hidden;
+  transition: opacity 180ms ease;
 }
 .rec-enter-from,
 .rec-leave-to {
   opacity: 0;
-  max-height: 0;
-}
-.rec-enter-to,
-.rec-leave-from {
-  max-height: 90px;
 }
 
 .home__empty {
