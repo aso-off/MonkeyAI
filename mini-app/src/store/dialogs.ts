@@ -74,6 +74,22 @@ export const useDialogsStore = defineStore('dialogs', {
       else this.list.splice(at, 0, d)
     },
 
+    /** Сообщение отправлено — обновляем время и поднимаем диалог наверх (живое «Сегодня»). */
+    touch(dialogId: string) {
+      const now = new Date().toISOString()
+      const p = this.pinned.find((x) => x.dialog_id === dialogId)
+      if (p) {
+        p.last_activity = now
+        return
+      }
+      const idx = this.list.findIndex((x) => x.dialog_id === dialogId)
+      if (idx !== -1) {
+        const d = this.list.splice(idx, 1)[0]
+        d.last_activity = now
+        this.list.unshift(d)
+      }
+    },
+
     /** Optimistically add a freshly created dialog to the top of Recents. */
     prepend(dialogId: string) {
       if (this.list.some((x) => x.dialog_id === dialogId)) return

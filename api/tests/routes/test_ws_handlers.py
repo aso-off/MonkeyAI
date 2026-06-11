@@ -186,7 +186,7 @@ class TestHandleChat:
         import routes.ws as ws_mod
         ws = _make_ws()
         uid = _uid()
-        ws_mod._USER_GENERATING[uid] = "other_req"
+        ws_mod._USER_GENERATING[(uid, None)] = "other_req"
         frame = {"type": "chat", "id": "req2", "message": "hello"}
         try:
             with patch("routes.ws._send", new=AsyncMock()) as mock_send, \
@@ -196,7 +196,7 @@ class TestHandleChat:
             assert sent["type"] == "chat_error"
             assert "already generating" in sent["error"]
         finally:
-            ws_mod._USER_GENERATING.pop(uid, None)
+            ws_mod._USER_GENERATING.pop((uid, None), None)
 
     @pytest.mark.asyncio
     async def test_moderation_flag_sends_chat_done_flagged(self) -> None:
@@ -399,7 +399,7 @@ class TestHandleImage:
         import routes.ws as ws_mod
         ws = _make_ws()
         uid = _uid()
-        ws_mod._USER_GENERATING[uid] = "other"
+        ws_mod._USER_GENERATING[(uid, None)] = "other"
         frame = {"type": "image", "id": "img2", "message": "a cat"}
         try:
             with patch("routes.ws._send", new=AsyncMock()) as mock_send, \
@@ -409,7 +409,7 @@ class TestHandleImage:
             assert sent["type"] == "image_error"
             assert "already generating" in sent["error"]
         finally:
-            ws_mod._USER_GENERATING.pop(uid, None)
+            ws_mod._USER_GENERATING.pop((uid, None), None)
 
     @pytest.mark.asyncio
     async def test_moderation_flag_sends_image_error(self) -> None:

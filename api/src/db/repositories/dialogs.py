@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.user import Dialog, User, UserStatistics
@@ -369,21 +369,30 @@ async def search_dialogs(
     query: str,
     limit: int = 50,
     include_untitled: bool = False,
-) -> list[Dialog]:
-    match = Dialog.title.ilike(f"%{query}%")
-    # «Новый чат» — безымянные диалоги (title IS NULL)
-    cond = or_(match, Dialog.title.is_(None)) if include_untitled else match
+):
+    # ILIKE под C-локалью Postgres не сворачивает кириллицу — фильтруем в Python (Unicode).
+    # Берём только лёгкие колонки (без messages), с разумным потолком.
     q = (
-        select(Dialog)
-        .where(
-            Dialog.user_id == user_id,
-            Dialog.chat_mode.like(_MINI_APP_PREFIX),
-            cond,
+        select(
+            Dialog.id,
+            Dialog.title,
+            Dialog.last_activity,
+            Dialog.start_time,
+            Dialog.pinned_at,
         )
+        .where(Dialog.user_id == user_id, Dialog.chat_mode.like(_MINI_APP_PREFIX))
         .order_by(Dialog.last_activity.desc())
-        .limit(limit)
+        .limit(500)
     )
-    return list((await session.execute(q)).scalars().all())
+    rows = (await session.execute(q)).all()
+    ql = query.lower()
+    out = []
+    for r in rows:
+        if ql in (r.title or "").lower() or (include_untitled and not r.title):
+            out.append(r)
+            if len(out) >= limit:
+                break
+    return out
 
 
 async def rename_dialog(session: AsyncSession, user_id: int, dialog_id: str, title: str) -> bool:
