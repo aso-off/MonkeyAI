@@ -11,7 +11,7 @@ from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
-from schemas.chat import ChatCompleteRequest, ChatCompleteResponse
+from schemas.chat import ChatCompleteRequest, ChatCompleteResponse, Usage
 from services.moderation import moderate_content
 from services.openai import ChatGPT
 
@@ -56,7 +56,7 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
             image_buffer = BytesIO(base64.b64decode(req.image_b64))
         except Exception:
             payload = json.dumps({"status": "error", "text": "Invalid image data",
-                                  "n_input_tokens": 0, "n_output_tokens": 0,
+                                  "usage": Usage().model_dump(),
                                   "n_first_removed": 0, "is_flagged": False})
             yield f"data: {payload}\n\n"
             return
@@ -69,8 +69,7 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
         payload = json.dumps({
             "status": "flagged",
             "text": "",
-            "n_input_tokens": 0,
-            "n_output_tokens": 0,
+            "usage": Usage().model_dump(),
             "n_first_removed": 0,
             "is_flagged": True,
         })
@@ -102,8 +101,7 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
             payload = json.dumps({
                 "status": status,
                 "text": answer,
-                "n_input_tokens": n_input,
-                "n_output_tokens": n_output,
+                "usage": Usage.of(n_input, n_output).model_dump(),
                 "n_first_removed": n_removed,
                 "is_flagged": False,
             })
@@ -114,8 +112,7 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
         payload = json.dumps({
             "status": "finished",
             "text": final_answer,
-            "n_input_tokens": n_input,
-            "n_output_tokens": n_output,
+            "usage": Usage.of(n_input, n_output).model_dump(),
             "n_first_removed": n_removed,
             "is_flagged": False,
         })
@@ -152,8 +149,7 @@ async def chat_complete(
         image_buffer.seek(0)
     if is_flagged and not req.skip_moderation:
         return ChatCompleteResponse(
-            answer="", n_input_tokens=0, n_output_tokens=0,
-            n_first_removed=0, is_flagged=True,
+            answer="", n_first_removed=0, is_flagged=True,
         )
 
     chatgpt = ChatGPT(model=req.model)
@@ -175,8 +171,7 @@ async def chat_complete(
 
     return ChatCompleteResponse(
         answer=answer,
-        n_input_tokens=n_input,
-        n_output_tokens=n_output,
+        usage=Usage.of(n_input, n_output),
         n_first_removed=n_removed,
         is_flagged=False,
     )

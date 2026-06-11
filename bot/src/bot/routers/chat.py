@@ -275,7 +275,6 @@ async def _handle_text_or_vision(
         image_buffer.seek(0)
         image_b64 = base64.b64encode(image_buffer.read()).decode()
 
-    n_input_tokens = n_output_tokens = 0
     n_first_removed = 0
     answer = ""
     is_flagged = False
@@ -300,8 +299,6 @@ async def _handle_text_or_vision(
                     is_flagged = True
                     break
                 answer = chunk.text
-                n_input_tokens = chunk.n_input_tokens
-                n_output_tokens = chunk.n_output_tokens
                 n_first_removed = chunk.n_first_removed
 
                 if chunk.status == "not_finished" and is_private and answer.strip():

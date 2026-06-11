@@ -46,7 +46,6 @@
                 </div>
               </div>
             </span>
-            <div class="settings__divider"></div>
             <span v-ripple class="settings__container-button interactive" @click="router.push('/settings/theme')">
               <div class="settings__container-icon" style="background-color: rgb(0, 122, 255)">
                 <img :src="themeSvg" alt="Theme" />
@@ -83,7 +82,6 @@
                 </div>
               </div>
             </span>
-            <div class="settings__divider"></div>
             <span v-ripple class="settings__container-button interactive" @click="openChannel">
               <div class="settings__container-icon" style="background-color: rgb(60, 179, 113)">
                 <img :src="channelSvg" alt="Channel" />
@@ -99,7 +97,6 @@
                 </div>
               </div>
             </span>
-            <div class="settings__divider"></div>
             <span v-ripple class="settings__container-button interactive" @click="shareApp">
               <div class="settings__container-icon" style="background-color: rgb(30, 144, 255)">
                 <img :src="shareSvg" alt="Share" />
@@ -135,7 +132,6 @@
                 </div>
               </div>
             </span>
-            <div class="settings__divider"></div>
             <span v-ripple class="settings__container-button interactive" @click="router.push('/settings/terms')">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
                 <img :src="termsSvg" alt="Terms" />
@@ -151,7 +147,6 @@
                 </div>
               </div>
             </span>
-            <div class="settings__divider"></div>
             <span v-ripple class="settings__container-button interactive" @click="openReleases">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166)">
                 <img :src="versionSvg" alt="Version" />
@@ -169,7 +164,6 @@
                 </div>
               </div>
             </span>
-            <div class="settings__divider"></div>
             <span v-ripple class="settings__container-button interactive" @click="openAuthor">
               <div class="settings__container-icon" style="background-color: rgb(167, 166, 166);">
                 <img :src="autor" alt="Author" />

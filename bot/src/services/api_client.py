@@ -40,10 +40,15 @@ class UserResponse(msgspec.Struct, frozen=True):
     last_interaction: datetime | None = None
 
 
+class Usage(msgspec.Struct, frozen=True):
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+
+
 class ChatCompleteResponse(msgspec.Struct, frozen=True):
     answer: str
-    n_input_tokens: int
-    n_output_tokens: int
+    usage: Usage
     n_first_removed: int
     is_flagged: bool
 
@@ -51,8 +56,7 @@ class ChatCompleteResponse(msgspec.Struct, frozen=True):
 class ChatStreamChunk(msgspec.Struct, frozen=True):
     status: str
     text: str
-    n_input_tokens: int
-    n_output_tokens: int
+    usage: Usage
     n_first_removed: int
     is_flagged: bool
 

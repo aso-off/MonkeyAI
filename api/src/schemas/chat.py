@@ -12,9 +12,20 @@ class ChatCompleteRequest(BaseModel):
     skip_moderation: bool = False
 
 
+class Usage(BaseModel):
+    """Канон OpenAI: точные значения из ответа API."""
+
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+
+    @classmethod
+    def of(cls, n_input: int, n_output: int) -> "Usage":
+        return cls(input_tokens=n_input, output_tokens=n_output, total_tokens=n_input + n_output)
+
+
 class ChatCompleteResponse(BaseModel):
     answer: str
-    n_input_tokens: int
-    n_output_tokens: int
+    usage: Usage = Usage()
     n_first_removed: int
     is_flagged: bool

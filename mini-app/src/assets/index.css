@@ -2153,7 +2153,7 @@ footer .input__text .input__text-placeholder.active {
   flex-direction: column;
   width: 100%;
   border-radius: 16px;
-  background-color: var(--second-bg-color);
+  background-color: transparent;
   overflow: hidden;
   padding: 0;
 }
@@ -2177,7 +2177,8 @@ footer .input__text .input__text-placeholder.active {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  /* разделитель — зазор с фоном страницы, как в списке чатов */
+  gap: 2px;
 }
 
 .settings__wrapper .settings__container .settings__container-buttons .settings__container-button {
@@ -2190,18 +2191,14 @@ footer .input__text .input__text-placeholder.active {
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  background-color: var(--second-bg-color);
   transition: background-color 0.12s ease;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
 .settings__wrapper .settings__container .settings__container-buttons .settings__container-button.interactive:active {
-  background-color: transparent;
-}
-
-.settings__divider {
-  height: 2px;
-  background-color: var(--backgorund-color);
+  background-color: var(--second-bg-color);
 }
 
 .settings__wrapper .settings__container .settings__container-buttons .settings__container-button .settings__container-icon {
@@ -2390,6 +2387,16 @@ footer .input__text .input__text-placeholder.active {
   background-color: var(--second-bg-color)
 }
 
+/* зазор-разделитель как в списке чатов; legal-документы — сплошная карточка */
+.settingschange-wrapper .settingschange-container .settingschange-select:not(.legal-section) {
+  background-color: transparent;
+  gap: 2px;
+}
+
+.settingschange-wrapper .settingschange-container .settingschange-select:not(.legal-section) .settingschange-select-button {
+  background-color: var(--second-bg-color);
+}
+
 .settingschange-wrapper .settingschange-container .settingschange-select .settingschange-select-button {
   cursor: pointer;
   display: flex;
@@ -2444,10 +2451,6 @@ footer .input__text .input__text-placeholder.active {
   margin-top: 4px !important
 }
 
-.settingschange-divider {
-  height: 2px;
-  background-color: var(--backgorund-color);
-}
 
 
 @keyframes gradient-shift-bg {
