@@ -22,7 +22,8 @@ Text chat:
   ← {"type": "generation_start", "id": "<uuid>"}
      (sent to ALL devices including sender)
   ← {"type": "chat_done",      "id": "<uuid>", "answer": "...", "dialog_id": "...",
-      "n_input_tokens": 0, "n_output_tokens": 0, "n_first_removed": 0, "is_flagged": false}
+      "usage": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+      "n_first_removed": 0, "is_flagged": false}
   ← {"type": "chat_error",     "id": "<uuid>", "error": "..."}
 
 Image generation:
@@ -72,6 +73,7 @@ from db.repositories import users as user_repo
 from services.image_generation import generate_image_b64
 from services.image_processing import process_generated_image, upload_to_imgbb
 from services.moderation import moderate_content
+from schemas.chat import Usage
 from services.openai import ChatGPT
 from services.title import handle_first_message_title
 
@@ -332,7 +334,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
             await _broadcast(user_id, {
                 "type": "chat_done", "id": req_id,
                 "answer": "", "is_flagged": True,
-                "n_input_tokens": 0, "n_output_tokens": 0, "n_first_removed": 0,
+                "usage": Usage().model_dump(), "n_first_removed": 0,
             })
             return
 
@@ -390,8 +392,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
             "answer": final_answer,
             "dialog_id": resolved_dialog_id,
             "mid": mid,
-            "n_input_tokens": n_input,
-            "n_output_tokens": n_output,
+            "usage": Usage.of(n_input, n_output).model_dump(),
             "n_first_removed": n_removed,
             "is_flagged": False,
         })

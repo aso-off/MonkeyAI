@@ -1,7 +1,7 @@
 """Юнит-тесты для api/src/services/openai.py — класс ChatGPT.
 
-AsyncOpenAI заменён AsyncMock. tiktoken мокируется для скорости.
-Тестируем чистую логику: _options, _validate_mode, _build_messages, _count_tokens.
+AsyncOpenAI заменён AsyncMock.
+Тестируем чистую логику: _options, _validate_mode, _build_messages.
 """
 
 import types
@@ -50,15 +50,6 @@ def mock_settings(mocker):
     )
     mocker.patch("services.openai.settings", settings)
     return settings
-
-
-@pytest.fixture
-def mock_tiktoken(mocker):
-    """Мокируем tiktoken чтобы не скачивал модели в CI."""
-    enc = MagicMock()
-    enc.encode.return_value = list(range(10))  # 10 токенов на каждую строку
-    mocker.patch("services.openai._get_encoding", return_value=enc)
-    return enc
 
 
 @pytest.fixture
@@ -208,42 +199,6 @@ class TestBuildMessages:
         assert roles == ["user", "assistant", "user"]
 
 
-# ── _count_tokens ─────────────────────────────────────────────────────────────
-
-
-class TestCountTokens:
-    @pytest.mark.unit
-    def test_returns_tuple_of_two_ints(self, gpt, mock_tiktoken) -> None:
-        result = gpt._count_tokens([{"role": "user", "content": "hello"}], "world")
-        assert isinstance(result, tuple) and len(result) == 2
-        n_total, n_out = result
-        assert isinstance(n_total, int) and isinstance(n_out, int)
-
-    @pytest.mark.unit
-    def test_output_tokens_counted(self, gpt, mock_tiktoken) -> None:
-        answer = "This is a test answer"
-        mock_tiktoken.encode.return_value = list(range(5))  # 5 токенов
-        _, n_out = gpt._count_tokens([], answer)
-        assert n_out == 5
-
-    @pytest.mark.unit
-    def test_fallback_on_encoding_error(self, gpt, mocker) -> None:
-        mocker.patch("services.openai._get_encoding", side_effect=Exception("tiktoken error"))
-        answer = "short"
-        total, out = gpt._count_tokens([{"role": "user", "content": "hi"}], answer)
-        assert total == 500
-        assert out == len(answer) // 4
-
-    @pytest.mark.unit
-    def test_more_messages_more_tokens(self, gpt, mock_tiktoken) -> None:
-        mock_tiktoken.encode.return_value = list(range(10))
-        one_msg = [{"role": "user", "content": "hi"}]
-        many_msgs = [{"role": "user", "content": "hi"}] * 5
-        t1, _ = gpt._count_tokens(one_msg, "ok")
-        t5, _ = gpt._count_tokens(many_msgs, "ok")
-        assert t5 > t1
-
-
 # ── _encode_image ─────────────────────────────────────────────────────────────
 
 
@@ -279,7 +234,7 @@ class TestEncodeImage:
 
 class TestSendMessage:
     @pytest.mark.unit
-    async def test_returns_answer_and_tokens(self, gpt, mock_openai, mock_tiktoken) -> None:
+    async def test_returns_answer_and_tokens(self, gpt, mock_openai) -> None:
         choice = MagicMock()
         choice.message.content = "  Hello World  "
         usage = MagicMock()
@@ -294,7 +249,7 @@ class TestSendMessage:
         assert isinstance(dropped, int)
 
     @pytest.mark.unit
-    async def test_empty_response_raises(self, gpt, mock_openai, mock_tiktoken) -> None:
+    async def test_empty_response_raises(self, gpt, mock_openai) -> None:
         choice = MagicMock()
         choice.message.content = "   "  # пустой ответ
         mock_openai.chat.completions.create.return_value = MagicMock(

@@ -28,6 +28,7 @@ from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import images as image_repo
 from db.repositories import users as user_repo
+from schemas.chat import Usage
 from schemas.user import UserRead
 from services.image_generation import IMAGE_MODELS, generate_image_url
 from services.moderation import moderate_content
@@ -212,8 +213,7 @@ class WebAppUpdateBody(BaseModel):
 
 class WebAppChatResponse(BaseModel):
     answer: str = ""
-    n_input_tokens: int = 0
-    n_output_tokens: int = 0
+    usage: Usage = Usage()
     n_first_removed: int = 0
     is_flagged: bool = False
 
@@ -704,8 +704,7 @@ async def chat_complete(
 
     return WebAppChatResponse(
         answer=answer,
-        n_input_tokens=n_input,
-        n_output_tokens=n_output,
+        usage=Usage.of(n_input, n_output),
         n_first_removed=n_removed,
     )
 

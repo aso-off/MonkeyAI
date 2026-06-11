@@ -112,10 +112,15 @@ export interface ChatBody {
   skip_moderation?: boolean;
 }
 
+export interface Usage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+}
+
 export interface ChatCompleteResponse {
   answer: string;
-  n_input_tokens: number;
-  n_output_tokens: number;
+  usage: Usage;
   n_first_removed: number;
   is_flagged: boolean;
   dialog_id?: string;
@@ -489,8 +494,7 @@ export class WsClient {
           this._handlers.delete(id);
           resolve({
             answer:          (msg.answer          as string)  ?? '',
-            n_input_tokens:  (msg.n_input_tokens  as number)  ?? 0,
-            n_output_tokens: (msg.n_output_tokens as number)  ?? 0,
+            usage:           (msg.usage as Usage) ?? { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
             n_first_removed: (msg.n_first_removed as number)  ?? 0,
             is_flagged:      (msg.is_flagged      as boolean) ?? false,
             dialog_id:        msg.dialog_id as string | undefined,

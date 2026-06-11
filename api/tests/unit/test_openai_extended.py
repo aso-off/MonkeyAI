@@ -4,7 +4,6 @@
 Покрываем то, что не захватывает test_openai_service.py:
 - make_client()          — singleton + openai_api_base branch
 - _encode_image()        — base64 + позиция буфера
-- _count_tokens()        — gpt-5-mini vs gpt-4o, ключ name, fallback
 - send_message()         — happy path, BadRequestError (trim), BadRequestError (empty)
 - send_message_stream()  — streaming, BadRequestError trim
 - send_vision_message()  — happy path, BadRequestError
@@ -76,19 +75,27 @@ class FakeAsyncStream:
             raise StopAsyncIteration
 
 
-def _fake_stream_chunks(answer: str):
+def _fake_stream_chunks(answer: str, n_in: int = 50, n_out: int = 20):
     words = answer.split()
     chunks = []
     for w in words:
         c = MagicMock()
+        c.usage = None
         c.choices = [MagicMock()]
         c.choices[0].delta.content = w + " "
         chunks.append(c)
     # last chunk without content
     last = MagicMock()
+    last.usage = None
     last.choices = [MagicMock()]
     last.choices[0].delta.content = None
     chunks.append(last)
+    # финальный usage-кадр (include_usage): choices пуст
+    final = MagicMock()
+    final.choices = []
+    final.usage.prompt_tokens = n_in
+    final.usage.completion_tokens = n_out
+    chunks.append(final)
     return chunks
 
 
@@ -204,52 +211,6 @@ class TestEncodeImage:
             buf = BytesIO(raw)
             result = _encode_image(buf)
             assert base64.b64decode(result) == raw
-
-
-# ── _count_tokens ─────────────────────────────────────────────────────────────
-
-
-class TestCountTokens:
-
-    def test_gpt4o_uses_50_tokens_per_message(self) -> None:
-        gpt = _make_gpt("gpt-4o")
-        msgs = [{"role": "user", "content": "hi"}]
-        answer = "ok"
-        n_total, n_out = gpt._count_tokens(msgs, answer)
-        assert n_total > 0 and n_out > 0
-
-    def test_gpt5mini_uses_100_tokens_per_message(self) -> None:
-        gpt4 = _make_gpt("gpt-4o")
-        gpt5 = _make_gpt("gpt-5-mini")
-        msgs = [{"role": "user", "content": fake.sentence()}]
-        answer = fake.sentence()
-        n_4o, _ = gpt4._count_tokens(msgs, answer)
-        n_5m, _ = gpt5._count_tokens(msgs, answer)
-        assert n_5m > n_4o  # gpt-5-mini has higher per-message cost
-
-    def test_name_key_affects_token_count(self) -> None:
-        gpt = _make_gpt("gpt-4o")
-        msgs_with_name = [{"role": "user", "content": "hi", "name": "Bob"}]
-        msgs_without = [{"role": "user", "content": "hi"}]
-        n_with, _ = gpt._count_tokens(msgs_with_name, "ok")
-        n_without, _ = gpt._count_tokens(msgs_without, "ok")
-        assert n_with != n_without
-
-    def test_exception_fallback_returns_estimate(self) -> None:
-        gpt = _make_gpt("gpt-4o")
-        answer = fake.sentence()
-        with patch("services.openai._get_encoding", side_effect=Exception("encoding fail")):
-            n_total, n_out = gpt._count_tokens([], answer)
-        assert n_total == 500
-        assert n_out == len(answer) // 4
-
-    def test_output_tokens_equals_encoded_answer(self) -> None:
-        from services.openai import _get_encoding
-        gpt = _make_gpt("gpt-4o")
-        answer = fake.sentence()
-        _, n_out = gpt._count_tokens([], answer)
-        expected = len(_get_encoding().encode(answer))
-        assert n_out == expected
 
 
 # ── send_message ──────────────────────────────────────────────────────────────
@@ -369,6 +330,21 @@ class TestSendMessageStream:
             events.append(status)
 
         assert "finished" in events
+
+    @pytest.mark.asyncio
+    async def test_stream_usage_from_final_chunk(self) -> None:
+        gpt = _make_gpt()
+        stream = FakeAsyncStream(_fake_stream_chunks("a b c", n_in=11, n_out=7))
+        gpt.client.chat.completions.create = AsyncMock(return_value=stream)
+
+        final = None
+        async for status, _, tokens, _ in gpt.send_message_stream(
+            _fake_message(), chat_mode="assistant"
+        ):
+            if status == "finished":
+                final = tokens
+
+        assert final == (11, 7)
 
     @pytest.mark.asyncio
     async def test_stream_delivers_incremental_text(self) -> None:

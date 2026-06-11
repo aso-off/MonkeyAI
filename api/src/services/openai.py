@@ -3,22 +3,11 @@ import logging
 from io import BytesIO
 from typing import AsyncGenerator
 
-import tiktoken
 from openai import AsyncOpenAI, BadRequestError
 
 from core.config import settings
 
 logger = logging.getLogger(__name__)
-
-_DEFAULT_ENCODING = "o200k_base"
-
-
-def _get_encoding(model: str | None = None) -> tiktoken.Encoding:
-    try:
-        return tiktoken.encoding_for_model(model) if model else tiktoken.get_encoding(_DEFAULT_ENCODING)
-    except KeyError:
-        return tiktoken.get_encoding(_DEFAULT_ENCODING)
-
 
 BASE_OPTIONS: dict = {
     "timeout": 60.0,
@@ -101,27 +90,6 @@ class ChatGPT:
 
         return messages
 
-    def _count_tokens(self, messages: list, answer: str) -> tuple[int, int]:
-        try:
-            encoding = _get_encoding(self.model)
-            tokens_per_message = 100 if self.model == "gpt-5-mini" else 50
-            tokens_per_name = -1 if self.model == "gpt-5-mini" else 1
-
-            n_input = 0
-            for msg in messages:
-                n_input += tokens_per_message
-                for key, value in msg.items():
-                    if isinstance(value, str):
-                        n_input += len(encoding.encode(value))
-                    if key == "name":
-                        n_input += tokens_per_name
-
-            n_output = len(encoding.encode(answer))
-            return n_input + n_output, n_output
-        except Exception:
-            logger.warning("Token counting failed, using estimate", exc_info=True)
-            return 500, len(answer) // 4
-
     def _validate_mode(self, chat_mode: str) -> None:
         valid_modes = {k for k in settings.chat_modes if k != "system_prompt"}
         if chat_mode not in valid_modes:
@@ -173,10 +141,16 @@ class ChatGPT:
                     model=self.model,
                     messages=messages,
                     stream=True,
+                    stream_options={"include_usage": True},
                     **self._options(),
                 )
                 answer = ""
                 async for chunk in stream:
+                    # финальный usage-кадр приходит с пустым choices
+                    if chunk.usage is not None:
+                        n_input, n_output = chunk.usage.prompt_tokens, chunk.usage.completion_tokens
+                    if not chunk.choices:
+                        continue
                     delta = chunk.choices[0].delta
                     if delta.content:
                         answer += delta.content
@@ -185,7 +159,8 @@ class ChatGPT:
                 answer = answer.strip()
                 if not answer:
                     raise ValueError("Model returned an empty response. Please try again.")
-                n_input, n_output = self._count_tokens(messages, answer)
+                if not (n_input or n_output):
+                    logger.warning("Stream ended without usage chunk for model %s", self.model)
                 yield "finished", answer, (n_input, n_output), n_before - len(dialog_messages)
                 return
             except BadRequestError:
@@ -239,10 +214,16 @@ class ChatGPT:
                     model=self.model,
                     messages=messages,
                     stream=True,
+                    stream_options={"include_usage": True},
                     **self._options(),
                 )
                 answer = ""
                 async for chunk in stream:
+                    # финальный usage-кадр приходит с пустым choices
+                    if chunk.usage is not None:
+                        n_input, n_output = chunk.usage.prompt_tokens, chunk.usage.completion_tokens
+                    if not chunk.choices:
+                        continue
                     delta = chunk.choices[0].delta
                     if delta.content:
                         answer += delta.content
@@ -251,7 +232,8 @@ class ChatGPT:
                 answer = answer.strip()
                 if not answer:
                     raise ValueError("Model returned an empty response. Please try again.")
-                n_input, n_output = self._count_tokens(messages, answer)
+                if not (n_input or n_output):
+                    logger.warning("Stream ended without usage chunk for model %s", self.model)
                 yield "finished", answer, (n_input, n_output), n_before - len(dialog_messages)
                 return
             except BadRequestError:
