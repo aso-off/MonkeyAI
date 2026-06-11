@@ -14,7 +14,7 @@
         <!-- Кнопка Изображения (карточка как в настройках) -->
         <div class="home__card">
           <div v-ripple class="home__row interactive" @click="router.push('/images')">
-            <div class="home__row-iconbox" style="background-color: rgb(113, 188, 120)">
+            <div class="home__row-iconbox" style="background-color: rgb(137, 172, 118)">
               <img :src="imageSvg" alt="" draggable="false" />
             </div>
             <span class="home__row-text">{{ $t('images') }}</span>
