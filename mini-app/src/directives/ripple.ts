@@ -8,6 +8,8 @@ const RELEASE_RATE = 2;
 const RADIUS_BUFFER = 12;
 // множитель радиуса — больше круг = площе (ровнее) дуга
 const RADIUS_SCALE = 1.4;
+// страховка: не держим переход дольше, чем волна реально играет
+const CLICK_AWAIT_TIMEOUT = 500;
 
 interface WaveHandle {
   wave: HTMLSpanElement;
@@ -19,7 +21,10 @@ interface RippleEl extends HTMLElement {
   _rippleWrapper?: HTMLSpanElement;
   _rippleDown?: (e: PointerEvent) => void;
   _rippleUp?: () => void;
+  _rippleClick?: (e: MouseEvent) => void;
   _rippleWaves?: Set<WaveHandle>;
+  _rippleLastWave?: WaveHandle | null;
+  _rippleBypass?: boolean;
 }
 
 function spawnWave(
@@ -28,7 +33,7 @@ function spawnWave(
   y: number,
   scale: number,
   waves: Set<WaveHandle>,
-): void {
+): WaveHandle {
   const wave = document.createElement("span");
   wave.className = "tg-ripple__wave";
   wave.style.left = `${x - WAVE_BASE / 2}px`;
@@ -42,7 +47,9 @@ function spawnWave(
     ],
     { duration: EXPAND_DURATION, easing: "ease-out", fill: "forwards" },
   );
-  waves.add({ wave, expand, released: false });
+  const handle: WaveHandle = { wave, expand, released: false };
+  waves.add(handle);
+  return handle;
 }
 
 function releaseWave(h: WaveHandle, waves: Set<WaveHandle>): void {
@@ -98,7 +105,7 @@ export const ripple: Directive<RippleEl> = {
         RADIUS_SCALE;
       // новое нажатие гасит предыдущие волны — без стакания
       waves.forEach((h) => releaseWave(h, waves));
-      spawnWave(wrapper, x, y, (radius * 2) / WAVE_BASE, waves);
+      el._rippleLastWave = spawnWave(wrapper, x, y, (radius * 2) / WAVE_BASE, waves);
     };
 
     // отпускание / клик / уход — гасим волну
@@ -106,14 +113,46 @@ export const ripple: Directive<RippleEl> = {
       waves.forEach((h) => releaseWave(h, waves));
     };
 
+    // переход срабатывает только после того, как волна доиграет (как в Telegram Wallet)
+    const onClick = (e: MouseEvent) => {
+      if (el._rippleBypass) {
+        el._rippleBypass = false;
+        return;
+      }
+      const handle = el._rippleLastWave;
+      el._rippleLastWave = null;
+      if (!handle) return; // клик без свежей волны (клавиатура/синтетика) — пропускаем
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      let fired = false;
+      const fire = () => {
+        if (fired) return;
+        fired = true;
+        el._rippleBypass = true;
+        el.dispatchEvent(
+          new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            clientX: e.clientX,
+            clientY: e.clientY,
+            view: window,
+          }),
+        );
+      };
+      handle.expand.finished.then(fire).catch(fire);
+      setTimeout(fire, CLICK_AWAIT_TIMEOUT);
+    };
+
     el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointerup", onUp);
     el.addEventListener("pointercancel", onUp);
     el.addEventListener("pointerleave", onUp);
+    el.addEventListener("click", onClick, true);
 
     el._rippleWrapper = wrapper;
     el._rippleDown = onDown;
     el._rippleUp = onUp;
+    el._rippleClick = onClick;
     el._rippleWaves = waves;
   },
 
@@ -124,6 +163,7 @@ export const ripple: Directive<RippleEl> = {
       el.removeEventListener("pointercancel", el._rippleUp);
       el.removeEventListener("pointerleave", el._rippleUp);
     }
+    if (el._rippleClick) el.removeEventListener("click", el._rippleClick, true);
     el._rippleWaves?.forEach((h) => {
       h.expand.cancel();
       h.wave.remove();

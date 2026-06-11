@@ -1,7 +1,10 @@
 {
   "new_chat": "Nowy czat",
   "images": "Obrazy",
-  "recents": "Ostatnie czaty",
+  "recents": "Ostatnie dialogi",
+  "pinned_dialogs": "Przypięte czaty",
+  "pin": "Przypnij",
+  "unpin": "Odepnij",
   "search": "Szukaj",
   "no_chats": "Brak czatów",
   "rename": "Zmień nazwę",

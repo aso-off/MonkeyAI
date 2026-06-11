@@ -84,6 +84,7 @@ class Dialog(Base):
     start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     title: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    pinned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     messages: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
 
     user: Mapped["User"] = relationship("User", back_populates="dialogs")

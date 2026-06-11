@@ -4,17 +4,20 @@
       <div v-if="open" class="sheet-backdrop" @click.self="$emit('close')">
         <div class="sheet">
           <div class="sheet-handle"></div>
-          <div class="sheet-group">
-            <button v-ripple class="sheet-item" @click="$emit('rename')">
-              <img :src="renameSvg" alt="" draggable="false" />
-              <span>{{ $t('rename') }}</span>
-            </button>
-            <div class="sheet-divider"></div>
-            <button v-ripple class="sheet-item sheet-item--danger" @click="$emit('delete')">
-              <img :src="deleteSvg" alt="" draggable="false" />
-              <span>{{ $t('delete_chat') }}</span>
-            </button>
-          </div>
+          <button v-ripple class="sheet-item" @click="pinned ? $emit('unpin') : $emit('pin')">
+            <img :src="keepSvg" alt="" draggable="false" />
+            <span>{{ pinned ? $t('unpin') : $t('pin') }}</span>
+          </button>
+          <div class="sheet-divider"></div>
+          <button v-ripple class="sheet-item" @click="$emit('rename')">
+            <img :src="renameSvg" alt="" draggable="false" />
+            <span>{{ $t('rename') }}</span>
+          </button>
+          <div class="sheet-divider"></div>
+          <button v-ripple class="sheet-item sheet-item--danger" @click="$emit('delete')">
+            <img :src="deleteSvg" alt="" draggable="false" />
+            <span>{{ $t('delete_chat') }}</span>
+          </button>
         </div>
       </div>
     </Transition>
@@ -24,9 +27,10 @@
 <script setup lang="ts">
 import renameSvg from '@/components/img/rename.svg';
 import deleteSvg from '@/components/img/delete.svg';
+import keepSvg from '@/components/img/keep.svg';
 
-defineProps<{ open: boolean }>();
-defineEmits<{ close: []; rename: []; delete: [] }>();
+defineProps<{ open: boolean; pinned: boolean }>();
+defineEmits<{ close: []; rename: []; delete: []; pin: []; unpin: [] }>();
 </script>
 
 <style scoped>
@@ -40,9 +44,10 @@ defineEmits<{ close: []; rename: []; delete: [] }>();
 }
 .sheet {
   width: 100%;
-  padding: 8px 12px calc(env(safe-area-inset-bottom) + 20px);
-  background: var(--backgorund-color);
+  background: var(--second-bg-color);
   border-radius: 18px 18px 0 0;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
+  overflow: hidden;
 }
 .sheet-handle {
   width: 40px;
@@ -50,13 +55,7 @@ defineEmits<{ close: []; rename: []; delete: [] }>();
   border-radius: 2px;
   background: var(--icons-storke-color);
   opacity: 0.4;
-  margin: 4px auto 14px;
-}
-.sheet-group {
-  width: 100%;
-  border-radius: 16px;
-  background: var(--second-bg-color);
-  overflow: hidden;
+  margin: 10px auto 6px;
 }
 .sheet-item {
   display: flex;
@@ -64,7 +63,7 @@ defineEmits<{ close: []; rename: []; delete: [] }>();
   gap: 14px;
   width: 100%;
   min-height: 58px;
-  padding: 16px 18px;
+  padding: 17px 20px;
   box-sizing: border-box;
   border: none;
   outline: none;

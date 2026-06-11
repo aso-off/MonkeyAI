@@ -1,7 +1,10 @@
 {
   "new_chat": "Novo chat",
   "images": "Imagens",
-  "recents": "Conversas recentes",
+  "recents": "Diálogos recentes",
+  "pinned_dialogs": "Conversas fixadas",
+  "pin": "Fixar",
+  "unpin": "Desafixar",
   "search": "Pesquisar",
   "no_chats": "Ainda não há conversas",
   "rename": "Renomear",
