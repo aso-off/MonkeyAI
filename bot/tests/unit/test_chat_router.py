@@ -132,8 +132,7 @@ def _stream_chunk(text: str = "hello", flagged: bool = False, status: str = "fin
     c = MagicMock()
     c.is_flagged = flagged
     c.text = text
-    c.n_input_tokens = fake.random_int(min=1, max=100)
-    c.n_output_tokens = fake.random_int(min=1, max=100)
+    c.usage = MagicMock(input_tokens=1, output_tokens=1, total_tokens=2)
     c.n_first_removed = 0
     c.status = status
     return c

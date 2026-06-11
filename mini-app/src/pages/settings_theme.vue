@@ -21,7 +21,6 @@
                 <circle v-if="currentTheme === 'system'" cx="12" cy="12" r="6" fill="var(--tg-theme-button-color)" />
               </svg>
             </span>
-            <div class="settingschange-divider"></div>
             <span
               v-ripple
               class="settingschange-select-button"
@@ -34,7 +33,6 @@
                 <circle v-if="currentTheme === 'dark'" cx="12" cy="12" r="6" fill="var(--tg-theme-button-color)" />
               </svg>
             </span>
-            <div class="settingschange-divider"></div>
             <span
               v-ripple
               class="settingschange-select-button"
@@ -108,7 +106,7 @@ function updateTheme(theme: string): void {
 }
 
 .settingschange-select-button:active {
-  background-color: transparent;
+  background-color: var(--second-bg-color);
 }
 
 .settingschange-select-button.saving {

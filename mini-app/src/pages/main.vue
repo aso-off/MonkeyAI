@@ -23,7 +23,7 @@
 
         <!-- Список: pinned + даты в одном TransitionGroup — FLIP, строки не пересоздаются -->
         <template v-if="dialogs.loading && dialogs.list.length === 0 && dialogs.pinned.length === 0">
-          <div class="home__card">
+          <div class="home__skel">
             <div v-for="n in skeletonCount" :key="n" class="rec-skeleton-row">
               <div class="rec-skeleton-line"></div>
               <div class="rec-skeleton-line rec-skeleton-line--sub"></div>
@@ -443,9 +443,7 @@ onMounted(() => {
 .home__avatar-skel {
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, #6b6f7430 30%, #6b6f7460 50%, #6b6f7430 70%);
-  background-size: 200% 100%;
-  animation: avatar-shimmer 1.2s ease-in-out infinite;
+  background: #6b6f7438;
 }
 @keyframes avatar-shimmer {
   0% { background-position: 200% 0; }
@@ -583,6 +581,11 @@ onMounted(() => {
   height: 20px;
 }
 
+.home__skel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .rec-skeleton-row {
   min-height: 60px;
   padding: 12px 16px;
@@ -591,9 +594,15 @@ onMounted(() => {
   flex-direction: column;
   justify-content: center;
   gap: 9px;
+  background: var(--second-bg-color);
 }
-.rec-skeleton-row:not(:first-child) {
-  border-top: 2px solid var(--backgorund-color);
+.rec-skeleton-row:first-child {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+.rec-skeleton-row:last-child {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 .rec-skeleton-line {
   height: 15px;

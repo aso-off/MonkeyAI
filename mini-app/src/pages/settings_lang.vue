@@ -23,7 +23,6 @@
               </svg>
             </span>
             <template v-for="lang in LANGUAGES" :key="lang.code">
-              <div class="settingschange-divider"></div>
               <span
                 v-ripple
                 class="settingschange-select-button"
@@ -149,7 +148,7 @@ const updateLanguage = async (lang: string): Promise<void> => {
 }
 
 .settingschange-select-button:active {
-  background-color: transparent;
+  background-color: var(--second-bg-color);
 }
 
 .settingschange-select-button.saving {

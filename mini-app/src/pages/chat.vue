@@ -1143,7 +1143,10 @@ async function sendMessage() {
 }
 
 function formatMessage(text: string): string {
-  return text.replace(/\n/g, "<br>");
+  // модель иногда пишет "< b >" — чиним до валидного тега
+  return text
+    .replace(/<\s*(\/?)\s*(b|i|u|s|code|pre)\s*>/gi, "<$1$2>")
+    .replace(/\n/g, "<br>");
 }
 
 function stripHtml(html: string): string {

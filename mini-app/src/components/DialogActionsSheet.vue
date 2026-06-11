@@ -8,12 +8,10 @@
             <img :src="keepSvg" alt="" draggable="false" />
             <span>{{ pinned ? $t('unpin') : $t('pin') }}</span>
           </button>
-          <div class="sheet-divider"></div>
           <button v-ripple class="sheet-item" @click="$emit('rename')">
             <img :src="renameSvg" alt="" draggable="false" />
             <span>{{ $t('rename') }}</span>
           </button>
-          <div class="sheet-divider"></div>
           <button v-ripple class="sheet-item sheet-item--danger" @click="$emit('delete')">
             <img :src="deleteSvg" alt="" draggable="false" />
             <span>{{ $t('delete_chat') }}</span>
@@ -83,9 +81,9 @@ defineEmits<{ close: []; rename: []; delete: []; pin: []; unpin: [] }>();
 .sheet-item:not(.sheet-item--danger) img {
   filter: brightness(0) saturate(100%) invert(60%);
 }
-.sheet-divider {
-  height: 2px;
-  background: var(--backgorund-color);
+/* разделитель — зазор с фоном панели, как в списке чатов */
+.sheet-item + .sheet-item {
+  margin-top: 2px;
 }
 .sheet-item--danger {
   color: #fa2e52;

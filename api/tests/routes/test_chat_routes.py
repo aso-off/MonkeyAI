@@ -98,8 +98,9 @@ class TestChatComplete:
             resp = api_client.post("/chat/complete", json=_chat_body())
 
         data = resp.json()
-        assert data["n_input_tokens"] == n_in
-        assert data["n_output_tokens"] == n_out
+        assert data["usage"]["input_tokens"] == n_in
+        assert data["usage"]["output_tokens"] == n_out
+        assert data["usage"]["total_tokens"] == n_in + n_out
 
     @pytest.mark.api
     def test_flagged_content_returns_flagged_response(self, api_client) -> None:

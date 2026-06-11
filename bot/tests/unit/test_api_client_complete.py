@@ -156,15 +156,18 @@ class TestDecode:
 
     def test_decodes_chat_complete_response(self) -> None:
         from src.services.api_client import _decode, ChatCompleteResponse
+        n_in = fake.random_int(min=10, max=500)
+        n_out = fake.random_int(min=5, max=200)
         data = {
             "answer": fake.sentence(),
-            "n_input_tokens": fake.random_int(min=10, max=500),
-            "n_output_tokens": fake.random_int(min=5, max=200),
+            "usage": {"input_tokens": n_in, "output_tokens": n_out, "total_tokens": n_in + n_out},
             "n_first_removed": 0,
             "is_flagged": False,
         }
         result = _decode(json.dumps(data).encode(), ChatCompleteResponse)
         assert result.answer == data["answer"]
+        assert result.usage.input_tokens == n_in
+        assert result.usage.total_tokens == n_in + n_out
 
 
 # ── Users ─────────────────────────────────────────────────────────────────────
@@ -311,8 +314,7 @@ class TestChatComplete:
         answer = fake.paragraph()
         data = {
             "answer": answer,
-            "n_input_tokens": fake.random_int(min=10, max=500),
-            "n_output_tokens": fake.random_int(min=5, max=200),
+            "usage": {"input_tokens": 20, "output_tokens": 10, "total_tokens": 30},
             "n_first_removed": 0,
             "is_flagged": False,
         }
@@ -333,8 +335,7 @@ class TestChatComplete:
         from src.services import api_client as ac
         data = {
             "answer": "",
-            "n_input_tokens": 0,
-            "n_output_tokens": 0,
+            "usage": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
             "n_first_removed": 0,
             "is_flagged": True,
         }
@@ -356,8 +357,7 @@ class TestChatStream:
         chunk_data = {
             "status": "finished",
             "text": answer,
-            "n_input_tokens": 20,
-            "n_output_tokens": 10,
+            "usage": {"input_tokens": 20, "output_tokens": 10, "total_tokens": 30},
             "n_first_removed": 0,
             "is_flagged": False,
         }
