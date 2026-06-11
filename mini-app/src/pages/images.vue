@@ -9,12 +9,14 @@
         <div class="img-hero">
           <form class="img-form" @submit.prevent="submitImage">
             <div class="img-field">
-              <input
+              <textarea
+                ref="inputEl"
                 v-model="prompt"
                 class="img-input"
                 :placeholder="$t('input_placeholder_image')"
-                enterkeyhint="send"
-              />
+                rows="1"
+                @input="autoGrow"
+              ></textarea>
               <button
                 class="img-submit"
                 :class="{ disabled: !prompt.trim() }"
@@ -65,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { retrieveLaunchParams } from '@tma.js/sdk-vue';
 import { api } from '@/services/api';
@@ -79,8 +81,16 @@ const store = useUserStore();
 const images = useImagesStore();
 
 const rootEl = ref<HTMLElement | null>(null);
+const inputEl = ref<HTMLTextAreaElement | null>(null);
 const prompt = ref('');
 const viewer = ref<string | null>(null);
+
+function autoGrow() {
+  const el = inputEl.value;
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+}
 
 /** Save доступен только там, где есть системный диалог «куда сохранить» / шеринг. */
 const canExport = computed(() => {
@@ -104,6 +114,7 @@ async function submitImage() {
   const text = prompt.value.trim();
   if (!text) return;
   prompt.value = '';
+  nextTick(autoGrow);
   try {
     await store.setModel('gpt-image-1.5');
     const { dialog_id } = await api.newDialog();
@@ -230,32 +241,37 @@ onMounted(() => {
 }
 .img-field {
   position: relative;
-  display: flex;
-  align-items: center;
   width: 100%;
-  min-height: 54px;
-  padding: 4px 4px 4px 18px;
   box-sizing: border-box;
-  border-radius: 27px;
+  padding: 12px 16px 54px;
+  border-radius: 18px;
   border: 2px solid var(--border-color);
   background: var(--second-bg-color);
 }
 .img-input {
-  flex: 1;
-  min-width: 0;
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  max-height: 160px;
   border: none;
   outline: none;
+  resize: none;
   background: transparent;
   color: var(--text-color);
   font-size: 16px;
+  line-height: 1.4;
+  font-family: inherit;
+  overflow-y: auto;
 }
 .img-submit {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 42px;
   height: 42px;
-  flex-shrink: 0;
   border: none;
   border-radius: 50%;
   background-color: var(--tg-theme-button-color, #007aff);

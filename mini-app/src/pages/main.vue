@@ -14,7 +14,7 @@
         <!-- Кнопка Изображения (карточка как в настройках) -->
         <div class="home__card">
           <div v-ripple class="home__row interactive" @click="router.push('/images')">
-            <div class="home__row-iconbox" style="background-color: rgb(31, 174, 233)">
+            <div class="home__row-iconbox" style="background-color: rgb(113, 188, 120)">
               <img :src="imageSvg" alt="" draggable="false" />
             </div>
             <span class="home__row-text">{{ $t('images') }}</span>
@@ -63,7 +63,10 @@
 
         <template v-if="dialogs.loading && dialogs.list.length === 0">
           <div class="home__card">
-            <div v-for="n in 5" :key="n" class="rec-skeleton"></div>
+            <div v-for="n in skeletonCount" :key="n" class="rec-skeleton-row">
+              <div class="rec-skeleton-line"></div>
+              <div class="rec-skeleton-line rec-skeleton-line--sub"></div>
+            </div>
           </div>
         </template>
 
@@ -187,6 +190,12 @@ const fullName = computed(() => {
 
 const avatarLoaded = ref(false);
 
+// скелетонов столько, чтобы заполнить экран
+const skeletonCount = Math.min(
+  20,
+  Math.max(8, Math.ceil((typeof window !== 'undefined' ? window.innerHeight : 800) / 62)),
+);
+
 const photoUrl = computed<string | null>(() => {
   try {
     return initData.user()?.photo_url ?? null;
@@ -203,7 +212,10 @@ function formatDate(iso: string): string {
     return d.toLocaleTimeString(lc, { hour: '2-digit', minute: '2-digit', hour12: false });
   }
   const diffDays = Math.floor((now.getTime() - d.getTime()) / 86_400_000);
-  if (diffDays < 7) return d.toLocaleDateString(lc, { weekday: 'long' });
+  if (diffDays < 7) {
+    const wd = d.toLocaleDateString(lc, { weekday: 'long' });
+    return wd.charAt(0).toUpperCase() + wd.slice(1);
+  }
   return d.toLocaleDateString(lc, { month: 'short', day: '2-digit' });
 }
 
@@ -480,6 +492,7 @@ onMounted(() => {
 }
 
 .home__list {
+  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -493,6 +506,9 @@ onMounted(() => {
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+  background: var(--second-bg-color);
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 .rec-row:not(:first-child) {
   border-top: 2px solid var(--backgorund-color);
@@ -539,20 +555,46 @@ onMounted(() => {
   height: 20px;
 }
 
-.rec-skeleton {
-  height: 44px;
-  border-radius: 10px;
-  background-color: #6b6f7438;
-  margin: 8px 16px;
+.rec-skeleton-row {
+  min-height: 60px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+}
+.rec-skeleton-row:not(:first-child) {
+  border-top: 2px solid var(--backgorund-color);
+}
+.rec-skeleton-line {
+  height: 15px;
+  width: 55%;
+  border-radius: 6px;
+  background: linear-gradient(100deg, #6b6f7430 30%, #6b6f7460 50%, #6b6f7430 70%);
+  background-size: 200% 100%;
+  animation: avatar-shimmer 1.2s ease-in-out infinite;
+}
+.rec-skeleton-line--sub {
+  width: 32%;
+  height: 12px;
 }
 .rec-enter-active,
 .rec-leave-active {
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition: opacity 200ms ease;
 }
 .rec-enter-from,
 .rec-leave-to {
   opacity: 0;
-  transform: translateX(-12px);
+}
+.rec-leave-active {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.rec-move {
+  transition: transform 220ms ease;
 }
 
 .home__empty {
