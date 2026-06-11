@@ -323,14 +323,41 @@ async def list_dialogs(
     before: datetime | None = None,
     limit: int = 20,
 ) -> list[Dialog]:
-    """Mini-app dialogs, newest activity first. Cursor — last_activity < before."""
+    """Незакреплённые mini-app диалоги, newest activity first. Cursor — last_activity < before."""
     q = select(Dialog).where(
-        Dialog.user_id == user_id, Dialog.chat_mode.like(_MINI_APP_PREFIX)
+        Dialog.user_id == user_id,
+        Dialog.chat_mode.like(_MINI_APP_PREFIX),
+        Dialog.pinned_at.is_(None),
     )
     if before is not None:
         q = q.where(Dialog.last_activity < before)
     q = q.order_by(Dialog.last_activity.desc()).limit(limit)
     return list((await session.execute(q)).scalars().all())
+
+
+async def list_pinned_dialogs(session: AsyncSession, user_id: int) -> list[Dialog]:
+    """Закреплённые mini-app диалоги, недавно закреплённые сверху."""
+    q = (
+        select(Dialog)
+        .where(
+            Dialog.user_id == user_id,
+            Dialog.chat_mode.like(_MINI_APP_PREFIX),
+            Dialog.pinned_at.is_not(None),
+        )
+        .order_by(Dialog.pinned_at.desc())
+    )
+    return list((await session.execute(q)).scalars().all())
+
+
+async def set_pinned(session: AsyncSession, user_id: int, dialog_id: str, pinned: bool) -> bool:
+    value = datetime.now(timezone.utc) if pinned else None
+    result = await session.execute(
+        update(Dialog)
+        .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
+        .values(pinned_at=value)
+    )
+    await session.commit()
+    return result.rowcount > 0
 
 
 async def search_dialogs(
