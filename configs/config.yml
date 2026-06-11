@@ -70,3 +70,4 @@ container_names:
   - monkey_grafana
   - monkey_redisinsight
   - monkey_npm
+  - monkey_umami
