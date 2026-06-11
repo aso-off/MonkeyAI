@@ -43,6 +43,7 @@ defineEmits<{ cancel: []; confirm: [] }>();
 .cm-head {
   padding: 20px 20px 16px;
   text-align: center;
+  background: var(--backgorund-color);
 }
 .cm-title {
   font-size: 17px;
@@ -59,6 +60,7 @@ defineEmits<{ cancel: []; confirm: [] }>();
   display: flex;
   gap: 8px;
   padding: 4px 12px 14px;
+  background: var(--backgorund-color);
 }
 .cm-btn {
   flex: 1;
@@ -70,6 +72,9 @@ defineEmits<{ cancel: []; confirm: [] }>();
   font-weight: 500;
   color: var(--text-color);
   -webkit-tap-highlight-color: transparent;
+  background: var(--second-bg-color);
+  border-radius: 14px;
+
 }
 .cm-btn--danger {
   color: #fa2e52;
