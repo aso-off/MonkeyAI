@@ -377,6 +377,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
                 await user_repo.update_last_interaction(session, user_id)
                 await handle_first_message_title(
                     session, resolved_dialog_id, message,
+                    reply=final_answer,
                     on_refined=_title_broadcast(user_id, resolved_dialog_id),
                 )
         except Exception:

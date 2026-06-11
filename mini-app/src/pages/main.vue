@@ -21,45 +21,8 @@
           </div>
         </div>
 
-        <!-- Pinned -->
-        <template v-if="dialogs.pinned.length && !searchQuery.trim()">
-          <div class="home__section-title">{{ $t('pinned_dialogs') }}</div>
-          <div class="home__card">
-            <TransitionGroup name="rec" tag="div" class="home__list">
-              <div
-                v-for="d in dialogs.pinned"
-                :key="d.dialog_id"
-                v-ripple
-                class="rec-row interactive"
-                @click="onRowClick(d.dialog_id)"
-                @touchstart.passive="onPressStart(d.dialog_id)"
-                @touchend="onPressEnd"
-                @touchmove.passive="onPressEnd"
-              >
-                <div class="rec-main">
-                  <input
-                    v-if="editingId === d.dialog_id"
-                    v-model="editingTitle"
-                    class="rec-edit"
-                    enterkeyhint="done"
-                    maxlength="40"
-                    @click.stop
-                    @keyup.enter="commitRename"
-                    @blur="commitRename"
-                  />
-                  <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
-                  <div class="rec-date">{{ formatDate(d.last_activity) }}</div>
-                </div>
-                <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(d.dialog_id)">
-                  <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
-                </span>
-              </div>
-            </TransitionGroup>
-          </div>
-        </template>
-
-        <!-- Recents -->
-        <template v-if="dialogs.loading && dialogs.list.length === 0">
+        <!-- Список: pinned + даты в одном TransitionGroup — FLIP, строки не пересоздаются -->
+        <template v-if="dialogs.loading && dialogs.list.length === 0 && dialogs.pinned.length === 0">
           <div class="home__card">
             <div v-for="n in skeletonCount" :key="n" class="rec-skeleton-row">
               <div class="rec-skeleton-line"></div>
@@ -68,50 +31,43 @@
           </div>
         </template>
 
-        <div
-          v-else-if="searchQuery.trim() ? dialogs.searchResults.length === 0 : dialogs.list.length === 0"
-          class="home__empty"
-        >
+        <div v-else-if="showEmpty" class="home__empty">
           {{ searchQuery.trim() ? $t('no_search_results') : $t('no_chats') }}
         </div>
 
-        <template v-else>
-          <template v-for="g in recentSections" :key="g.key">
-            <div v-if="g.label" class="home__section-title">{{ g.label }}</div>
-            <div class="home__card">
-              <TransitionGroup name="rec" tag="div" class="home__list">
-                <div
-                  v-for="d in g.items"
-                  :key="d.dialog_id"
-                  v-ripple
-                  class="rec-row interactive"
-                  @click="onRowClick(d.dialog_id)"
-                  @touchstart.passive="onPressStart(d.dialog_id)"
-                  @touchend="onPressEnd"
-                  @touchmove.passive="onPressEnd"
-                >
-                  <div class="rec-main">
-                    <input
-                      v-if="editingId === d.dialog_id"
-                      v-model="editingTitle"
-                      class="rec-edit"
-                      enterkeyhint="done"
-                      maxlength="40"
-                      @click.stop
-                      @keyup.enter="commitRename"
-                      @blur="commitRename"
-                    />
-                    <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
-                    <div class="rec-date">{{ formatDate(d.last_activity) }}</div>
-                  </div>
-                  <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(d.dialog_id)">
-                    <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
-                  </span>
-                </div>
-              </TransitionGroup>
+        <TransitionGroup v-else name="rec" tag="div" class="home__flat">
+          <div v-for="row in flatRows" :key="row.key" class="flat-item">
+            <div v-if="row.kind === 'header'" class="home__section-title">{{ row.label }}</div>
+            <div
+              v-else
+              v-ripple
+              class="rec-row interactive"
+              :class="{ 'round-top': row.roundTop, 'round-bottom': row.roundBottom }"
+              @click="onRowClick(row.d.dialog_id)"
+              @touchstart.passive="onPressStart(row.d.dialog_id)"
+              @touchend="onPressEnd"
+              @touchmove.passive="onPressEnd"
+            >
+              <div class="rec-main">
+                <input
+                  v-if="editingId === row.d.dialog_id"
+                  v-model="editingTitle"
+                  class="rec-edit"
+                  enterkeyhint="done"
+                  maxlength="40"
+                  @click.stop
+                  @keyup.enter="commitRename"
+                  @blur="commitRename"
+                />
+                <div v-else class="rec-title">{{ row.d.title || $t('new_chat') }}</div>
+                <div class="rec-date">{{ formatDate(row.d.last_activity) }}</div>
+              </div>
+              <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(row.d.dialog_id)">
+                <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
+              </span>
             </div>
-          </template>
-        </template>
+          </div>
+        </TransitionGroup>
 
         <div class="home__bottom-spacer"></div>
       </div>
@@ -168,7 +124,7 @@ import { useI18n } from 'vue-i18n';
 import { initData } from '@tma.js/sdk-vue';
 import { useUserStore, IMAGE_MODELS } from '@/store/user';
 import { useDialogsStore } from '@/store/dialogs';
-import { api, wsClient } from '@/services/api';
+import { api, wsClient, type DialogListItem } from '@/services/api';
 import DialogActionsSheet from '@/components/DialogActionsSheet.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import imageSvg from '@/components/img/Image.svg';
@@ -227,19 +183,36 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString(lc, { month: 'short', day: '2-digit' });
 }
 
-// Группировка недавних по дате: Сегодня / Вчера / На этой неделе / Ранее.
-// При поиске — одна плоская секция без заголовка.
-const recentSections = computed(() => {
+// Один плоский список (заголовки + строки) — единый TransitionGroup, FLIP между секциями.
+type FlatRow =
+  | { kind: 'header'; key: string; label: string }
+  | { kind: 'dialog'; key: string; d: DialogListItem; roundTop: boolean; roundBottom: boolean };
+
+const flatRows = computed<FlatRow[]>(() => {
+  const rows: FlatRow[] = [];
+  const pushSection = (key: string, label: string, items: DialogListItem[]) => {
+    if (!items.length) return;
+    if (label) rows.push({ kind: 'header', key: `hdr-${key}`, label });
+    items.forEach((d, i) =>
+      rows.push({
+        kind: 'dialog',
+        key: d.dialog_id,
+        d,
+        roundTop: i === 0,
+        roundBottom: i === items.length - 1,
+      }),
+    );
+  };
   if (searchQuery.value.trim()) {
-    return dialogs.searchResults.length
-      ? [{ key: 'search', label: '', items: dialogs.searchResults }]
-      : [];
+    pushSection('search', '', dialogs.searchResults);
+    return rows;
   }
+  pushSection('pinned', t('pinned_dialogs'), dialogs.pinned);
   const now = new Date();
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const startYesterday = startToday - 86_400_000;
   const startWeek = startToday - 6 * 86_400_000;
-  const buckets: Record<string, typeof dialogs.list> = { today: [], yesterday: [], week: [], earlier: [] };
+  const buckets: Record<string, DialogListItem[]> = { today: [], yesterday: [], week: [], earlier: [] };
   for (const d of dialogs.list) {
     const ts = new Date(d.last_activity).getTime();
     if (ts >= startToday) buckets.today.push(d);
@@ -247,15 +220,16 @@ const recentSections = computed(() => {
     else if (ts >= startWeek) buckets.week.push(d);
     else buckets.earlier.push(d);
   }
-  const order: [string, string][] = [
-    ['today', 'group_today'],
-    ['yesterday', 'group_yesterday'],
-    ['week', 'group_week'],
-    ['earlier', 'group_earlier'],
-  ];
-  return order
-    .filter(([k]) => buckets[k].length)
-    .map(([k, lk]) => ({ key: k, label: t(lk), items: buckets[k] }));
+  pushSection('today', t('group_today'), buckets.today);
+  pushSection('yesterday', t('group_yesterday'), buckets.yesterday);
+  pushSection('week', t('group_week'), buckets.week);
+  pushSection('earlier', t('group_earlier'), buckets.earlier);
+  return rows;
+});
+
+const showEmpty = computed(() => {
+  if (searchQuery.value.trim()) return !dialogs.searching && dialogs.searchResults.length === 0;
+  return dialogs.list.length === 0 && dialogs.pinned.length === 0;
 });
 
 function openChat(id: string) {
@@ -285,7 +259,9 @@ let pressTimer: ReturnType<typeof setTimeout> | null = null;
 
 const sheetPinned = computed(
   () =>
-    [...dialogs.pinned, ...dialogs.list].find((x) => x.dialog_id === sheetId.value)?.pinned ?? false,
+    [...dialogs.pinned, ...dialogs.list, ...dialogs.searchResults].find(
+      (x) => x.dialog_id === sheetId.value,
+    )?.pinned ?? false,
 );
 
 function onPin() {
@@ -328,7 +304,9 @@ function startRename() {
   sheetId.value = null;
   editingId.value = id;
   // безымянный чат — подставляем отображаемое имя (и выделяем), чтобы не начинать с 0
-  const d = dialogs.list.find((x) => x.dialog_id === id);
+  const d = [...dialogs.pinned, ...dialogs.list, ...dialogs.searchResults].find(
+    (x) => x.dialog_id === id,
+  );
   editingTitle.value = d?.title || t('new_chat');
   nextTick(() => {
     const el = document.querySelector('.rec-edit') as HTMLInputElement | null;
@@ -384,6 +362,7 @@ function onSearchInput() {
     dialogs.clearSearch();
     return;
   }
+  dialogs.markSearching();
   // "Новый чат" / "New Chat" ищем и среди безымянных диалогов (title IS NULL)
   const includeUntitled = t('new_chat').toLowerCase().includes(q.toLowerCase());
   searchTimer = setTimeout(() => {
@@ -522,13 +501,19 @@ onMounted(() => {
   font-size: 13px;
   color: var(--icons-storke-color);
   text-transform: uppercase;
-  padding: 8px 16px 0;
+  padding: 18px 16px 10px;
 }
 
-.home__list {
+.home__flat {
   position: relative;
   display: flex;
   flex-direction: column;
+}
+.flat-item {
+  width: 100%;
+}
+.flat-item:first-child .home__section-title {
+  padding-top: 8px;
 }
 .rec-row {
   display: flex;
@@ -541,9 +526,20 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   background: var(--second-bg-color);
+  border-radius: 0;
+  transition: border-radius 180ms ease;
 }
-.rec-row:not(:first-child) {
-  border-top: 2px solid var(--backgorund-color);
+/* разделитель — зазор с фоном страницы, без border (давал шов) */
+.rec-row:not(.round-top) {
+  margin-top: 2px;
+}
+.rec-row.round-top {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+.rec-row.round-bottom {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 .rec-main {
   flex: 1;
@@ -611,10 +607,19 @@ onMounted(() => {
   width: 32%;
   height: 12px;
 }
-/* Только opacity — без max-height/transform/absolute (они давали белый шов) */
-.rec-enter-active,
-.rec-leave-active {
+/* FLIP: соседи плавно съезжают, уходящая строка — под ними (absolute + z-index -1) */
+.rec-move {
+  transition: transform 220ms ease;
+}
+.rec-enter-active {
   transition: opacity 180ms ease;
+}
+.rec-leave-active {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  transition: opacity 150ms ease;
 }
 .rec-enter-from,
 .rec-leave-to {
