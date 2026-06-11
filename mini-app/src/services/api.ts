@@ -140,6 +140,7 @@ export interface DialogListItem {
   title: string | null;
   last_activity: string;
   start_time: string;
+  pinned: boolean;
 }
 
 export interface DialogListResult {
@@ -259,6 +260,20 @@ export const api = {
 
   deleteDialog(dialogId: string): Promise<void> {
     return apiFetch<void>(`/webapp/dialogs/${dialogId}`, { method: 'DELETE' }, 10_000, 0);
+  },
+
+  /** Pinned dialogs (most recently pinned first). */
+  listPinned(): Promise<DialogListResult> {
+    return apiFetch(`/webapp/dialogs/pinned`, {}, 15_000, 1);
+  },
+
+  pinDialog(dialogId: string, pinned: boolean): Promise<void> {
+    return apiFetch<void>(
+      `/webapp/dialogs/${dialogId}/pin`,
+      { method: 'PATCH', body: JSON.stringify({ pinned }) },
+      10_000,
+      0,
+    );
   },
 
   /** List the user's generated images (gallery). */

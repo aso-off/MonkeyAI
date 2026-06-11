@@ -8,17 +8,25 @@
         <!-- Ввод промпта — по центру -->
         <div class="img-hero">
           <form class="img-form" @submit.prevent="submitImage">
-            <input
-              v-model="prompt"
-              class="img-input"
-              :placeholder="$t('describe_image')"
-              enterkeyhint="send"
-            />
-            <button class="img-send" type="submit" :disabled="!prompt.trim()" aria-label="send">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
+            <div class="img-field">
+              <input
+                v-model="prompt"
+                class="img-input"
+                :placeholder="$t('input_placeholder_image')"
+                enterkeyhint="send"
+              />
+              <button
+                class="img-submit"
+                :class="{ disabled: !prompt.trim() }"
+                type="submit"
+                :disabled="!prompt.trim()"
+                aria-label="send"
+              >
+                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
           </form>
         </div>
 
@@ -177,17 +185,17 @@ onMounted(() => {
 }
 .img-head {
   text-align: center;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 34px;
+  font-weight: 700;
   color: var(--text-color);
-  padding: 10px 0 4px;
+  padding: 14px 0 4px;
 }
 .img-hero {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 32vh;
-  padding: 12px 0 22px;
+  min-height: 42vh;
+  padding: 12px 0 24px;
 }
 .img-grid {
   display: grid;
@@ -217,39 +225,53 @@ onMounted(() => {
 }
 
 .img-form {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   width: 100%;
   max-width: 560px;
+}
+.img-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 54px;
+  padding: 4px 4px 4px 18px;
+  box-sizing: border-box;
+  border-radius: 27px;
+  border: 2px solid var(--border-color);
+  background: var(--second-bg-color);
 }
 .img-input {
   flex: 1;
   min-width: 0;
-  height: 48px;
-  padding: 0 16px;
   border: none;
   outline: none;
-  border-radius: 24px;
-  background: var(--second-bg-color);
+  background: transparent;
   color: var(--text-color);
   font-size: 16px;
 }
-.img-send {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--tg-theme-button-color, #3390ec);
-  color: #fff;
+.img-submit {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   border: none;
-  transition: opacity 0.15s ease;
+  border-radius: 50%;
+  background-color: var(--tg-theme-button-color, #007aff);
+  color: var(--tg-theme-button-text-color, #fff);
+  transition: background-color 0.1s ease, color 0.1s ease;
 }
-.img-send:disabled {
-  opacity: 0.4;
+.img-submit svg {
+  width: 23px;
+  height: 23px;
+}
+.img-submit svg path {
+  stroke: currentColor;
+}
+.img-submit.disabled {
+  background-color: var(--third-bg-color);
+  color: var(--icons-storke-color);
 }
 
 .viewer {

@@ -447,6 +447,7 @@ class _DialogListItem(BaseModel):
     title: str | None = None
     last_activity: datetime
     start_time: datetime
+    pinned: bool = False
 
 
 class _DialogListResponse(BaseModel):
@@ -459,9 +460,17 @@ class _RenamePayload(BaseModel):
     title: str
 
 
+class _PinPayload(BaseModel):
+    pinned: bool
+
+
 def _to_list_item(d) -> _DialogListItem:
     return _DialogListItem(
-        dialog_id=d.id, title=d.title, last_activity=d.last_activity, start_time=d.start_time
+        dialog_id=d.id,
+        title=d.title,
+        last_activity=d.last_activity,
+        start_time=d.start_time,
+        pinned=d.pinned_at is not None,
     )
 
 
@@ -523,6 +532,28 @@ async def delete_dialog(
 ) -> None:
     user_id = _extract_tg_user(init_data)["id"]
     if not await dialog_repo.delete_dialog(session, user_id, dialog_id):
+        raise HTTPException(status_code=404, detail="Dialog not found")
+
+
+@router.get("/dialogs/pinned", response_model=_DialogListResponse, summary="List pinned dialogs")
+async def list_pinned(
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> _DialogListResponse:
+    user_id = _extract_tg_user(init_data)["id"]
+    rows = await dialog_repo.list_pinned_dialogs(session, user_id)
+    return _DialogListResponse(dialogs=[_to_list_item(d) for d in rows])
+
+
+@router.patch("/dialogs/{dialog_id}/pin", status_code=204, summary="Pin or unpin dialog")
+async def pin_dialog(
+    dialog_id: str,
+    payload: _PinPayload,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    user_id = _extract_tg_user(init_data)["id"]
+    if not await dialog_repo.set_pinned(session, user_id, dialog_id, payload.pinned):
         raise HTTPException(status_code=404, detail="Dialog not found")
 
 

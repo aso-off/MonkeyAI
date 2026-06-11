@@ -953,14 +953,20 @@ const isDialogLoading = ref(false);
 
 /** Load a specific dialog by id (opened from Recents / page reload) and pin to bottom. */
 async function loadDialogById(id: string) {
-  if (streamingBotIdx.value !== -1) return;
   if (isLoadingHistory) return;
-  isLoadingHistory = true;
-  // не мелькаем пустой карточкой-стикером, пока грузим известный диалог
-  if (id !== store.dialogId) {
+  if (id === store.dialogId) {
+    // тот же диалог + идёт генерация — не перезагружаем
+    if (streamingBotIdx.value !== -1) return;
+  } else {
+    // переключение на другой диалог: бросаем незавершённую генерацию
+    // (она досчитается и сохранится на сервере), чтобы не показывать старый диалог
+    streamingBotIdx.value = -1;
+    remoteBotSlots.clear();
+    pendingReconnectReqId.value = null;
     applyChatHistory([]);
     isDialogLoading.value = true;
   }
+  isLoadingHistory = true;
   try {
     store.setDialogId(id);
     store.chatHistoryPrefetchOk = false;

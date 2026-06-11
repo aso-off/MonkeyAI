@@ -1,7 +1,10 @@
 {
   "new_chat": "Yeni sohbet",
   "images": "Görseller",
-  "recents": "Son sohbetler",
+  "recents": "Son diyaloglar",
+  "pinned_dialogs": "Sabitlenen sohbetler",
+  "pin": "Sabitle",
+  "unpin": "Sabiti kaldır",
   "search": "Ara",
   "no_chats": "Henüz sohbet yok",
   "rename": "Yeniden adlandır",

@@ -5,8 +5,8 @@
         <!-- Шапка: аватар + имя → настройки (без фона) -->
         <div v-ripple class="home__header interactive" @click="router.push('/settings')">
           <div class="home__avatar">
-            <img v-if="photoUrl" :src="photoUrl" alt="" draggable="false" />
-            <span v-else>{{ initial }}</span>
+            <div v-if="!avatarLoaded" class="home__avatar-skel"></div>
+            <img v-if="photoUrl" :src="photoUrl" alt="" draggable="false" @load="avatarLoaded = true" />
           </div>
           <div class="home__name">{{ fullName }}</div>
         </div>
@@ -14,10 +14,49 @@
         <!-- Кнопка Изображения (карточка как в настройках) -->
         <div class="home__card">
           <div v-ripple class="home__row interactive" @click="router.push('/images')">
-            <img class="home__row-icon icon-muted" :src="imageSvg" alt="" draggable="false" />
+            <div class="home__row-iconbox" style="background-color: rgb(31, 174, 233)">
+              <img :src="imageSvg" alt="" draggable="false" />
+            </div>
             <span class="home__row-text">{{ $t('images') }}</span>
           </div>
         </div>
+
+        <!-- Pinned -->
+        <template v-if="dialogs.pinned.length">
+          <div class="home__section-title">{{ $t('pinned_dialogs') }}</div>
+          <div class="home__card">
+            <TransitionGroup name="rec" tag="div" class="home__list">
+              <div
+                v-for="d in dialogs.pinned"
+                :key="d.dialog_id"
+                v-ripple
+                class="rec-row interactive"
+                @click="onRowClick(d.dialog_id)"
+                @touchstart.passive="onPressStart(d.dialog_id)"
+                @touchend="onPressEnd"
+                @touchmove.passive="onPressEnd"
+              >
+                <div class="rec-main">
+                  <input
+                    v-if="editingId === d.dialog_id"
+                    v-model="editingTitle"
+                    class="rec-edit"
+                    enterkeyhint="done"
+                    maxlength="40"
+                    @click.stop
+                    @keyup.enter="commitRename"
+                    @blur="commitRename"
+                  />
+                  <div v-else class="rec-title">{{ d.title || $t('new_chat') }}</div>
+                  <div class="rec-date">{{ formatDate(d.start_time) }}</div>
+                </div>
+                <span v-ripple class="rec-menu" @pointerdown.stop @click.stop="onMenu(d.dialog_id)">
+                  <img class="icon-muted" :src="editSvg" alt="" draggable="false" />
+                </span>
+              </div>
+            </TransitionGroup>
+          </div>
+        </template>
 
         <!-- Recents -->
         <div class="home__section-title">{{ $t('recents') }}</div>
@@ -93,8 +132,11 @@
 
     <DialogActionsSheet
       :open="sheetId !== null"
+      :pinned="sheetPinned"
       @close="sheetId = null"
       @rename="startRename"
+      @pin="onPin"
+      @unpin="onUnpin"
       @delete="startDelete"
     />
     <ConfirmModal
@@ -113,7 +155,7 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { initData } from '@tma.js/sdk-vue';
-import { useUserStore } from '@/store/user';
+import { useUserStore, IMAGE_MODELS } from '@/store/user';
 import { useDialogsStore } from '@/store/dialogs';
 import { api, wsClient } from '@/services/api';
 import DialogActionsSheet from '@/components/DialogActionsSheet.vue';
@@ -129,7 +171,7 @@ defineOptions({ name: 'MainPage' });
 const router = useRouter();
 const store = useUserStore();
 const dialogs = useDialogsStore();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const rootEl = ref<HTMLElement | null>(null);
 const searchInput = ref<HTMLInputElement | null>(null);
@@ -143,7 +185,7 @@ const fullName = computed(() => {
   return [u.first_name, u.last_name].filter(Boolean).join(' ');
 });
 
-const initial = computed(() => (store.user?.first_name?.[0] ?? '?').toUpperCase());
+const avatarLoaded = ref(false);
 
 const photoUrl = computed<string | null>(() => {
   try {
@@ -156,12 +198,13 @@ const photoUrl = computed<string | null>(() => {
 function formatDate(iso: string): string {
   const d = new Date(iso);
   const now = new Date();
+  const lc = locale.value;
   if (d.toDateString() === now.toDateString()) {
-    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+    return d.toLocaleTimeString(lc, { hour: '2-digit', minute: '2-digit', hour12: false });
   }
   const diffDays = Math.floor((now.getTime() - d.getTime()) / 86_400_000);
-  if (diffDays < 7) return d.toLocaleDateString(undefined, { weekday: 'long' });
-  return d.toLocaleDateString();
+  if (diffDays < 7) return d.toLocaleDateString(lc, { weekday: 'long' });
+  return d.toLocaleDateString(lc, { month: 'short', day: '2-digit' });
 }
 
 function openChat(id: string) {
@@ -170,6 +213,10 @@ function openChat(id: string) {
 
 async function newChat() {
   try {
+    // новый чат — текстовый: сбрасываем залипшую image-модель (оптимистично, не блокируем)
+    if ((IMAGE_MODELS as readonly string[]).includes(store.currentModel)) {
+      store.setModel('gpt-5-nano').catch(() => {});
+    }
     const { dialog_id } = await api.newDialog();
     dialogs.prepend(dialog_id);
     router.push({ name: 'chat', params: { dialogId: dialog_id } });
@@ -178,12 +225,29 @@ async function newChat() {
   }
 }
 
-/* === Action-sheet / rename / delete === */
+/* === Action-sheet / rename / delete / pin === */
 const sheetId = ref<string | null>(null);
 const confirmId = ref<string | null>(null);
 const editingId = ref<string | null>(null);
 const editingTitle = ref('');
 let pressTimer: ReturnType<typeof setTimeout> | null = null;
+
+const sheetPinned = computed(
+  () =>
+    [...dialogs.pinned, ...dialogs.list].find((x) => x.dialog_id === sheetId.value)?.pinned ?? false,
+);
+
+function onPin() {
+  const id = sheetId.value;
+  sheetId.value = null;
+  if (id) dialogs.pin(id).catch((e) => console.error('[pin]', e));
+}
+
+function onUnpin() {
+  const id = sheetId.value;
+  sheetId.value = null;
+  if (id) dialogs.unpin(id).catch((e) => console.error('[unpin]', e));
+}
 
 function onRowClick(id: string) {
   if (editingId.value) return;
@@ -212,7 +276,9 @@ function startRename() {
   const id = sheetId.value;
   sheetId.value = null;
   editingId.value = id;
-  editingTitle.value = dialogs.list.find((x) => x.dialog_id === id)?.title ?? '';
+  // безымянный чат — подставляем отображаемое имя (и выделяем), чтобы не начинать с 0
+  const d = dialogs.list.find((x) => x.dialog_id === id);
+  editingTitle.value = d?.title || t('new_chat');
   nextTick(() => {
     const el = document.querySelector('.rec-edit') as HTMLInputElement | null;
     el?.focus();
@@ -322,30 +388,43 @@ onMounted(() => {
 .home__header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   padding: 10px 8px;
   border-radius: 14px;
   margin-top: 10px;
   overflow: hidden;
 }
 .home__avatar {
+  position: relative;
   width: 44px;
   height: 44px;
   border-radius: 13px;
-  background-color: #2e7d6b;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 600;
   flex-shrink: 0;
   overflow: hidden;
+  background-color: var(--third-bg-color);
 }
 .home__avatar img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+.home__avatar-skel {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, #6b6f7430 30%, #6b6f7460 50%, #6b6f7430 70%);
+  background-size: 200% 100%;
+  animation: avatar-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes avatar-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 .home__name {
   font-size: 17px;
@@ -371,10 +450,22 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
 }
-.home__row-icon {
-  width: 24px;
-  height: 24px;
+.home__row-iconbox {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+}
+.home__row-iconbox img {
+  width: 22px;
+  height: 22px;
+  filter: brightness(0) saturate(100%) invert(100%);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 .home__row-text {
   font-size: 16px;
