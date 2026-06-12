@@ -153,19 +153,25 @@
           "items": []
         },
         {
-          "heading": "4. Seguridad de los datos",
+          "heading": "4. Compartir datos con OpenAI para mejorar los modelos",
+          "intro": "",
+          "body": "Para ayudar a cubrir los costes de funcionamiento del servicio, participamos en el programa de mejora de modelos de OpenAI. Esto significa que el contenido de tus solicitudes de texto y de las respuestas del asistente puede compartirse con OpenAI y utilizarse para entrenar y mejorar sus modelos. Estos datos no se vinculan a tu identidad más allá del contenido de los propios mensajes. Por favor, no envíes en el chat información confidencial o personal que no quieras incluir en este proceso. La generación de imágenes no forma parte de este programa.",
+          "items": []
+        },
+        {
+          "heading": "5. Seguridad de los datos",
           "intro": "",
           "body": "Aplicamos medidas técnicas razonables para proteger tus datos, incluida la autenticación a través de Telegram. Sin embargo, ningún método de transmisión o almacenamiento es completamente seguro, y no podemos garantizar su seguridad absoluta.",
           "items": []
         },
         {
-          "heading": "5. Tus derechos",
+          "heading": "6. Tus derechos",
           "intro": "",
           "body": "Puedes solicitar en cualquier momento el acceso, la corrección o la eliminación de tus datos personales. Para realizar una solicitud, contáctanos en {support}",
           "items": []
         },
         {
-          "heading": "6. Cambios en esta política",
+          "heading": "7. Cambios en esta política",
           "intro": "",
           "body": "Podemos actualizar esta Política de privacidad de vez en cuando. Los cambios entran en vigor en cuanto se publica la versión actualizada, y recomendamos revisar esta página periódicamente.",
           "items": []

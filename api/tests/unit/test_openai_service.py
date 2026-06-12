@@ -14,10 +14,10 @@ import pytest
 from services.openai import BASE_OPTIONS, ChatGPT, _encode_image
 
 _TEST_MODELS = {
-    "available_text_models": ["gpt-5-nano", "gpt-4o", "gpt-5-mini"],
+    "available_text_models": ["gpt-5.4-nano", "gpt-4o", "gpt-5.4-mini"],
     "info": {
-        "gpt-5-nano": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "low"}},
-        "gpt-5-mini": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "medium"}},
+        "gpt-5.4-nano": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "low"}},
+        "gpt-5.4-mini": {"options": {"max_completion_tokens": 8192, "reasoning_effort": "medium"}},
         "gpt-4o": {"options": {"max_completion_tokens": 4000, "temperature": 0.3}},
     },
 }
@@ -75,7 +75,7 @@ class TestChatGPTInit:
     @pytest.mark.unit
     def test_default_model_is_gpt5_nano(self, mock_openai, mock_settings) -> None:
         gpt = ChatGPT()
-        assert gpt.model == "gpt-5-nano"
+        assert gpt.model == "gpt-5.4-nano"
 
 
 # ── _options ──────────────────────────────────────────────────────────────────

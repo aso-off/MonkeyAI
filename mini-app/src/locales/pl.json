@@ -153,19 +153,25 @@
           "items": []
         },
         {
-          "heading": "4. Bezpieczeństwo danych",
+          "heading": "4. Udostępnianie danych OpenAI w celu ulepszania modeli",
+          "intro": "",
+          "body": "Aby pomóc pokryć koszty działania usługi, uczestniczymy w programie OpenAI dotyczącym ulepszania modeli. Oznacza to, że treść Twoich zapytań tekstowych oraz odpowiedzi asystenta może być udostępniana OpenAI i wykorzystywana do trenowania i ulepszania ich modeli. Dane te nie są powiązane z Twoją tożsamością poza treścią samych wiadomości. Prosimy nie wysyłać na czacie poufnych ani osobistych informacji, których nie chcesz uwzględniać w tym procesie. Generowanie obrazów nie jest częścią tego programu.",
+          "items": []
+        },
+        {
+          "heading": "5. Bezpieczeństwo danych",
           "intro": "",
           "body": "Stosujemy rozsądne środki techniczne w celu ochrony Twoich danych, w tym uwierzytelnianie za pośrednictwem Telegrama. Żadna metoda przesyłania ani przechowywania nie jest jednak całkowicie bezpieczna i nie możemy zagwarantować absolutnego bezpieczeństwa.",
           "items": []
         },
         {
-          "heading": "5. Twoje prawa",
+          "heading": "6. Twoje prawa",
           "intro": "",
           "body": "W każdej chwili możesz zażądać dostępu do swoich danych osobowych, ich poprawienia lub usunięcia. Aby złożyć takie żądanie, skontaktuj się z nami: {support}",
           "items": []
         },
         {
-          "heading": "6. Zmiany w polityce",
+          "heading": "7. Zmiany w polityce",
           "intro": "",
           "body": "Od czasu do czasu możemy aktualizować niniejszą Politykę prywatności. Zmiany wchodzą w życie z chwilą opublikowania zaktualizowanej wersji i zalecamy okresowe przeglądanie tej strony.",
           "items": []

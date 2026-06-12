@@ -11,10 +11,10 @@
           <div class="home__name">{{ fullName }}</div>
         </div>
 
-        <!-- Кнопка Изображения (карточка как в настройках) -->
+        <!-- Кнопка Изображения -->
         <div class="home__card">
           <div v-ripple class="home__row interactive" @click="router.push('/images')">
-            <div class="home__row-iconbox" style="background-color: rgb(137, 172, 118)">
+            <div class="home__row-iconbox" style="background-color: rgb(51, 144, 236)">
               <img :src="imageSvg" alt="" draggable="false" />
             </div>
             <span class="home__row-text">{{ $t('images') }}</span>
@@ -239,7 +239,7 @@ function openChat(id: string) {
 function newChat() {
   // новый чат — текстовый: сбрасываем залипшую image-модель (оптимистично, не блокируем)
   if ((IMAGE_MODELS as readonly string[]).includes(store.currentModel)) {
-    store.setModel('gpt-5-nano').catch(() => {});
+    store.setModel('gpt-5.4-nano').catch(() => {});
   }
   // черновик: диалог создастся в БД только с первым сообщением
   router.push({ name: 'chat', params: { dialogId: 'new' } });

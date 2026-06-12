@@ -303,7 +303,7 @@ class TestUpdateNUsedTokensEdgeCases:
     @pytest.mark.asyncio
     async def test_faker_multiple_models(self) -> None:
         from db.repositories.dialogs import update_n_used_tokens
-        models = ["gpt-4o", "gpt-5-nano", "gpt-5-mini"]
+        models = ["gpt-4o", "gpt-5.4-nano", "gpt-5.4-mini"]
         for model in models:
             uid = _uid()
             stats = _fake_stats()

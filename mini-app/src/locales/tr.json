@@ -153,19 +153,25 @@
           "items": []
         },
         {
-          "heading": "4. Veri Güvenliği",
+          "heading": "4. Model iyileştirmesi için OpenAI ile veri paylaşımı",
+          "intro": "",
+          "body": "Hizmetin işletme maliyetlerini karşılamaya yardımcı olmak için OpenAI'nin model iyileştirme programına katılıyoruz. Bu, metin isteklerinizin ve asistanın yanıtlarının içeriğinin OpenAI ile paylaşılabileceği ve modellerini eğitmek ve geliştirmek için kullanılabileceği anlamına gelir. Bu veriler, mesajların içeriği dışında kimliğinizle ilişkilendirilmez. Lütfen sohbette bu sürece dahil edilmesini istemediğiniz gizli veya kişisel bilgileri göndermeyin. Görsel oluşturma bu programın parçası değildir.",
+          "items": []
+        },
+        {
+          "heading": "5. Veri Güvenliği",
           "intro": "",
           "body": "Telegram üzerinden kimlik doğrulama dahil olmak üzere verilerinizi korumak için makul teknik önlemler uygularız. Ancak hiçbir iletim veya saklama yöntemi tamamen güvenli değildir ve mutlak güvenliği garanti edemeyiz.",
           "items": []
         },
         {
-          "heading": "5. Haklarınız",
+          "heading": "6. Haklarınız",
           "intro": "",
           "body": "Kişisel verilerinize erişim, bunların düzeltilmesi veya silinmesini istediğiniz zaman talep edebilirsiniz. Böyle bir talepte bulunmak için bizimle iletişime geçin: {support}",
           "items": []
         },
         {
-          "heading": "6. Bu Politikadaki Değişiklikler",
+          "heading": "7. Bu Politikadaki Değişiklikler",
           "intro": "",
           "body": "Bu Gizlilik Politikasını zaman zaman güncelleyebiliriz. Tüm değişiklikler güncellenmiş sürüm yayınlandığı anda yürürlüğe girer ve bu sayfayı düzenli olarak gözden geçirmenizi öneririz.",
           "items": []
