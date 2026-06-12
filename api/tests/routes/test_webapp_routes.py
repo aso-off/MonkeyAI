@@ -369,10 +369,10 @@ class TestWebappBootstrap:
     def test_bootstrap_returns_dialog_id_and_messages(self, webapp_client) -> None:
         client, _ = webapp_client
         did = str(uuid.uuid4())
-        msgs = [{"user": fake.sentence(), "bot": fake.sentence()} for _ in range(5)]
+        msgs = [{"id": f"m{i}", "role": "user", "content": fake.sentence()} for i in range(5)]
 
         with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
-             patch("routes.webapp.dialog_repo.ensure_active_mini_app_dialog",
+             patch("routes.webapp.dialog_repo.get_mini_app_dialog_id",
                    new=AsyncMock(return_value=did)), \
              patch("routes.webapp.dialog_repo.get_dialog_messages_page",
                    new=AsyncMock(return_value=(msgs, len(msgs), 0))):
@@ -383,6 +383,39 @@ class TestWebappBootstrap:
         assert data["dialog_id"] == did
         assert data["messages"] == msgs
         assert data["next_before_index"] == 0
+
+    @pytest.mark.api
+    def test_bootstrap_no_active_dialog_returns_draft(self, webapp_client) -> None:
+        """Нет активного диалога → черновик (dialog_id=None), без создания."""
+        client, _ = webapp_client
+        with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
+             patch("routes.webapp.dialog_repo.get_mini_app_dialog_id",
+                   new=AsyncMock(return_value=None)) as mock_get, \
+             patch("routes.webapp.dialog_repo.ensure_active_mini_app_dialog",
+                   new=AsyncMock()) as mock_ensure:
+            resp = client.post("/webapp/dialogs/bootstrap")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["dialog_id"] is None
+        assert data["messages"] == []
+        mock_get.assert_awaited_once()
+        mock_ensure.assert_not_awaited()  # bootstrap НЕ создаёт диалог
+
+    @pytest.mark.api
+    def test_bootstrap_stale_or_empty_dialog_returns_draft(self, webapp_client) -> None:
+        """Активный id есть, но диалог пуст/удалён (total=0) → черновик."""
+        client, _ = webapp_client
+        did = str(uuid.uuid4())
+        with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
+             patch("routes.webapp.dialog_repo.get_mini_app_dialog_id",
+                   new=AsyncMock(return_value=did)), \
+             patch("routes.webapp.dialog_repo.get_dialog_messages_page",
+                   new=AsyncMock(return_value=([], 0, 0))):
+            resp = client.post("/webapp/dialogs/bootstrap")
+
+        assert resp.status_code == 200
+        assert resp.json()["dialog_id"] is None
 
 
 # ── GET /webapp/dialogs/messages/page ────────────────────────────────────────

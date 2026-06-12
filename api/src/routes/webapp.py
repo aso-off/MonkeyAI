@@ -223,7 +223,7 @@ class _DialogIdResponse(BaseModel):
 
 
 class _BootstrapResponse(BaseModel):
-    dialog_id: str
+    dialog_id: str | None = None  # null → активного диалога нет, фронт показывает черновик
     messages: list
     next_before_index: int = 0
 
@@ -372,14 +372,24 @@ async def bootstrap_dialog(
     init_data: dict = Depends(verify_webapp_init_data),
     session: AsyncSession = Depends(get_session),
 ) -> _BootstrapResponse:
-    """Ensure mini-app dialog and return the last 20 messages + total count."""
+    """Вернуть активный mini-app диалог с последними 20 сообщениями.
+
+    НЕ создаёт диалог: при ленивой модели он рождается первым сообщением.
+    Если активного нет / он удалён / пуст — отдаём черновик (dialog_id=None).
+    """
     tg = _extract_tg_user(init_data)
     user_id = tg["id"]
     await _require_whitelisted(session, user_id)
-    dialog_id = await dialog_repo.ensure_active_mini_app_dialog(session, user_id)
-    messages, _total, next_before_index = await dialog_repo.get_dialog_messages_page(
-        session, user_id, dialog_id, limit=20
-    )
+    dialog_id = await dialog_repo.get_mini_app_dialog_id(session, user_id)
+    messages: list = []
+    total = 0
+    next_before_index = 0
+    if dialog_id:
+        messages, total, next_before_index = await dialog_repo.get_dialog_messages_page(
+            session, user_id, dialog_id, limit=20
+        )
+    if total == 0:
+        return _BootstrapResponse(dialog_id=None, messages=[], next_before_index=0)
     return _BootstrapResponse(dialog_id=dialog_id, messages=messages, next_before_index=next_before_index)
 
 
