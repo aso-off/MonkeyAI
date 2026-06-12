@@ -13,19 +13,22 @@ export interface ChatMessage {
   type: 'user' | 'bot'
   contentType?: 'text' | 'image'
   imageUrl?: string | null
-  mid?: string
+  id?: string
+  reaction?: 'like' | 'dislike' | null
 }
 
 export function dialogMessagesToChat(messages: DialogMessage[]): ChatMessage[] {
-  return messages.flatMap((msg): ChatMessage[] => {
-    const userText = Array.isArray(msg.user)
-      ? (msg.user.find(p => p.type === 'text')?.text ?? '')
-      : String(msg.user ?? '')
-    const isImageUrl = typeof msg.bot === 'string' && (msg.bot.startsWith('http') || msg.bot.startsWith('data:image/'))
-    const botMsg: ChatMessage = isImageUrl
-      ? { type: 'bot', contentType: 'image', imageUrl: msg.bot, text: '', mid: msg.mid }
-      : { type: 'bot', contentType: 'text', text: msg.bot, mid: msg.mid }
-    return [{ text: userText, type: 'user' }, botMsg]
+  return messages.map((m): ChatMessage => {
+    const text = Array.isArray(m.content)
+      ? (m.content.find(p => p.type === 'text')?.text ?? '')
+      : String(m.content ?? '')
+    if (m.role === 'user') {
+      return { type: 'user', text, id: m.id }
+    }
+    const isImageUrl = text.startsWith('http') || text.startsWith('data:image/')
+    return isImageUrl
+      ? { type: 'bot', contentType: 'image', imageUrl: text, text: '', id: m.id, reaction: m.reaction }
+      : { type: 'bot', contentType: 'text', text, id: m.id, reaction: m.reaction }
   })
 }
 

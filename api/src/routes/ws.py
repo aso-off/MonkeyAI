@@ -13,28 +13,32 @@ Auth (must be first frame):
   ← {"type": "auth_ok",    "user_id": 123}
   ← {"type": "auth_error", "error":   "..."}
 
-Text chat:
+Text chat (контекст строится на сервере — клиент шлёт только dialog_id):
   → {"type": "chat", "id": "<uuid>", "message": "...", "model": "gpt-4o",
-      "dialog_id": "..." | null, "dialog_messages": [...], "chat_mode": "..."}
+      "dialog_id": "..." | null, "chat_mode": "..."}
 
-  ← {"type": "user_message",   "id": "<uuid>", "text": "...", "dialog_id": "..."|null}
+  ← {"type": "user_message",   "id": "<uuid>", "message_id": "msg_...",
+      "text": "...", "dialog_id": "..."|null}
      (sent to all OTHER devices so they show the message before generation starts)
   ← {"type": "generation_start", "id": "<uuid>"}
      (sent to ALL devices including sender)
-  ← {"type": "chat_done",      "id": "<uuid>", "answer": "...", "dialog_id": "...",
-      "usage": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+  ← {"type": "chat_delta",     "id": "<uuid>", "dialog_id": "...", "text": "<накопленный текст>"}
+     (стриминг, троттлинг ~150 мс, ALL devices)
+  ← {"type": "chat_done",      "id": "<uuid>", "dialog_id": "...",
+      "message": {"id": "msg_...", "role": "assistant", "content": "...", "parent_id": "msg_...",
+                  "model": "...", "usage": {...}, "reaction": null, "created_at": "..."},
       "n_first_removed": 0, "is_flagged": false}
   ← {"type": "chat_error",     "id": "<uuid>", "error": "..."}
 
 Image generation:
   → {"type": "image", "id": "<uuid>", "message": "...", "dialog_id": "..." | null}
 
-  ← {"type": "user_message",      "id": "<uuid>", "text": "...", "dialog_id": "..."|null}
-     (other devices only)
+  ← {"type": "user_message",      "id": "<uuid>", "message_id": "msg_...",
+      "text": "...", "dialog_id": "..."|null}   (other devices only)
   ← {"type": "generation_start",  "id": "<uuid>"}  (all devices)
   ← {"type": "image_progress",    "id": "<uuid>", "step": "moderating" | "generating"}
-  ← {"type": "image_done",        "id": "<uuid>", "data": "<base64-webp>",
-      "size_kb": 220.5, "dialog_id": "..."}
+  ← {"type": "image_done",        "id": "<uuid>", "url": "https://...",
+      "size_kb": 220.5, "dialog_id": "...", "message": {...assistant message...}}
   ← {"type": "image_error",       "id": "<uuid>", "error": "..."}
 
 Connection state on reconnect:
@@ -74,6 +78,7 @@ from services.image_generation import generate_image_b64
 from services.image_processing import process_generated_image, upload_to_imgbb
 from services.moderation import moderate_content
 from schemas.chat import Usage
+from services.messages import assistant_message, user_message
 from services.openai import ChatGPT
 from services.title import handle_first_message_title
 
@@ -82,6 +87,10 @@ router = APIRouter(prefix="/webapp")
 
 # user_id → set of active WebSocket connections (one per device).
 _WS_POOL: dict[int, set[WebSocket]] = defaultdict(set)
+
+_CONTEXT_LIMIT = 20
+# троттлинг дельт — частые мелкие кадры ронял Cloudflare Tunnel
+_DELTA_THROTTLE_S = 0.15
 
 # (user_id, dialog_id) → req_id of the active generation.
 # Блокировка на диалог: разные чаты можно генерировать одновременно, один — нет.
@@ -297,7 +306,6 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
     message = str(frame.get("message", "")).strip()
     model = str(frame.get("model") or "gpt-5-nano")
     dialog_id: str | None = frame.get("dialog_id")
-    dialog_messages: list = list(frame.get("dialog_messages") or [])
     chat_mode = str(frame.get("chat_mode") or "mini_app_assistant")
 
     if not message:
@@ -310,10 +318,13 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "already generating"})
         return
 
+    user_msg = user_message(message)
+
     # 1. Broadcast user’s message to all OTHER devices immediately.
     await _broadcast(user_id, {
         "type": "user_message",
         "id": req_id,
+        "message_id": user_msg["id"],
         "text": message,
         "dialog_id": dialog_id,
     }, exclude=ws)
@@ -333,8 +344,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         if is_flagged:
             await _broadcast(user_id, {
                 "type": "chat_done", "id": req_id,
-                "answer": "", "is_flagged": True,
-                "usage": Usage().model_dump(), "n_first_removed": 0,
+                "is_flagged": True, "n_first_removed": 0,
             })
             return
 
@@ -345,35 +355,61 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
             await _broadcast(user_id, {"type": "chat_error", "id": req_id, "error": str(exc)})
             return
 
-        # 5. Collect full answer (no per-token broadcast — only chat_done at the end).
-        final_answer = ""
-        n_input = n_output = n_removed = 0
-        try:
-            async for _status, answer, (ni, no), nr in chatgpt.send_message_stream(
-                message, dialog_messages=dialog_messages, chat_mode=chat_mode
-            ):
-                final_answer = answer
-                n_input, n_output, n_removed = ni, no, nr
-        except Exception as exc:
-            logger.warning("Chat stream error for user %d: %s", user_id, exc)
-            await _broadcast(user_id, {"type": "chat_error", "id": req_id, "error": str(exc)})
-            return
-
-        # 6. Persist to DB.
+        # 5. Серверный контекст + мгновенный persist вопроса (мульти-девайс).
         resolved_dialog_id = dialog_id
-        mid: str | None = None
+        context: list = []
         try:
             async with Session() as session:
                 if not resolved_dialog_id:
                     resolved_dialog_id = await dialog_repo.ensure_active_mini_app_dialog(
                         session, user_id
                     )
-                new_msg = {
-                    "user": [{"type": "text", "text": message}],
-                    "bot": final_answer,
-                }
-                mid = await dialog_repo.append_dialog_message(
-                    session, user_id, new_msg, resolved_dialog_id
+                context = await dialog_repo.get_context(
+                    session, user_id, resolved_dialog_id, limit=_CONTEXT_LIMIT
+                )
+                await dialog_repo.append_messages(
+                    session, user_id, resolved_dialog_id, [user_msg]
+                )
+        except Exception:
+            logger.exception("Failed to persist user message for user %d", user_id)
+
+        # 6. Stream answer; throttled chat_delta to ALL devices.
+        final_answer = ""
+        n_input = n_output = n_removed = 0
+        last_delta = 0.0
+        try:
+            async for status, answer, (ni, no), nr in chatgpt.send_message_stream(
+                message, dialog_messages=context, chat_mode=chat_mode
+            ):
+                final_answer = answer
+                n_input, n_output, n_removed = ni, no, nr
+                if status == "not_finished":
+                    now = time.monotonic()
+                    # троттлинг — частые мелкие кадры ронял Cloudflare Tunnel
+                    if now - last_delta >= _DELTA_THROTTLE_S:
+                        last_delta = now
+                        await _broadcast(user_id, {
+                            "type": "chat_delta",
+                            "id": req_id,
+                            "dialog_id": resolved_dialog_id,
+                            "text": answer,
+                        })
+        except Exception as exc:
+            logger.warning("Chat stream error for user %d: %s", user_id, exc)
+            await _broadcast(user_id, {"type": "chat_error", "id": req_id, "error": str(exc)})
+            return
+
+        # 7. Persist assistant message + stats.
+        assistant_msg = assistant_message(
+            final_answer,
+            parent_id=user_msg["id"],
+            model=model,
+            usage=Usage.of(n_input, n_output).model_dump(),
+        )
+        try:
+            async with Session() as session:
+                await dialog_repo.append_messages(
+                    session, user_id, resolved_dialog_id, [assistant_msg]
                 )
                 await dialog_repo.update_n_used_tokens(session, user_id, model, n_input, n_output)
                 await user_repo.update_last_interaction(session, user_id)
@@ -381,18 +417,17 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
                     session, resolved_dialog_id, message,
                     reply=final_answer,
                     on_refined=_title_broadcast(user_id, resolved_dialog_id),
+                    user_id=user_id,
                 )
         except Exception:
             logger.exception("Failed to persist chat message for user %d", user_id)
 
-        # 7. Final frame to ALL devices.
+        # 8. Final frame to ALL devices — полный канонический объект сообщения.
         await _broadcast(user_id, {
             "type": "chat_done",
             "id": req_id,
-            "answer": final_answer,
             "dialog_id": resolved_dialog_id,
-            "mid": mid,
-            "usage": Usage.of(n_input, n_output).model_dump(),
+            "message": assistant_msg,
             "n_first_removed": n_removed,
             "is_flagged": False,
         })
@@ -421,10 +456,13 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         await _send(ws, {"type": "image_error", "id": req_id, "error": "already generating"})
         return
 
+    user_msg = user_message(message)
+
     # 1. Broadcast user’s message to all OTHER devices immediately.
     await _broadcast(user_id, {
         "type": "user_message",
         "id": req_id,
+        "message_id": user_msg["id"],
         "text": message,
         "dialog_id": dialog_id,
     }, exclude=ws)
@@ -446,6 +484,20 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         if is_flagged:
             await _broadcast(user_id, {"type": "image_error", "id": req_id, "error": "flagged"})
             return
+
+        # Мгновенный persist промпта (мульти-девайс).
+        resolved_dialog_id = dialog_id
+        try:
+            async with Session() as session:
+                if not resolved_dialog_id:
+                    resolved_dialog_id = await dialog_repo.ensure_active_mini_app_dialog(
+                        session, user_id
+                    )
+                await dialog_repo.append_messages(
+                    session, user_id, resolved_dialog_id, [user_msg]
+                )
+        except Exception:
+            logger.exception("Failed to persist image prompt for user %d", user_id)
 
         # 4. Generation — keepalive task prevents Cloudflare idle-timeout during
         #    the ~30-120 s wait for OpenAI to return the image.
@@ -494,22 +546,17 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
             return
 
         # 7. Persist to DB — store the ImgBB URL (~80 bytes) for permanent history.
-        resolved_dialog_id = dialog_id
-        mid: str | None = None
+        assistant_msg = assistant_message(img_url, parent_id=user_msg["id"], model="gpt-image-1.5")
         try:
             async with Session() as session:
-                if not resolved_dialog_id:
-                    resolved_dialog_id = await dialog_repo.ensure_active_mini_app_dialog(
-                        session, user_id
-                    )
-                new_msg = {"user": message, "bot": img_url}
-                mid = await dialog_repo.append_dialog_message(
-                    session, user_id, new_msg, resolved_dialog_id
+                await dialog_repo.append_messages(
+                    session, user_id, resolved_dialog_id, [assistant_msg]
                 )
                 await user_repo.update_last_interaction(session, user_id)
                 await handle_first_message_title(
                     session, resolved_dialog_id, message,
                     on_refined=_title_broadcast(user_id, resolved_dialog_id),
+                    user_id=user_id,
                 )
                 await image_repo.add_generated_image(
                     session, user_id, resolved_dialog_id, img_url, message
@@ -525,7 +572,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
             "url": img_url,
             "size_kb": img_result["size_kb"],
             "dialog_id": resolved_dialog_id,
-            "mid": mid,
+            "message": assistant_msg,
         })
 
     finally:

@@ -513,37 +513,41 @@ class TestGetDialogMessagesPage:
 class TestAppendDialogMessage:
 
     @pytest.mark.asyncio
-    async def test_appends_message_and_commits(self) -> None:
-        from db.repositories.dialogs import append_dialog_message
+    async def test_appends_messages_and_commits(self) -> None:
+        from db.repositories.dialogs import append_messages
+        from services.messages import user_message
         uid = _uid()
         did = _did()
-        existing = [{"user": "old", "bot": "reply"}]
+        existing = [{"id": "msg_0", "role": "user", "content": "old"}]
         dialog = _fake_dialog_obj(uid=uid, did=did, messages=existing)
         session = _make_session()
         session.execute.return_value = _scalar_result(dialog)
-        new_msg = {"user": fake.sentence(), "bot": fake.sentence()}
-        await append_dialog_message(session, uid, new_msg, did)
+        ok = await append_messages(session, uid, did, [user_message(fake.sentence())])
+        assert ok is True
         assert len(dialog.messages) == 2
         session.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_trims_to_max_messages(self) -> None:
-        from db.repositories.dialogs import append_dialog_message
+        from db.repositories.dialogs import append_messages
+        from services.messages import user_message
         uid = _uid()
         did = _did()
-        existing = [{"user": str(i), "bot": str(i)} for i in range(5)]
+        existing = [{"id": f"msg_{i}", "role": "user", "content": str(i)} for i in range(5)]
         dialog = _fake_dialog_obj(uid=uid, did=did, messages=existing)
         session = _make_session()
         session.execute.return_value = _scalar_result(dialog)
-        await append_dialog_message(session, uid, {"user": "new", "bot": "r"}, did, max_messages=3)
+        await append_messages(session, uid, did, [user_message("new")], max_messages=3)
         assert len(dialog.messages) == 3
 
     @pytest.mark.asyncio
     async def test_no_dialog_found_only_commits(self) -> None:
-        from db.repositories.dialogs import append_dialog_message
+        from db.repositories.dialogs import append_messages
+        from services.messages import user_message
         session = _make_session()
         session.execute.return_value = _scalar_result(None)
-        await append_dialog_message(session, _uid(), {"user": "x", "bot": "y"}, _did())
+        ok = await append_messages(session, _uid(), _did(), [user_message("x")])
+        assert ok is False
         session.commit.assert_awaited_once()
 
 

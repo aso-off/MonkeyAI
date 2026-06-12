@@ -137,28 +137,26 @@ async def cmd_retry(message: Message, language: str, bot: Bot, db_user=None) -> 
 
     try:
         ensure = await api.ensure_dialog(user_id)
+        last_user_msg = await api.pop_last_exchange(user_id, dialog_id=ensure.dialog_id)
     except Exception as exc:
-        logger.error("Retry: ensure_dialog failed for user %d: %s", user_id, exc, exc_info=True)
+        logger.error("Retry failed for user %d: %s", user_id, exc, exc_info=True)
         await monkey.send(bot, message.chat.id, "error")
         await message.answer(t("error_message", language).format(exc), parse_mode="HTML")
         return
 
-    dialog_id = ensure.dialog_id
-    dialog_messages = list(ensure.messages)
-    if not dialog_messages:
+    if last_user_msg is None:
         await message.answer(t("no_retry_messages", language))
         return
 
-    last = dialog_messages[-1]
-    text = _last_user_text_from_dialog_entry(last.get("user", ""))
+    content = last_user_msg.get("content", "")
+    text = _last_user_text_from_dialog_entry(content)
     if not text.strip():
         await message.answer(t("no_retry_messages", language))
         return
 
     image_buffer: BytesIO | None = None
-    user_msg = last.get("user", "")
-    if isinstance(user_msg, list):
-        for item in user_msg:
+    if isinstance(content, list):
+        for item in content:
             if item.get("type") == "image_url":
                 url = item.get("image_url", {}).get("url", "")
                 if url.startswith("data:image/jpeg;base64,"):
@@ -168,14 +166,6 @@ async def cmd_retry(message: Message, language: str, bot: Bot, db_user=None) -> 
                         image_buffer.name = "image.jpg"
                     except Exception:
                         logger.warning("Failed to decode retry image for user %d", user_id)
-
-    try:
-        await api.set_dialog_messages(user_id, dialog_messages[:-1], dialog_id=dialog_id)
-    except Exception as exc:
-        logger.error("Retry: set_dialog_messages failed for user %d: %s", user_id, exc, exc_info=True)
-        await monkey.send(bot, message.chat.id, "error")
-        await message.answer(t("error_message", language).format(exc), parse_mode="HTML")
-        return
 
     await _run_handle(message, bot, language, user_id, text, image_buffer)
 
@@ -226,9 +216,7 @@ async def generate_image(
     saved_url = next((u for u in imgbb_urls if u), "[generated_image]")
     try:
         ensure = await api.ensure_dialog(user_id)
-        messages = list(ensure.messages)
-        messages.append({"user": prompt, "bot": saved_url})
-        await api.set_dialog_messages(user_id, messages, dialog_id=ensure.dialog_id)
+        await api.append_exchange(user_id, prompt, saved_url, dialog_id=ensure.dialog_id)
     except Exception:
         logger.warning("Failed to save image prompt for /retry (user %d)", user_id, exc_info=True)
 
@@ -255,7 +243,6 @@ async def _handle_text_or_vision(
         chat_mode = "assistant"
     current_model = user.current_model
     dialog_id = ensure_result.dialog_id
-    dialog_messages = ensure_result.messages[-settings.dialog_context_limit :]
 
     if chat_mode == "artist":
         await generate_image(message, bot, language, user_id, text)
@@ -290,7 +277,6 @@ async def _handle_text_or_vision(
                 user_id=user_id,
                 dialog_id=dialog_id,
                 message=text,
-                dialog_messages=dialog_messages,
                 chat_mode=chat_mode,
                 model=current_model,
                 image_b64=image_b64,
@@ -318,7 +304,6 @@ async def _handle_text_or_vision(
                 user_id=user_id,
                 dialog_id=dialog_id,
                 message=text,
-                dialog_messages=dialog_messages,
                 chat_mode=chat_mode,
                 model=current_model,
                 image_b64=image_b64,

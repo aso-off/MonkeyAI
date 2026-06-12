@@ -105,7 +105,6 @@ export interface TelegramUser {
 export interface ChatBody {
   message: string;
   dialog_id?: string;
-  dialog_messages?: DialogMessage[];
   chat_mode?: string;
   model: string;
   image_b64?: string;
@@ -120,17 +119,23 @@ export interface Usage {
 
 export interface ChatCompleteResponse {
   answer: string;
-  usage: Usage;
+  id?: string;
+  usage?: Usage;
   n_first_removed: number;
   is_flagged: boolean;
   dialog_id?: string;
-  mid?: string;
 }
 
+/** Каноническое сообщение диалога (плоский список, как у OpenAI). */
 export interface DialogMessage {
-  user: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
-  bot: string;
-  mid?: string;
+  id: string;
+  role: 'user' | 'assistant';
+  content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
+  parent_id?: string | null;
+  model?: string | null;
+  usage?: Usage;
+  reaction?: 'like' | 'dislike' | null;
+  created_at?: string;
 }
 
 export interface DialogBootstrapResult {
@@ -230,7 +235,7 @@ export const api = {
     reaction: 'like' | 'dislike';
     model: string;
     dialog_id?: string | null;
-    mid?: string | null;
+    message_id?: string | null;
   }): Promise<void> {
     return apiFetch<void>(
       '/webapp/reactions',
@@ -483,6 +488,7 @@ export class WsClient {
    */
   async chatStream(
     body: ChatBody,
+    onDelta?: (text: string) => void,
   ): Promise<ChatCompleteResponse> {
     const ok = await this.connect();
     if (!ok) throw new Error('network error');
@@ -490,15 +496,18 @@ export class WsClient {
     return new Promise<ChatCompleteResponse>((resolve, reject) => {
       this._handlers.set(id, (msg) => {
         const t = msg.type as string;
-        if (t === 'chat_done') {
+        if (t === 'chat_delta') {
+          onDelta?.((msg.text as string) ?? '');
+        } else if (t === 'chat_done') {
           this._handlers.delete(id);
+          const m = (msg.message ?? null) as DialogMessage | null;
           resolve({
-            answer:          (msg.answer          as string)  ?? '',
-            usage:           (msg.usage as Usage) ?? { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+            answer:          typeof m?.content === 'string' ? m.content : '',
+            id:              m?.id,
+            usage:           m?.usage,
             n_first_removed: (msg.n_first_removed as number)  ?? 0,
             is_flagged:      (msg.is_flagged      as boolean) ?? false,
             dialog_id:        msg.dialog_id as string | undefined,
-            mid:              msg.mid as string | undefined,
           });
         } else if (t === 'chat_error') {
           this._handlers.delete(id);
@@ -509,13 +518,12 @@ export class WsClient {
         }
       });
       this._ws!.send(JSON.stringify({
-        type:            'chat',
+        type:      'chat',
         id,
-        message:         body.message,
-        model:           body.model,
-        dialog_id:       body.dialog_id       ?? null,
-        dialog_messages: body.dialog_messages ?? [],
-        chat_mode:       body.chat_mode       ?? 'mini_app_assistant',
+        message:   body.message,
+        model:     body.model,
+        dialog_id: body.dialog_id ?? null,
+        chat_mode: body.chat_mode ?? 'mini_app_assistant',
       }));
     });
   }
@@ -529,11 +537,11 @@ export class WsClient {
     message:    string,
     dialogId:   string | null | undefined,
     onProgress: (step: string) => void,
-  ): Promise<{ url: string; dialog_id?: string; mid?: string }> {
+  ): Promise<{ url: string; dialog_id?: string; id?: string }> {
     const ok = await this.connect();
     if (!ok) throw new Error('network error');
     const id = crypto.randomUUID();
-    return new Promise<{ url: string; dialog_id?: string; mid?: string }>((resolve, reject) => {
+    return new Promise<{ url: string; dialog_id?: string; id?: string }>((resolve, reject) => {
       this._handlers.set(id, (msg) => {
         const t = msg.type as string;
         if (t === 'image_progress') {
@@ -543,7 +551,7 @@ export class WsClient {
           resolve({
             url: msg.url as string,
             dialog_id: msg.dialog_id as string | undefined,
-            mid: msg.mid as string | undefined,
+            id: (msg.message as DialogMessage | undefined)?.id,
           });
         } else if (t === 'image_error') {
           this._handlers.delete(id);

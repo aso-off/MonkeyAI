@@ -30,6 +30,7 @@ from db.repositories import images as image_repo
 from db.repositories import users as user_repo
 from schemas.chat import Usage
 from schemas.user import UserRead
+from services.messages import assistant_message, user_message
 from services.image_generation import IMAGE_MODELS, generate_image_url
 from services.moderation import moderate_content
 from services.openai import ChatGPT
@@ -177,7 +178,6 @@ def _unwhitelisted_profile(tg: dict) -> UserRead:
 class WebAppChatBody(BaseModel):
     message: str
     dialog_id: str | None = None
-    dialog_messages: list = []
     chat_mode: str = "mini_app_assistant"
     model: str
     image_b64: str | None = None
@@ -241,6 +241,9 @@ class _MessagesResponse(BaseModel):
 
 class _OkResponse(BaseModel):
     ok: bool
+
+
+_CONTEXT_LIMIT = 20
 
 
 async def _resolve_mini_app_dialog_id(
@@ -644,15 +647,14 @@ async def chat_complete(
             ) from exc
         try:
             dialog_id = await _resolve_mini_app_dialog_id(session, user_id, body.dialog_id)
-            await dialog_repo.append_dialog_message(
-                session, user_id,
-                {"user": body.message, "bot": image_url},
-                dialog_id,
-            )
+            u_msg = user_message(body.message)
+            a_msg = assistant_message(image_url, parent_id=u_msg["id"], model=body.model)
+            await dialog_repo.append_messages(session, user_id, dialog_id, [u_msg, a_msg])
             await user_repo.update_last_interaction(session, user_id)
             await handle_first_message_title(
                 session, dialog_id, body.message,
                 on_refined=_title_broadcast(user_id, dialog_id),
+                user_id=user_id,
             )
             await image_repo.add_generated_image(
                 session, user_id, dialog_id, image_url, body.message
@@ -663,41 +665,50 @@ async def chat_complete(
         return WebAppChatResponse(answer=image_url)
 
     chatgpt = ChatGPT(model=body.model)
+
+    # серверный контекст
+    dialog_id = await _resolve_mini_app_dialog_id(session, user_id, body.dialog_id)
+    context = await dialog_repo.get_context(session, user_id, dialog_id, _CONTEXT_LIMIT)
+
     if image_buffer is not None:
         answer, (n_input, n_output), n_removed = await chatgpt.send_vision_message(
             body.message,
-            dialog_messages=body.dialog_messages,
+            dialog_messages=context,
             chat_mode=chat_mode,
             image_buffer=image_buffer,
         )
     else:
         answer, (n_input, n_output), n_removed = await chatgpt.send_message(
             body.message,
-            dialog_messages=body.dialog_messages,
+            dialog_messages=context,
             chat_mode=chat_mode,
         )
 
     try:
-        dialog_id = await _resolve_mini_app_dialog_id(session, user_id, body.dialog_id)
         b64: str | None = None
         if image_buffer:
             image_buffer.seek(0)
             b64 = base64.b64encode(image_buffer.read()).decode()
-        new_msg = {
-            "user": (
-                [{"type": "text", "text": body.message},
-                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]
-                if b64 else [{"type": "text", "text": body.message}]
-            ),
-            "bot": answer,
-        }
-        await dialog_repo.append_dialog_message(session, user_id, new_msg, dialog_id)
+        content: str | list = (
+            [{"type": "text", "text": body.message},
+             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]
+            if b64 else body.message
+        )
+        u_msg = user_message(content)
+        a_msg = assistant_message(
+            answer,
+            parent_id=u_msg["id"],
+            model=body.model,
+            usage=Usage.of(n_input, n_output).model_dump(),
+        )
+        await dialog_repo.append_messages(session, user_id, dialog_id, [u_msg, a_msg])
         await dialog_repo.update_n_used_tokens(session, user_id, body.model, n_input, n_output)
         await user_repo.update_last_interaction(session, user_id)
         await handle_first_message_title(
             session, dialog_id, body.message,
             reply=answer,
             on_refined=_title_broadcast(user_id, dialog_id),
+            user_id=user_id,
         )
     except Exception:
         logger.exception("Failed to persist webapp chat result for user %d", user_id)
@@ -717,7 +728,7 @@ class _ReactionPayload(BaseModel):
     reaction: str        # "like" | "dislike"
     model: str
     dialog_id: str | None = None
-    mid: str | None = None
+    message_id: str | None = None
 
 
 @router.post(
@@ -752,11 +763,18 @@ async def post_reaction(
 
     from db.models.user import Reaction
 
+    tg = _extract_tg_user(init_data)
     reaction = Reaction(
         reaction=payload.reaction,
         model=payload.model,
         dialog_id=payload.dialog_id,
-        mid=payload.mid,
+        mid=payload.message_id,
     )
     session.add(reaction)
     await session.commit()
+
+    # реакция живёт и в самом сообщении — переживает перезагрузку истории
+    if payload.dialog_id and payload.message_id:
+        await dialog_repo.set_message_reaction(
+            session, tg["id"], payload.dialog_id, payload.message_id, payload.reaction
+        )

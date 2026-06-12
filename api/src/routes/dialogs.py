@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
-from schemas.dialog import DialogMessagesSet
+from services.messages import assistant_message, user_message
 
 router = APIRouter(prefix="/dialogs", tags=["dialogs"])
 
@@ -66,16 +67,47 @@ async def get_messages(
     messages = await dialog_repo.get_dialog_messages(session, user_id, dialog_id)
     return {"messages": messages}
 
-@router.put("/{user_id}/messages")
-async def set_messages(
+@router.post("/{user_id}/pop-last")
+async def pop_last_exchange(
     user_id: int,
-    body: DialogMessagesSet,
     dialog_id: str | None = None,
     session: AsyncSession = Depends(get_session),
     _: None = Depends(verify_service_token),
 ) -> dict:
-    await dialog_repo.set_dialog_messages(session, user_id, body.messages, dialog_id)
-    return {"ok": True}
+    """Удаляет последний обмен (для /retry бота); возвращает удалённое user-сообщение."""
+    if not dialog_id:
+        user = await user_repo.get_user(session, user_id)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        dialog_id = user.state.current_dialog_id
+    if not dialog_id:
+        return {"message": None}
+    message = await dialog_repo.delete_last_exchange(session, user_id, dialog_id)
+    return {"message": message}
+
+
+class _ExchangeBody(BaseModel):
+    dialog_id: str | None = None
+    user: str
+    bot: str
+    model: str | None = None
+
+
+@router.post("/{user_id}/exchange")
+async def append_exchange(
+    user_id: int,
+    body: _ExchangeBody,
+    session: AsyncSession = Depends(get_session),
+    _: None = Depends(verify_service_token),
+) -> dict:
+    """Сохраняет готовый обмен user→bot (бот-художник: промпт + URL картинки)."""
+    dialog_id = body.dialog_id
+    if not dialog_id:
+        dialog_id = await dialog_repo.ensure_active_dialog(session, user_id)
+    u_msg = user_message(body.user)
+    a_msg = assistant_message(body.bot, parent_id=u_msg["id"], model=body.model)
+    ok = await dialog_repo.append_messages(session, user_id, dialog_id, [u_msg, a_msg])
+    return {"ok": ok}
 
 
 @router.get("/{user_id}/message-count")

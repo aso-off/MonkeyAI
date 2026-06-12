@@ -124,7 +124,7 @@ import { useI18n } from 'vue-i18n';
 import { initData } from '@tma.js/sdk-vue';
 import { useUserStore, IMAGE_MODELS } from '@/store/user';
 import { useDialogsStore } from '@/store/dialogs';
-import { api, wsClient, type DialogListItem } from '@/services/api';
+import { wsClient, type DialogListItem } from '@/services/api';
 import DialogActionsSheet from '@/components/DialogActionsSheet.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import imageSvg from '@/components/img/Image.svg';
@@ -236,18 +236,13 @@ function openChat(id: string) {
   router.push({ name: 'chat', params: { dialogId: id } });
 }
 
-async function newChat() {
-  try {
-    // новый чат — текстовый: сбрасываем залипшую image-модель (оптимистично, не блокируем)
-    if ((IMAGE_MODELS as readonly string[]).includes(store.currentModel)) {
-      store.setModel('gpt-5-nano').catch(() => {});
-    }
-    const { dialog_id } = await api.newDialog();
-    dialogs.prepend(dialog_id);
-    router.push({ name: 'chat', params: { dialogId: dialog_id } });
-  } catch (e) {
-    console.error('[newChat]', e);
+function newChat() {
+  // новый чат — текстовый: сбрасываем залипшую image-модель (оптимистично, не блокируем)
+  if ((IMAGE_MODELS as readonly string[]).includes(store.currentModel)) {
+    store.setModel('gpt-5-nano').catch(() => {});
   }
+  // черновик: диалог создастся в БД только с первым сообщением
+  router.push({ name: 'chat', params: { dialogId: 'new' } });
 }
 
 /* === Action-sheet / rename / delete / pin === */
