@@ -139,7 +139,7 @@ export interface DialogMessage {
 }
 
 export interface DialogBootstrapResult {
-  dialog_id: string;
+  dialog_id: string | null;  // null → активного диалога нет (черновик)
   messages: DialogMessage[];
   /** Cursor for the next "Load more" call. 0 = no older messages. */
   next_before_index: number;
