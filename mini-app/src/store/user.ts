@@ -2,11 +2,11 @@ import { defineStore } from 'pinia'
 import { api } from '@/services/api'
 import type { DialogMessage, TelegramUser } from '@/services/api'
 
-export const AVAILABLE_TEXT_MODELS = ['gpt-5-nano', 'gpt-4o', 'gpt-5-mini'] as const
+export const AVAILABLE_TEXT_MODELS = ['gpt-5.4-nano', 'gpt-4o', 'gpt-5.4-mini'] as const
 export const IMAGE_MODELS = ['gpt-image-1.5'] as const
 export const ALL_MINI_APP_MODELS = [...AVAILABLE_TEXT_MODELS, ...IMAGE_MODELS] as const
 
-const DEFAULT_MODEL = 'gpt-5-nano'
+const DEFAULT_MODEL = 'gpt-5.4-nano'
 
 export interface ChatMessage {
   text: string

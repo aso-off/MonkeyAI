@@ -211,7 +211,7 @@ class TestUserUpdate:
 
     @pytest.mark.unit
     def test_model_dump_full(self) -> None:
-        update = UserUpdate(language="fr", current_model="gpt-5-nano", current_chat_mode="assistant")
+        update = UserUpdate(language="fr", current_model="gpt-5.4-nano", current_chat_mode="assistant")
         dumped = update.model_dump(exclude_none=True)
         assert len(dumped) == 3
 

@@ -79,7 +79,7 @@ class TestModelKeyboard:
 
     def test_with_models_returns_row_per_model_plus_back(self) -> None:
         from src.bot.routers.profile.model import _model_keyboard
-        models = _fake_models_settings(["gpt-4o", "gpt-5", "gpt-5-mini"])
+        models = _fake_models_settings(["gpt-4o", "gpt-5", "gpt-5.4-mini"])
         with patch("src.bot.routers.profile.model.settings") as mock_s:
             mock_s.models = models
             kb = _model_keyboard("en", "gpt-4o")
@@ -167,7 +167,7 @@ class TestCmdModel:
     @pytest.mark.asyncio
     async def test_model_not_in_available_resets_to_first(self) -> None:
         from src.bot.routers.profile.model import cmd_model
-        models = _fake_models_settings(["gpt-5", "gpt-5-mini"])
+        models = _fake_models_settings(["gpt-5", "gpt-5.4-mini"])
         db_user = _fake_db_user("old-model")
         msg = _fake_message(db_user.id)
         with patch("src.bot.routers.profile.model.settings") as mock_s, \

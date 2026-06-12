@@ -153,19 +153,25 @@
           "items": []
         },
         {
-          "heading": "4. Datensicherheit",
+          "heading": "4. Weitergabe von Daten an OpenAI zur Modellverbesserung",
+          "intro": "",
+          "body": "Um die Betriebskosten des Dienstes zu decken, nehmen wir am Programm von OpenAI zur Modellverbesserung teil. Das bedeutet, dass der Inhalt Ihrer Textanfragen und der Antworten des Assistenten an OpenAI weitergegeben und zum Training und zur Verbesserung ihrer Modelle verwendet werden kann. Diese Daten werden über den Inhalt der Nachrichten hinaus nicht mit Ihrer Identität verknüpft. Bitte senden Sie im Chat keine vertraulichen oder persönlichen Informationen, die Sie nicht in diesen Prozess einbeziehen möchten. Die Bildgenerierung ist nicht Teil dieses Programms.",
+          "items": []
+        },
+        {
+          "heading": "5. Datensicherheit",
           "intro": "",
           "body": "Wir treffen angemessene technische Maßnahmen zum Schutz Ihrer Daten, einschließlich der Authentifizierung über Telegram. Allerdings ist keine Übertragungs- oder Speichermethode vollständig sicher, und wir können keine absolute Sicherheit garantieren.",
           "items": []
         },
         {
-          "heading": "5. Ihre Rechte",
+          "heading": "6. Ihre Rechte",
           "intro": "",
           "body": "Sie können jederzeit Zugang zu Ihren personenbezogenen Daten sowie deren Berichtigung oder Löschung verlangen. Um eine solche Anfrage zu stellen, kontaktieren Sie uns unter {support}",
           "items": []
         },
         {
-          "heading": "6. Änderungen dieser Richtlinie",
+          "heading": "7. Änderungen dieser Richtlinie",
           "intro": "",
           "body": "Wir können diese Datenschutzrichtlinie von Zeit zu Zeit aktualisieren. Änderungen treten in Kraft, sobald die aktualisierte Version veröffentlicht wird; wir empfehlen, diese Seite regelmäßig zu überprüfen.",
           "items": []

@@ -3,9 +3,15 @@ from typing import Awaitable, Callable
 
 from core.logger import logger
 
-_TITLE_MODEL = "gpt-5-nano"
+_TITLE_MODEL_FALLBACK = "gpt-5.4-nano"
 _TITLE_TIMEOUT = 25.0
 _TITLE_LIMIT = 40
+
+
+def _title_model() -> str:
+    from core.config import settings
+
+    return settings.models.get("title_model") or _TITLE_MODEL_FALLBACK
 
 # ссылки на фоновые задачи — иначе GC может убить их до завершения
 _bg_tasks: set = set()
@@ -67,7 +73,7 @@ async def summarize_title(text: str, reply: str | None = None) -> tuple[str, int
         content = f"Сообщение пользователя: {content}\nОтвет ассистента: {reply[:800]}"
     client = _title_client()
     r = await client.chat.completions.create(
-        model=_TITLE_MODEL,
+        model=_title_model(),
         messages=[
             {"role": "system", "content": _TITLE_PROMPT},
             {"role": "user", "content": content},
@@ -95,9 +101,9 @@ async def _refine_title(
             return
         async with Session() as session:
             await update_dialog_title(session, dialog_id, title)
-            # токены заголовка — в общий бакет nano-модели
+            # токены заголовка — в общий бакет title-модели
             if user_id and (n_in or n_out):
-                await update_n_used_tokens(session, user_id, _TITLE_MODEL, n_in, n_out)
+                await update_n_used_tokens(session, user_id, _title_model(), n_in, n_out)
         if on_refined is not None:
             await on_refined(title)
     except Exception:

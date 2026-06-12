@@ -31,7 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 fake = Faker()
 Faker.seed(42)
 
-_MODELS = ["gpt-4o", "gpt-5-nano"]
+_MODELS = ["gpt-4o", "gpt-5.4-nano"]
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
