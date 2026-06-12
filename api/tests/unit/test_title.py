@@ -186,7 +186,7 @@ async def test_refine_title_records_tokens(monkeypatch) -> None:
 
     await title._refine_title("did", 42, "текст", "ответ", None)
     tokens.assert_awaited_once()
-    assert tokens.await_args.args[1:] == (42, "gpt-5-nano", 5, 3)
+    assert tokens.await_args.args[1:] == (42, "gpt-5.4-nano", 5, 3)
 
 
 @pytest.mark.asyncio

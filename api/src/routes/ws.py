@@ -304,7 +304,7 @@ async def _generation_keepalive(user_id: int, req_id: str) -> None:
 async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
     req_id = str(frame.get("id") or uuid.uuid4())
     message = str(frame.get("message", "")).strip()
-    model = str(frame.get("model") or "gpt-5-nano")
+    model = str(frame.get("model") or "gpt-5.4-nano")
     dialog_id: str | None = frame.get("dialog_id")
     chat_mode = str(frame.get("chat_mode") or "mini_app_assistant")
 

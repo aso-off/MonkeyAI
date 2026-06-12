@@ -1,100 +1,100 @@
 {
-    "new_chat": "New Chat",
-    "settings": "Settings",
-    "images": "Images",
-    "recents": "Recent dialogs",
-    "pinned_dialogs": "Pinned dialogs",
-    "pin": "Pin",
-    "unpin": "Unpin",
-    "search": "Search",
-    "no_chats": "No chats yet",
-    "no_search_results": "Nothing found",
-    "group_today": "Today",
-    "group_yesterday": "Yesterday",
-    "group_week": "This week",
-    "group_earlier": "Earlier",
-    "rename": "Rename",
-    "delete_dialog": "Delete chat?",
-    "delete_chat": "Delete dialog",
-    "my_images": "My images",
-    "delete_dialog_confirm": "This chat will be deleted. This action cannot be undone.",
-    "delete": "Delete",
-    "cancel": "Cancel",
-    "no_images": "No images yet",
-    "save": "Save",
-    "empty_chat": "How can I help you?",
-    "describe_image": "Describe the image you want to create",
-    "send_message": "Send a message to get a response",
-    "for_complex_tasks": "For complex tasks",
-    "for_everyday_tasks": "For everyday tasks",
-    "generate_images": "Generate images",
-    "input_placeholder_image": "Describe the image...",
-    "input_placeholder_chat": "Enter your query...",
-    "system_language": "Language",
-    "theme": "Theme",
-    "contact_support": "Contact support",
-    "telegram_channel": "Channel",
-    "share_app": "Share the app",
-    "version": "Version",
-    "author": "Author",
-    "back": "Back",
-    "user_id": "User ID",
-    "dark": "Dark",
-    "light": "Light",
-    "system": "System",
-    "system_lang": "System",
-    "lang_en": "English",
-    "lang_ru": "Russian",
-    "lang_de": "German",
-    "lang_es": "Spanish",
-    "lang_fr": "French",
-    "lang_pl": "Polish",
-    "lang_pt": "Portuguese",
-    "lang_tr": "Turkish",
-    "message_flagged": "Message blocked by moderation",
-    "error_response": "Error getting response",
-    "not_whitelisted_title": "Access Restricted",
-    "loading_init_tg": "Initializing Telegram...",
-    "loading_check_user": "Checking user...",
-    "loading_data": "Loading data...",
-    "loading_ui": "Preparing interface...",
-    "loading_error": "Connection error. Check your internet and try again.",
-    "loading_retry": "Try Again",
-    "image_generating": "Generating image...",
-    "load_more_messages": "Load more...",
-    "load_more_loading": "Loading...",
-    "tooltip_copy": "Copy",
-    "tooltip_copied": "Copied!",
-    "tooltip_like": "Like",
-    "tooltip_dislike": "Needs improvement",
-    "export_txt": "Export as .txt",
-    "export_pdf": "Export as PDF",
-    "loading_welcome": "Hello, {name}!",
-    "loading_subtitle": "Your AI assistant in Telegram",
-    "loading_tips": [
-      "The bot works in group chats too",
-      "AI models can analyze images",
-      "In Artist mode, the bot draws anything you describe",
-      "GPT-4 Omni is best at handling complex tasks",
-      "Monkey AI supports voice messages in chats",
-      "Monkey AI supports more than 8 languages",
-      "Monkey AI keeps its models constantly updated",
-      "Copywriter mode removes errors and polishes your text",
-      "Neural networks don't think – they predict the next token",
-      "The monkey symbolizes curiosity and adaptability",
-      "Neural networks don't understand words – they work with number vectors",
-      "Monkey AI remembers the context of long conversations",
-      "In groups, the bot can reply to several people at once",
-      "Artist mode supports different styles",
-      "Monkey AI was born out of a love for experiments",
-      "Artist draws better when the description is detailed",
-      "Monkey AI can help with studying and work",
-      "Monkey AI works reliably and consistently",
-      "Monkey AI constantly improves the quality of its answers",
-      "Monkey AI is available any time of day or night",
-      "Monkey AI can explain complex things in simple words",
-      "Monkey AI loves interesting and unusual tasks"
-    ],
+  "new_chat": "New Chat",
+  "settings": "Settings",
+  "images": "Images",
+  "recents": "Recent dialogs",
+  "pinned_dialogs": "Pinned dialogs",
+  "pin": "Pin",
+  "unpin": "Unpin",
+  "search": "Search",
+  "no_chats": "No chats yet",
+  "no_search_results": "Nothing found",
+  "group_today": "Today",
+  "group_yesterday": "Yesterday",
+  "group_week": "This week",
+  "group_earlier": "Earlier",
+  "rename": "Rename",
+  "delete_dialog": "Delete chat?",
+  "delete_chat": "Delete dialog",
+  "my_images": "My images",
+  "delete_dialog_confirm": "This chat will be deleted. This action cannot be undone.",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "no_images": "No images yet",
+  "save": "Save",
+  "empty_chat": "How can I help you?",
+  "describe_image": "Describe the image you want to create",
+  "send_message": "Send a message to get a response",
+  "for_complex_tasks": "For complex tasks",
+  "for_everyday_tasks": "For everyday tasks",
+  "generate_images": "Generate images",
+  "input_placeholder_image": "Describe the image...",
+  "input_placeholder_chat": "Enter your query...",
+  "system_language": "Language",
+  "theme": "Theme",
+  "contact_support": "Contact support",
+  "telegram_channel": "Channel",
+  "share_app": "Share the app",
+  "version": "Version",
+  "author": "Author",
+  "back": "Back",
+  "user_id": "User ID",
+  "dark": "Dark",
+  "light": "Light",
+  "system": "System",
+  "system_lang": "System",
+  "lang_en": "English",
+  "lang_ru": "Russian",
+  "lang_de": "German",
+  "lang_es": "Spanish",
+  "lang_fr": "French",
+  "lang_pl": "Polish",
+  "lang_pt": "Portuguese",
+  "lang_tr": "Turkish",
+  "message_flagged": "Message blocked by moderation",
+  "error_response": "Error getting response",
+  "not_whitelisted_title": "Access Restricted",
+  "loading_init_tg": "Initializing Telegram...",
+  "loading_check_user": "Checking user...",
+  "loading_data": "Loading data...",
+  "loading_ui": "Preparing interface...",
+  "loading_error": "Connection error. Check your internet and try again.",
+  "loading_retry": "Try Again",
+  "image_generating": "Generating image...",
+  "load_more_messages": "Load more...",
+  "load_more_loading": "Loading...",
+  "tooltip_copy": "Copy",
+  "tooltip_copied": "Copied!",
+  "tooltip_like": "Like",
+  "tooltip_dislike": "Needs improvement",
+  "export_txt": "Export as .txt",
+  "export_pdf": "Export as PDF",
+  "loading_welcome": "Hello, {name}!",
+  "loading_subtitle": "Your AI assistant in Telegram",
+  "loading_tips": [
+    "The bot works in group chats too",
+    "AI models can analyze images",
+    "In Artist mode, the bot draws anything you describe",
+    "GPT-4 Omni is best at handling complex tasks",
+    "Monkey AI supports voice messages in chats",
+    "Monkey AI supports more than 8 languages",
+    "Monkey AI keeps its models constantly updated",
+    "Copywriter mode removes errors and polishes your text",
+    "Neural networks don't think – they predict the next token",
+    "The monkey symbolizes curiosity and adaptability",
+    "Neural networks don't understand words – they work with number vectors",
+    "Monkey AI remembers the context of long conversations",
+    "In groups, the bot can reply to several people at once",
+    "Artist mode supports different styles",
+    "Monkey AI was born out of a love for experiments",
+    "Artist draws better when the description is detailed",
+    "Monkey AI can help with studying and work",
+    "Monkey AI works reliably and consistently",
+    "Monkey AI constantly improves the quality of its answers",
+    "Monkey AI is available any time of day or night",
+    "Monkey AI can explain complex things in simple words",
+    "Monkey AI loves interesting and unusual tasks"
+  ],
   "privacy_policy": "Privacy Policy",
   "terms_of_service": "Terms of Service",
   "page_in_development": "Page under development",
@@ -109,9 +109,18 @@
           "intro": "When you use Monkey AI, we may collect the following data:",
           "body": "",
           "items": [
-            { "b": "Telegram account data:", "t": " your user ID, username, first and last name, and language." },
-            { "b": "Content you provide:", "t": " the messages, prompts, images, and audio you send to the assistant." },
-            { "b": "Usage data:", "t": " your selected model, preferences, and basic activity statistics." }
+            {
+              "b": "Telegram account data:",
+              "t": " your user ID, username, first and last name, and language."
+            },
+            {
+              "b": "Content you provide:",
+              "t": " the messages, prompts, images, and audio you send to the assistant."
+            },
+            {
+              "b": "Usage data:",
+              "t": " your selected model, preferences, and basic activity statistics."
+            }
           ]
         },
         {
@@ -119,10 +128,22 @@
           "intro": "We use the collected information to:",
           "body": "",
           "items": [
-            { "b": "", "t": "Provide and operate the AI assistant, including chat, image generation, and transcription." },
-            { "b": "", "t": "Maintain your conversation history across sessions." },
-            { "b": "", "t": "Ensure security and prevent abuse of the service." },
-            { "b": "", "t": "Respond to your requests and provide support." }
+            {
+              "b": "",
+              "t": "Provide and operate the AI assistant, including chat, image generation, and transcription."
+            },
+            {
+              "b": "",
+              "t": "Maintain your conversation history across sessions."
+            },
+            {
+              "b": "",
+              "t": "Ensure security and prevent abuse of the service."
+            },
+            {
+              "b": "",
+              "t": "Respond to your requests and provide support."
+            }
           ]
         },
         {
@@ -132,19 +153,25 @@
           "items": []
         },
         {
-          "heading": "4. Data Security",
+          "heading": "4. Sharing data with OpenAI for model improvement",
+          "intro": "",
+          "body": "To help cover the cost of running the service, we participate in OpenAI's model improvement program. This means the content of your text requests and the assistant's responses may be shared with OpenAI and used to train and improve their models. This data is not linked to your identity beyond the content of the messages themselves. Please do not send confidential or personal information in the chat that you do not want included in this process. Image generation is not part of this program.",
+          "items": []
+        },
+        {
+          "heading": "5. Data Security",
           "intro": "",
           "body": "We apply reasonable technical measures to protect your data, including authentication through Telegram. However, no method of transmission or storage is completely secure, and we cannot guarantee its absolute security.",
           "items": []
         },
         {
-          "heading": "5. Your Rights",
+          "heading": "6. Your Rights",
           "intro": "",
           "body": "You may request access to, correction of, or deletion of your personal data at any time. To make such a request, contact us at {support}",
           "items": []
         },
         {
-          "heading": "6. Changes to This Policy",
+          "heading": "7. Changes to This Policy",
           "intro": "",
           "body": "We may update this Privacy Policy from time to time. Any changes take effect once the updated version is posted, and we recommend reviewing this page periodically.",
           "items": []
@@ -177,9 +204,18 @@
           "intro": "When using the Service, you agree not to:",
           "body": "",
           "items": [
-            { "b": "", "t": "use it for any unlawful, harmful, or prohibited content;" },
-            { "b": "", "t": "abuse, disrupt, or overload the Service;" },
-            { "b": "", "t": "attempt to gain unauthorized access to or exploit the Service." }
+            {
+              "b": "",
+              "t": "use it for any unlawful, harmful, or prohibited content;"
+            },
+            {
+              "b": "",
+              "t": "abuse, disrupt, or overload the Service;"
+            },
+            {
+              "b": "",
+              "t": "attempt to gain unauthorized access to or exploit the Service."
+            }
           ]
         },
         {
@@ -215,4 +251,4 @@
       ]
     }
   }
-  }
+}

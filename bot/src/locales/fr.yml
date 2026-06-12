@@ -87,9 +87,9 @@ fr:
     error_response: "La connexion a été interrompue. Réessaie."
 
     # Model descriptions (models.yml)
-    model_description_gpt_5_mini: "GPT-5 mini est un modèle <b>rapide</b> et <b>économique</b> conçu pour des solutions précises et logiques. Parfait pour les tâches analytiques. Si tu as besoin de quelque chose de plus polyvalent, essaie le <b>GPT-4 Omni</b>."
+    model_description_gpt_5_4_mini: "GPT-5.4 mini est un modèle <b>rapide</b> et <b>économique</b> conçu pour des solutions précises et logiques. Parfait pour les tâches analytiques. Si tu as besoin de quelque chose de plus polyvalent, essaie le <b>GPT-4 Omni</b>."
     model_description_gpt_4o: "GPT-4 Omni est une variante spéciale de GPT-4 conçue pour offrir des performances et une précision optimales. Adapté aux tâches complexes et détaillées."
-    model_description_gpt_5_nano: "GPT-5 Nano est le modèle <b>le plus rapide</b> et <b>le plus efficace</b>, offrant une intelligence fiable en tant qu'assistant par défaut pour les chatbots. Parfait pour des interactions fluides et réactives. Pour des besoins plus complexes, envisage le <b>GPT-4 Omni</b>."
+    model_description_gpt_5_4_nano: "GPT-5.4 Nano est le modèle <b>le plus rapide</b> et <b>le plus efficace</b>, offrant une intelligence fiable en tant qu'assistant par défaut pour les chatbots. Parfait pour des interactions fluides et réactives. Pour des besoins plus complexes, envisage le <b>GPT-4 Omni</b>."
 
     # Model scores
     score_smart: "Intelligent"

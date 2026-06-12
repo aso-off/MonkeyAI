@@ -25,7 +25,7 @@
           <div class="gpt-model-select-logo">
             <!-- Текстовые модели: chat-иконка -->
             <svg
-              v-if="['gpt-5-nano', 'gpt-4o', 'gpt-5-mini'].includes(model.id)"
+              v-if="['gpt-5.4-nano', 'gpt-4o', 'gpt-5.4-mini'].includes(model.id)"
               width="24"
               height="24"
               viewBox="0 0 24 24"
@@ -557,8 +557,8 @@ function closeFullImage() {
 /* === Выбор модели === */
 const models = computed<ModelOption[]>(() => [
   {
-    id: "gpt-5-nano",
-    name: "GPT 5 <span>Nano</span>",
+    id: "gpt-5.4-nano",
+    name: "GPT 5.4 <span>Nano</span>",
     description: t("for_everyday_tasks"),
   },
   {
@@ -567,8 +567,8 @@ const models = computed<ModelOption[]>(() => [
     description: t("for_complex_tasks"),
   },
   {
-    id: "gpt-5-mini",
-    name: "GPT 5 <span>Mini</span>",
+    id: "gpt-5.4-mini",
+    name: "GPT 5.4 <span>Mini</span>",
     description: t("for_complex_tasks"),
   },
   {

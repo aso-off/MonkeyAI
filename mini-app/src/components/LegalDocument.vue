@@ -7,7 +7,7 @@
           <div class="settingschange-title">{{ t(titleKey) }}</div>
 
           <div class="legal-meta">
-            <div v-if="doc === 'terms'" class="legal-updated">{{ updated }}</div>
+            <div class="legal-updated">{{ updated }}</div>
             <p class="legal-intro">{{ intro }}</p>
           </div>
 

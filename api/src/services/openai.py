@@ -43,7 +43,7 @@ def _encode_image(image_buffer: BytesIO) -> str:
 
 
 class ChatGPT:
-    def __init__(self, model: str = "gpt-5-nano") -> None:
+    def __init__(self, model: str = "gpt-5.4-nano") -> None:
         available = _text_models()
         if model not in available:
             raise ValueError(f"Unknown model: {model!r}. Available: {sorted(available)}")

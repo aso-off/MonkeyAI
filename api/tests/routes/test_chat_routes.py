@@ -21,7 +21,7 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-_MODELS = ["gpt-4o", "gpt-5-nano", "gpt-5-mini"]
+_MODELS = ["gpt-4o", "gpt-5.4-nano", "gpt-5.4-mini"]
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
