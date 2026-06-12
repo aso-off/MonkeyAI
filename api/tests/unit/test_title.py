@@ -54,13 +54,16 @@ async def test_summarize_title_clamps_and_strips(monkeypatch) -> None:
     resp = MagicMock()
     resp.choices = [MagicMock()]
     resp.choices[0].message.content = '"Очень длинный заголовок который точно больше сорока символов ага"'
+    resp.usage.prompt_tokens = 12
+    resp.usage.completion_tokens = 7
     client = MagicMock()
     client.chat.completions.create = AsyncMock(return_value=resp)
     monkeypatch.setattr(title, "_title_client", lambda: client)
 
-    out = await title.summarize_title("длинный текст пользователя")
+    out, n_in, n_out = await title.summarize_title("длинный текст пользователя")
     assert len(out) <= 40
     assert not out.startswith('"')
+    assert (n_in, n_out) == (12, 7)
 
 
 # ── set_initial_title / update_dialog_title ───────────────────────────────────
@@ -161,25 +164,39 @@ class _FakeSessionCM:
 @pytest.mark.asyncio
 async def test_refine_title_updates_and_broadcasts(monkeypatch) -> None:
     from services import title
-    monkeypatch.setattr(title, "summarize_title", AsyncMock(return_value="Готовый заголовок"))
+    monkeypatch.setattr(title, "summarize_title", AsyncMock(return_value=("Готовый заголовок", 5, 3)))
     upd = AsyncMock()
     monkeypatch.setattr("db.repositories.dialogs.update_dialog_title", upd)
     monkeypatch.setattr("db.db.Session", lambda: _FakeSessionCM())
     on_ref = AsyncMock()
 
-    await title._refine_title("did", "текст", "ответ", on_ref)
+    await title._refine_title("did", None, "текст", "ответ", on_ref)
     upd.assert_awaited_once()
     on_ref.assert_awaited_once_with("Готовый заголовок")
 
 
 @pytest.mark.asyncio
+async def test_refine_title_records_tokens(monkeypatch) -> None:
+    from services import title
+    monkeypatch.setattr(title, "summarize_title", AsyncMock(return_value=("Заголовок", 5, 3)))
+    monkeypatch.setattr("db.repositories.dialogs.update_dialog_title", AsyncMock())
+    tokens = AsyncMock()
+    monkeypatch.setattr("db.repositories.dialogs.update_n_used_tokens", tokens)
+    monkeypatch.setattr("db.db.Session", lambda: _FakeSessionCM())
+
+    await title._refine_title("did", 42, "текст", "ответ", None)
+    tokens.assert_awaited_once()
+    assert tokens.await_args.args[1:] == (42, "gpt-5-nano", 5, 3)
+
+
+@pytest.mark.asyncio
 async def test_refine_title_skips_when_empty(monkeypatch) -> None:
     from services import title
-    monkeypatch.setattr(title, "summarize_title", AsyncMock(return_value=""))
+    monkeypatch.setattr(title, "summarize_title", AsyncMock(return_value=("", 0, 0)))
     upd = AsyncMock()
     monkeypatch.setattr("db.repositories.dialogs.update_dialog_title", upd)
 
-    await title._refine_title("did", "текст", None, None)
+    await title._refine_title("did", None, "текст", None, None)
     upd.assert_not_awaited()
 
 
@@ -187,4 +204,4 @@ async def test_refine_title_skips_when_empty(monkeypatch) -> None:
 async def test_refine_title_swallows_errors(monkeypatch) -> None:
     from services import title
     monkeypatch.setattr(title, "summarize_title", AsyncMock(side_effect=RuntimeError("boom")))
-    await title._refine_title("did", "текст", None, None)  # не должно бросить
+    await title._refine_title("did", None, "текст", None, None)  # не должно бросить

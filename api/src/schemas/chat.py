@@ -5,7 +5,6 @@ class ChatCompleteRequest(BaseModel):
     user_id: int
     dialog_id: str | None = None
     message: str
-    dialog_messages: list = []
     chat_mode: str = "assistant"
     model: str
     image_b64: str | None = None

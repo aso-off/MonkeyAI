@@ -65,6 +65,10 @@ class DialogMessagesResponse(msgspec.Struct, frozen=True):
     messages: list
 
 
+class PopLastResponse(msgspec.Struct, frozen=True):
+    message: dict | None = None
+
+
 class NewDialogResponse(msgspec.Struct, frozen=True):
     dialog_id: str
 
@@ -186,24 +190,36 @@ async def get_dialog_messages(user_id: int, dialog_id: str | None = None) -> lis
     return _decode(r.content, DialogMessagesResponse).messages
 
 
-async def set_dialog_messages(user_id: int, messages: list, dialog_id: str | None = None) -> None:
+async def pop_last_exchange(user_id: int, dialog_id: str | None = None) -> dict | None:
+    """Удаляет последний обмен на сервере (/retry); возвращает удалённое user-сообщение."""
     params = {"dialog_id": dialog_id} if dialog_id else {}
-    r = await _request(
-        "PUT",
-        f"/dialogs/{user_id}/messages",
-        json={"messages": messages},
-        params=params,
-    )
+    r = await _request("POST", f"/dialogs/{user_id}/pop-last", params=params)
+    r.raise_for_status()
+    return _decode(r.content, PopLastResponse).message
+
+
+async def append_exchange(
+    user_id: int,
+    user: str,
+    bot: str,
+    dialog_id: str | None = None,
+    model: str | None = None,
+) -> None:
+    r = await _request("POST", f"/dialogs/{user_id}/exchange", json={
+        "dialog_id": dialog_id,
+        "user": user,
+        "bot": bot,
+        "model": model,
+    })
     r.raise_for_status()
 
 
-# Chat
+# Chat (контекст строится на сервере по dialog_id)
 
 async def chat_complete(
     user_id: int,
     dialog_id: str | None,
     message: str,
-    dialog_messages: list,
     chat_mode: str,
     model: str,
     image_b64: str | None = None,
@@ -212,7 +228,6 @@ async def chat_complete(
         "user_id": user_id,
         "dialog_id": dialog_id,
         "message": message,
-        "dialog_messages": dialog_messages,
         "chat_mode": chat_mode,
         "model": model,
         "image_b64": image_b64,
@@ -226,7 +241,6 @@ async def chat_stream(
     user_id: int,
     dialog_id: str | None,
     message: str,
-    dialog_messages: list,
     chat_mode: str,
     model: str,
     image_b64: str | None = None,
@@ -236,7 +250,6 @@ async def chat_stream(
         "user_id": user_id,
         "dialog_id": dialog_id,
         "message": message,
-        "dialog_messages": dialog_messages,
         "chat_mode": chat_mode,
         "model": model,
         "image_b64": image_b64,

@@ -159,11 +159,13 @@ class TestBuildMessages:
     @pytest.mark.unit
     def test_dialog_history_appended(self, gpt, fake) -> None:
         history = [
-            {"user": fake.sentence(), "bot": fake.sentence()},
-            {"user": fake.sentence(), "bot": fake.sentence()},
+            {"role": "user", "content": fake.sentence()},
+            {"role": "assistant", "content": fake.sentence()},
+            {"role": "user", "content": fake.sentence()},
+            {"role": "assistant", "content": fake.sentence()},
         ]
         msgs = gpt._build_messages("new msg", history, "assistant")
-        # system + 2 pairs (user/bot) + final user = 6 messages
+        # system + 4 истории + финальный user = 6
         assert len(msgs) == 6
 
     @pytest.mark.unit
@@ -192,7 +194,10 @@ class TestBuildMessages:
 
     @pytest.mark.unit
     def test_history_alternates_roles(self, gpt) -> None:
-        history = [{"user": "Q", "bot": "A"}]
+        history = [
+            {"role": "user", "content": "Q"},
+            {"role": "assistant", "content": "A"},
+        ]
         msgs = gpt._build_messages("new", history, "assistant")
         # skip system prompt
         roles = [m["role"] for m in msgs[1:]]

@@ -243,7 +243,8 @@ class TestHandleChat:
              patch("routes.ws.Session", cm), \
              patch("routes.ws.dialog_repo.ensure_active_mini_app_dialog",
                    new=AsyncMock(return_value=str(fake.uuid4()))), \
-             patch("routes.ws.dialog_repo.append_dialog_message", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.append_messages", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.ws.dialog_repo.update_n_used_tokens", new=AsyncMock()), \
              patch("routes.ws.user_repo.update_last_interaction", new=AsyncMock()):
             await ws_mod._handle_chat(ws, uid, frame)
@@ -326,14 +327,17 @@ class TestHandleChat:
              patch("routes.ws.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.ws.ChatGPT", chatgpt_cls), \
              patch("routes.ws.Session", cm), \
-             patch("routes.ws.dialog_repo.append_dialog_message", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.append_messages", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.ws.dialog_repo.update_n_used_tokens", new=AsyncMock()), \
              patch("routes.ws.user_repo.update_last_interaction", new=AsyncMock()):
             await ws_mod._handle_chat(ws, uid, frame)
 
         done = next((p for p in broadcasts if p.get("type") == "chat_done"), None)
         assert done is not None
-        assert done["answer"] == answer
+        assert done["message"]["role"] == "assistant"
+        assert done["message"]["content"] == answer
+        assert done["message"]["usage"] == {"input_tokens": 10, "output_tokens": 20, "total_tokens": 30}
         assert uid not in ws_mod._USER_GENERATING
 
     @pytest.mark.asyncio
@@ -364,7 +368,8 @@ class TestHandleChat:
              patch("routes.ws.Session", cm), \
              patch("routes.ws.dialog_repo.ensure_active_mini_app_dialog",
                    new=AsyncMock(return_value=resolved_id)), \
-             patch("routes.ws.dialog_repo.append_dialog_message", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.append_messages", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.ws.dialog_repo.update_n_used_tokens", new=AsyncMock()), \
              patch("routes.ws.user_repo.update_last_interaction", new=AsyncMock()):
             await ws_mod._handle_chat(ws, uid, frame)
@@ -549,7 +554,8 @@ class TestHandleImage:
              patch("routes.ws.asyncio.to_thread", new=AsyncMock(return_value=img_result)), \
              patch("routes.ws.upload_to_imgbb", new=AsyncMock(return_value=img_url)), \
              patch("routes.ws.Session", cm), \
-             patch("routes.ws.dialog_repo.append_dialog_message", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.append_messages", new=AsyncMock()), \
+             patch("routes.ws.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.ws.user_repo.update_last_interaction", new=AsyncMock()), \
              patch("routes.ws.handle_first_message_title", new=AsyncMock()), \
              patch("routes.ws.image_repo.add_generated_image", new=AsyncMock()), \

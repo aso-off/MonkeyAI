@@ -43,7 +43,11 @@ def _fake_message() -> str:
 
 
 def _fake_dialog(n: int = 2) -> list:
-    return [{"user": fake.sentence(), "bot": fake.sentence()} for _ in range(n)]
+    out = []
+    for _ in range(n):
+        out.append({"role": "user", "content": fake.sentence()})
+        out.append({"role": "assistant", "content": fake.sentence()})
+    return out
 
 
 def _fake_answer() -> str:

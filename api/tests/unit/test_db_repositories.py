@@ -573,11 +573,12 @@ class TestAppendDialogMessage:
 
     @pytest.mark.asyncio
     async def test_appends_message_to_existing_dialog(self) -> None:
-        from db.repositories.dialogs import append_dialog_message
+        from db.repositories.dialogs import append_messages
+        from services.messages import user_message
         uid = _uid()
         did = _did()
         dialog = _fake_dialog_obj(uid, did)
-        dialog.messages = [{"user": "old", "bot": "old_resp"}]
+        dialog.messages = [{"id": "msg_0", "role": "user", "content": "old"}]
 
         session = _make_session()
         session.execute.side_effect = [
@@ -585,16 +586,17 @@ class TestAppendDialogMessage:
             MagicMock(),             # UPDATE
         ]
 
-        new_msg = {"user": fake.sentence(), "bot": fake.sentence()}
-        await append_dialog_message(session, uid, new_msg, did)
+        await append_messages(session, uid, did, [user_message(fake.sentence())])
         session.execute.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_skips_when_dialog_not_found(self) -> None:
-        from db.repositories.dialogs import append_dialog_message
+        from db.repositories.dialogs import append_messages
+        from services.messages import user_message
         session = _make_session()
         session.execute.return_value = _scalar_result(None)
 
-        await append_dialog_message(session, _uid(), {"user": "x", "bot": "y"}, _did())
+        ok = await append_messages(session, _uid(), _did(), [user_message("x")])
+        assert ok is False
         # не должно падать, execute вызван один раз (SELECT FOR UPDATE)
         session.execute.assert_awaited_once()

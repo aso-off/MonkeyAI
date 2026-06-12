@@ -283,24 +283,34 @@ class TestGetDialogMessages:
         assert result == msgs
 
 
-class TestSetDialogMessages:
+class TestPopLastExchange:
 
     @pytest.mark.asyncio
-    async def test_executes_put_request(self) -> None:
+    async def test_returns_removed_user_message(self) -> None:
         from src.services import api_client as ac
-        msgs = [{"user": fake.sentence(), "bot": fake.sentence()}]
-        mock_req = AsyncMock(return_value=_resp({}))
-        with patch("src.services.api_client._request", mock_req):
-            await ac.set_dialog_messages(_uid(), msgs, dialog_id=_did())
-        mock_req.assert_awaited_once()
+        removed = {"id": "msg_1", "role": "user", "content": fake.sentence()}
+        with _patch_request(_resp({"message": removed})):
+            result = await ac.pop_last_exchange(_uid(), dialog_id=_did())
+        assert result == removed
 
     @pytest.mark.asyncio
-    async def test_no_dialog_id_sends_empty_params(self) -> None:
+    async def test_returns_none_when_dialog_empty(self) -> None:
         from src.services import api_client as ac
-        mock_req = AsyncMock(return_value=_resp({}))
+        with _patch_request(_resp({"message": None})):
+            result = await ac.pop_last_exchange(_uid())
+        assert result is None
+
+
+class TestAppendExchange:
+
+    @pytest.mark.asyncio
+    async def test_executes_post_request(self) -> None:
+        from src.services import api_client as ac
+        mock_req = AsyncMock(return_value=_resp({"ok": True}))
         with patch("src.services.api_client._request", mock_req):
-            await ac.set_dialog_messages(_uid(), [], dialog_id=None)
+            await ac.append_exchange(_uid(), "промпт", "https://img", dialog_id=_did())
         mock_req.assert_awaited_once()
+        assert mock_req.await_args.kwargs["json"]["user"] == "промпт"
 
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
@@ -323,7 +333,6 @@ class TestChatComplete:
                 user_id=_uid(),
                 dialog_id=_did(),
                 message=fake.sentence(),
-                dialog_messages=[],
                 chat_mode="assistant",
                 model="gpt-4o",
             )
@@ -342,7 +351,7 @@ class TestChatComplete:
         with _patch_request(_resp(data)):
             result = await ac.chat_complete(
                 user_id=_uid(), dialog_id=None,
-                message=fake.sentence(), dialog_messages=[],
+                message=fake.sentence(),
                 chat_mode="assistant", model="gpt-4o",
             )
         assert result.is_flagged is True
@@ -383,7 +392,7 @@ class TestChatStream:
             chunks = []
             async for chunk in ac.chat_stream(
                 user_id=_uid(), dialog_id=_did(),
-                message=fake.sentence(), dialog_messages=[],
+                message=fake.sentence(),
                 chat_mode="assistant", model="gpt-4o",
             ):
                 chunks.append(chunk)
