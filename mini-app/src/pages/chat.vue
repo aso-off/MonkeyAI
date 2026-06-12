@@ -825,9 +825,17 @@ function onChatScroll() {
 }
 
 /* === Загрузка истории из API === */
+function seedReactions() {
+  reactionMap.clear();
+  chatMessages.value.forEach((m, i) => {
+    if (m.reaction) reactionMap.set(i, m.reaction);
+  });
+}
+
 function applyChatHistory(messages: ChatMessage[]) {
   chatMessages.value = messages;
   store.setChatHistory(messages);
+  seedReactions();
 }
 
 /** Lazy-load one page (20) of older messages and prepend without losing scroll position. */
@@ -853,6 +861,7 @@ async function loadOlderMessages() {
     const older = dialogMessagesToChat(messages);
     chatMessages.value = [...older, ...chatMessages.value];
     store.setChatHistory(chatMessages.value);
+    seedReactions(); // индексы сместились после prepend
     cursorIdx.value = next_before_index;
     // Backend is the single source of truth for whether more pages exist.
     hasMoreToLoad.value = has_more;
@@ -876,6 +885,8 @@ async function loadOlderMessages() {
 }
 
 async function loadChatHistory(forceScroll = false) {
+  // черновик — нечего загружать, bootstrap создал бы лишний диалог
+  if (route.params.dialogId === "new") return;
   // Never overwrite an active stream — the spinner slots would be lost.
   if (streamingBotIdx.value !== -1) return;
   // If user has manually loaded older pages, skip reconnect refresh to preserve them.
@@ -955,6 +966,19 @@ async function loadChatHistory(forceScroll = false) {
 /** True while switching to a known dialog — suppresses the empty "new chat" card flash. */
 const isDialogLoading = ref(false);
 
+/** Черновик: диалог не создан, появится в БД с первым сообщением. */
+function openDraftChat() {
+  streamingBotIdx.value = -1;
+  remoteBotSlots.clear();
+  pendingReconnectReqId.value = null;
+  store.setDialogId(null);
+  store.chatHistoryPrefetchOk = false;
+  applyChatHistory([]);
+  cursorIdx.value = 0;
+  hasMoreToLoad.value = false;
+  hasLoadedOlderPages.value = false;
+}
+
 /** Load a specific dialog by id (opened from Recents / page reload) and pin to bottom. */
 async function loadDialogById(id: string) {
   if (isLoadingHistory) return;
@@ -1006,20 +1030,23 @@ async function sendMessage() {
   if (isStreaming.value) return;
   const text = messageText.value.trim();
   if (!text) return;
-  // генерация привязана к диалогу: если переключимся — UI этого диалога не трогаем
-  const genDialogId = store.dialogId;
-  const stillActive = () => store.dialogId === genDialogId;
 
-  // Собираем последние 10 пар user/bot для контекста (только текстовые)
-  const pairs: { user: string; bot: string }[] = [];
-  for (let i = 0; i + 1 < chatMessages.value.length; i += 2) {
-    const u = chatMessages.value[i];
-    const b = chatMessages.value[i + 1];
-    if (u?.type === "user" && b?.type === "bot" && b.contentType !== "image") {
-      pairs.push({ user: u.text, bot: b.text });
+  // ленивое создание: диалог появляется только с первым сообщением
+  let genDialogId = store.dialogId;
+  if (!genDialogId) {
+    try {
+      const { dialog_id } = await api.newDialog();
+      genDialogId = dialog_id;
+      store.setDialogId(dialog_id);
+      dialogsStore.prepend(dialog_id);
+      router.replace({ name: "chat", params: { dialogId: dialog_id } });
+    } catch (e) {
+      console.error("[newDialog]", e);
+      return;
     }
   }
-  const dialogMessages = pairs.slice(-10);
+  // генерация привязана к диалогу: если переключимся — UI этого диалога не трогаем
+  const stillActive = () => store.dialogId === genDialogId;
 
   chatMessages.value.push({ text, type: "user" });
   messageText.value = "";
@@ -1063,7 +1090,7 @@ async function sendMessage() {
           contentType: "image",
           imageUrl: result.url ?? "",
           text: "",
-          mid: result.mid,
+          id: result.id,
         };
       }
       // в галерею сразу, без перезагрузки
@@ -1077,19 +1104,25 @@ async function sendMessage() {
         });
       }
     } else {
-      // Text chat via WebSocket token stream.
-      const result = await wsClient.chatStream({
-        message: text,
-        dialog_id: store.dialogId ?? undefined,
-        dialog_messages: dialogMessages,
-        model: currentModelId.value,
-        chat_mode: store.user?.mini_app_chat_mode ?? "mini_app_assistant",
-      });
+      // Text chat via WebSocket: chat_delta стримит накопленный текст.
+      const result = await wsClient.chatStream(
+        {
+          message: text,
+          dialog_id: genDialogId ?? undefined,
+          model: currentModelId.value,
+          chat_mode: store.user?.mini_app_chat_mode ?? "mini_app_assistant",
+        },
+        (delta) => {
+          if (!stillActive() || !delta) return;
+          chatMessages.value[botIdx] = { type: "bot", contentType: "text", text: delta };
+          nextTick().then(scrollToBottomIfAtBottom);
+        },
+      );
       if (stillActive()) {
         if (result.dialog_id) store.setDialogId(result.dialog_id);
         chatMessages.value[botIdx] = result.is_flagged
           ? { type: "bot", contentType: "text", text: t("message_flagged") }
-          : { type: "bot", contentType: "text", text: result.answer, mid: result.mid };
+          : { type: "bot", contentType: "text", text: result.answer, id: result.id };
       }
     }
   } catch (e) {
@@ -1187,7 +1220,7 @@ function onReaction(index: number, reaction: "like" | "dislike") {
       reaction,
       model: currentModelId.value,
       dialog_id: store.dialogId,
-      mid: chatMessages.value[index]?.mid,
+      message_id: chatMessages.value[index]?.id,
     })
     .catch((err) => console.warn("[reaction]", err));
 }
@@ -1616,9 +1649,15 @@ onMounted(async () => {
     }
   });
 
-  // Token chunk from another device's generation — no longer sent (no streaming).
-  // Handler kept as no-op so connection_ack slots are not broken on old server.
-  wsClient.setTypeHandler("chat_token", () => {});
+  // Стрим-дельта генерации с другого устройства — живой текст в слоте.
+  wsClient.setTypeHandler("chat_delta", (msg) => {
+    const botIdx = remoteBotSlots.get(msg.id as string);
+    if (botIdx === undefined) return;
+    const text = (msg.text as string) ?? "";
+    if (!text) return;
+    chatMessages.value[botIdx] = { type: "bot", contentType: "text", text };
+    nextTick().then(scrollToBottomIfAtBottom);
+  });
 
   // Another device's chat finished.
   wsClient.setTypeHandler("chat_done", (msg) => {
@@ -1628,11 +1667,12 @@ onMounted(async () => {
     streamingBotIdx.value = -1;
     if (botIdx !== undefined) {
       const isFlagged = (msg.is_flagged as boolean) ?? false;
+      const m = (msg.message ?? null) as { id?: string; content?: string } | null;
       chatMessages.value[botIdx] = {
         type: "bot",
         contentType: "text",
-        text: isFlagged ? t("message_flagged") : ((msg.answer as string) ?? ""),
-        mid: msg.mid as string | undefined,
+        text: isFlagged ? t("message_flagged") : (m?.content ?? ""),
+        id: m?.id,
       };
     }
     if (msg.dialog_id) store.setDialogId(msg.dialog_id as string);
@@ -1674,7 +1714,7 @@ onMounted(async () => {
         contentType: "image",
         imageUrl,
         text: "",
-        mid: msg.mid as string | undefined,
+        id: (msg.message as { id?: string } | undefined)?.id,
       };
     }
     if (msg.dialog_id) store.setDialogId(msg.dialog_id as string);
@@ -1830,6 +1870,11 @@ onMounted(async () => {
   });
 
   const routeDialogId = route.params.dialogId;
+  if (routeDialogId === "new") {
+    openDraftChat();
+    initialLoadDone.value = true;
+    return;
+  }
   if (typeof routeDialogId === "string" && routeDialogId) {
     await loadDialogById(routeDialogId);
     initialLoadDone.value = true;
@@ -1852,6 +1897,11 @@ onMounted(async () => {
 watch(
   () => route.params.dialogId,
   (id) => {
+    if (id === "new") {
+      // повторное «новый чат» из активного диалога — чистый черновик
+      if (store.dialogId !== null || chatMessages.value.length) openDraftChat();
+      return;
+    }
     if (typeof id === "string" && id && id !== store.dialogId) {
       loadDialogById(id).then(() => maybeAutoGenerate());
     }

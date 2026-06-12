@@ -78,6 +78,7 @@ class TestChatComplete:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/complete", json=_chat_body())
 
@@ -94,6 +95,7 @@ class TestChatComplete:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/complete", json=_chat_body())
 
@@ -120,6 +122,7 @@ class TestChatComplete:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(True, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/complete",
                                    json=_chat_body(skip_moderation=True))
@@ -141,6 +144,7 @@ class TestChatComplete:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/complete",
                                    json=_chat_body(image_b64=_fake_image_b64()))
@@ -150,23 +154,23 @@ class TestChatComplete:
         gpt_cls.return_value.send_vision_message.assert_awaited_once()
 
     @pytest.mark.api
-    def test_dialog_messages_passed_to_gpt(self, api_client) -> None:
-        dialog_msgs = [
-            {"user": fake.sentence(), "bot": fake.sentence()}
-            for _ in range(fake.random_int(min=1, max=3))
+    def test_server_context_passed_to_gpt(self, api_client) -> None:
+        """Контекст строится на сервере (get_context) и передаётся модели."""
+        context = [
+            {"role": "user", "content": fake.sentence()},
+            {"role": "assistant", "content": fake.sentence()},
         ]
         gpt_cls = _mock_chatgpt()
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=context)), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
-            resp = api_client.post("/chat/complete",
-                                   json=_chat_body(dialog_messages=dialog_msgs))
+            resp = api_client.post("/chat/complete", json=_chat_body())
 
         assert resp.status_code == 200
         call_kwargs = gpt_cls.return_value.send_message.call_args
-        assert call_kwargs[1].get("dialog_messages") == dialog_msgs \
-            or (call_kwargs[0] and len(call_kwargs[0]) > 1)
+        assert call_kwargs[1].get("dialog_messages") == context
 
     @pytest.mark.api
     def test_faker_batch_requests_all_200(self, api_client) -> None:
@@ -175,6 +179,7 @@ class TestChatComplete:
             with patch("routes.chat.moderate_content",
                        new=AsyncMock(return_value=(False, {}, {}))), \
                  patch("routes.chat.ChatGPT", gpt_cls), \
+                 patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
                  patch("routes.chat._persist_chat_result", new=AsyncMock()):
                 resp = api_client.post("/chat/complete", json=_chat_body())
             assert resp.status_code == 200
@@ -206,6 +211,7 @@ class TestChatStream:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/stream", json=_chat_body())
 
@@ -218,6 +224,7 @@ class TestChatStream:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/stream", json=_chat_body())
 
@@ -230,6 +237,7 @@ class TestChatStream:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/stream", json=_chat_body())
 
@@ -244,6 +252,7 @@ class TestChatStream:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/stream", json=_chat_body())
 
@@ -280,6 +289,7 @@ class TestChatStream:
 
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/stream",
                                    json=_chat_body(image_b64=_fake_image_b64()))
@@ -292,6 +302,7 @@ class TestChatStream:
         gpt_cls = _mock_chatgpt()
         with patch("routes.chat.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.chat.ChatGPT", gpt_cls), \
+             patch("routes.chat.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.chat._persist_chat_result", new=AsyncMock()):
             resp = api_client.post("/chat/stream", json=_chat_body())
 

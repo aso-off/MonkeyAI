@@ -5,14 +5,15 @@
 - POST /{user_id}/new
 - POST /{user_id}/ensure
 - GET  /{user_id}/messages
-- PUT  /{user_id}/messages
+- POST /{user_id}/pop-last
+- POST /{user_id}/exchange
 - GET  /{user_id}/message-count
 
 Faker используется для user_id, dialog_id, сообщений, счётчиков токенов.
 """
 
 import uuid
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from faker import Faker
@@ -200,60 +201,84 @@ class TestGetMessages:
         assert resp.json()["messages"] == msgs
 
 
-# ── PUT /{user_id}/messages ───────────────────────────────────────────────────
+# ── POST /{user_id}/pop-last ──────────────────────────────────────────────────
 
 
-class TestSetMessages:
+class TestPopLastExchange:
 
     @pytest.mark.api
-    def test_set_messages_returns_ok(self, api_client) -> None:
+    def test_pop_last_returns_removed_user_message(self, api_client) -> None:
         uid = _uid()
         did = _did()
-        msgs = _fake_messages()
+        removed = {"id": "msg_1", "role": "user", "content": "вопрос"}
 
-        with patch("routes.dialogs.dialog_repo.set_dialog_messages", new=AsyncMock()):
-            resp = api_client.put(
-                f"/dialogs/{uid}/messages",
-                json={"messages": msgs},
-                params={"dialog_id": did},
+        with patch("routes.dialogs.dialog_repo.delete_last_exchange",
+                   new=AsyncMock(return_value=removed)):
+            resp = api_client.post(f"/dialogs/{uid}/pop-last", params={"dialog_id": did})
+
+        assert resp.status_code == 200
+        assert resp.json()["message"] == removed
+
+    @pytest.mark.api
+    def test_pop_last_empty_dialog_returns_none(self, api_client) -> None:
+        uid = _uid()
+        did = _did()
+        with patch("routes.dialogs.dialog_repo.delete_last_exchange",
+                   new=AsyncMock(return_value=None)):
+            resp = api_client.post(f"/dialogs/{uid}/pop-last", params={"dialog_id": did})
+        assert resp.status_code == 200
+        assert resp.json()["message"] is None
+
+    @pytest.mark.api
+    def test_pop_last_without_dialog_resolves_current(self, api_client) -> None:
+        uid = _uid()
+        user = MagicMock()
+        user.state.current_dialog_id = _did()
+        with patch("routes.dialogs.user_repo.get_user", new=AsyncMock(return_value=user)), \
+             patch("routes.dialogs.dialog_repo.delete_last_exchange",
+                   new=AsyncMock(return_value=None)) as mock_del:
+            resp = api_client.post(f"/dialogs/{uid}/pop-last")
+        assert resp.status_code == 200
+        mock_del.assert_awaited_once()
+
+
+# ── POST /{user_id}/exchange ──────────────────────────────────────────────────
+
+
+class TestAppendExchange:
+
+    @pytest.mark.api
+    def test_exchange_appends_canonical_pair(self, api_client) -> None:
+        uid = _uid()
+        did = _did()
+
+        with patch("routes.dialogs.dialog_repo.append_messages",
+                   new=AsyncMock(return_value=True)) as mock_append:
+            resp = api_client.post(
+                f"/dialogs/{uid}/exchange",
+                json={"dialog_id": did, "user": "промпт", "bot": "https://img", "model": "gpt-image-1.5"},
             )
 
         assert resp.status_code == 200
         assert resp.json()["ok"] is True
+        msgs = mock_append.await_args.args[3]
+        assert [m["role"] for m in msgs] == ["user", "assistant"]
+        assert msgs[1]["parent_id"] == msgs[0]["id"]
+        assert msgs[1]["model"] == "gpt-image-1.5"
 
     @pytest.mark.api
-    def test_set_messages_without_dialog_id(self, api_client) -> None:
+    def test_exchange_without_dialog_id_ensures_active(self, api_client) -> None:
         uid = _uid()
-        msgs = _fake_messages(1)
-
-        with patch("routes.dialogs.dialog_repo.set_dialog_messages", new=AsyncMock()):
-            resp = api_client.put(
-                f"/dialogs/{uid}/messages",
-                json={"messages": msgs},
-            )
-
-        assert resp.status_code == 200
-
-    @pytest.mark.api
-    def test_set_empty_messages_list(self, api_client) -> None:
-        uid = _uid()
-        with patch("routes.dialogs.dialog_repo.set_dialog_messages", new=AsyncMock()):
-            resp = api_client.put(
-                f"/dialogs/{uid}/messages",
-                json={"messages": []},
+        with patch("routes.dialogs.dialog_repo.ensure_active_dialog",
+                   new=AsyncMock(return_value=_did())) as mock_ensure, \
+             patch("routes.dialogs.dialog_repo.append_messages",
+                   new=AsyncMock(return_value=True)):
+            resp = api_client.post(
+                f"/dialogs/{uid}/exchange",
+                json={"user": "q", "bot": "a"},
             )
         assert resp.status_code == 200
-
-    @pytest.mark.api
-    def test_faker_large_messages_list(self, api_client) -> None:
-        uid = _uid()
-        msgs = _fake_messages(fake.random_int(min=10, max=50))
-        with patch("routes.dialogs.dialog_repo.set_dialog_messages", new=AsyncMock()):
-            resp = api_client.put(
-                f"/dialogs/{uid}/messages",
-                json={"messages": msgs},
-            )
-        assert resp.status_code == 200
+        mock_ensure.assert_awaited_once()
 
 
 # ── GET /{user_id}/message-count ──────────────────────────────────────────────

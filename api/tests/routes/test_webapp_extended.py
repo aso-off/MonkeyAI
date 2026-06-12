@@ -274,7 +274,8 @@ class TestWebappChatExtended:
              patch("routes.webapp.ChatGPT", return_value=mock_gpt), \
              patch("routes.webapp._resolve_mini_app_dialog_id",
                    new=AsyncMock(return_value=str(uuid.uuid4()))), \
-             patch("routes.webapp.dialog_repo.append_dialog_message", new=AsyncMock()), \
+             patch("routes.webapp.dialog_repo.append_messages", new=AsyncMock()), \
+             patch("routes.webapp.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.webapp.dialog_repo.update_n_used_tokens", new=AsyncMock()), \
              patch("routes.webapp.user_repo.update_last_interaction", new=AsyncMock()):
             resp = client.post("/webapp/chat", json={
@@ -309,7 +310,8 @@ class TestWebappChatExtended:
                    new=AsyncMock(return_value=image_url)), \
              patch("routes.webapp._resolve_mini_app_dialog_id",
                    new=AsyncMock(return_value=str(uuid.uuid4()))), \
-             patch("routes.webapp.dialog_repo.append_dialog_message", new=AsyncMock()), \
+             patch("routes.webapp.dialog_repo.append_messages", new=AsyncMock()), \
+             patch("routes.webapp.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.webapp.user_repo.update_last_interaction", new=AsyncMock()):
             resp = client.post("/webapp/chat", json={
                 "message": fake.sentence(),
@@ -347,7 +349,8 @@ class TestWebappChatExtended:
              patch("routes.webapp.ChatGPT", return_value=mock_gpt), \
              patch("routes.webapp._resolve_mini_app_dialog_id",
                    new=AsyncMock(return_value=str(uuid.uuid4()))), \
-             patch("routes.webapp.dialog_repo.append_dialog_message", new=AsyncMock()), \
+             patch("routes.webapp.dialog_repo.append_messages", new=AsyncMock()), \
+             patch("routes.webapp.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
              patch("routes.webapp.dialog_repo.update_n_used_tokens", new=AsyncMock()), \
              patch("routes.webapp.user_repo.update_last_interaction", new=AsyncMock()):
             resp = client.post("/webapp/chat", json={

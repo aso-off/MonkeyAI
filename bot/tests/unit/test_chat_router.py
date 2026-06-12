@@ -500,6 +500,7 @@ class TestCmdRetry:
              patch("src.bot.routers.chat.api") as mock_api, \
              patch("src.bot.routers.chat.t", return_value="no messages"):
             mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure([]))
+            mock_api.pop_last_exchange = AsyncMock(return_value=None)
             await cmd_retry(msg, language="ru", bot=bot, db_user=db_user)
         msg.answer.assert_awaited_once()
 
@@ -509,28 +510,27 @@ class TestCmdRetry:
         msg = _fake_message()
         bot = _fake_bot()
         db_user = _fake_db_user()
-        ensure = _fake_ensure([{"user": "   ", "bot": "response"}])
+        removed = {"id": "msg_1", "role": "user", "content": "   "}
         with patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
              patch("src.bot.routers.chat.api") as mock_api, \
              patch("src.bot.routers.chat.t", return_value="no retry"):
-            mock_api.ensure_dialog = AsyncMock(return_value=ensure)
+            mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure([]))
+            mock_api.pop_last_exchange = AsyncMock(return_value=removed)
             await cmd_retry(msg, language="ru", bot=bot, db_user=db_user)
         msg.answer.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_set_dialog_messages_failure_sends_error(self) -> None:
+    async def test_pop_last_failure_sends_error(self) -> None:
         from src.bot.routers.chat import cmd_retry
         msg = _fake_message()
         bot = _fake_bot()
         db_user = _fake_db_user()
-        messages = [{"user": fake.sentence(), "bot": "response"}]
-        ensure = _fake_ensure(messages)
         with patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
              patch("src.bot.routers.chat.api") as mock_api, \
              patch("src.bot.routers.chat.monkey") as mock_monkey, \
              patch("src.bot.routers.chat.t", return_value="error"):
-            mock_api.ensure_dialog = AsyncMock(return_value=ensure)
-            mock_api.set_dialog_messages = AsyncMock(side_effect=RuntimeError("db fail"))
+            mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure([]))
+            mock_api.pop_last_exchange = AsyncMock(side_effect=RuntimeError("db fail"))
             mock_monkey.send = AsyncMock()
             await cmd_retry(msg, language="ru", bot=bot, db_user=db_user)
         mock_monkey.send.assert_awaited()
@@ -544,14 +544,20 @@ class TestCmdRetry:
         db_user = _fake_db_user()
         raw_bytes = b"fake_image_bytes"
         b64_data = "data:image/jpeg;base64," + base64.b64encode(raw_bytes).decode()
-        messages = [{"user": [{"type": "image_url", "image_url": {"url": b64_data}}, {"type": "text", "text": "describe"}], "bot": "response"}]
-        ensure = _fake_ensure(messages)
+        removed = {
+            "id": "msg_1",
+            "role": "user",
+            "content": [
+                {"type": "image_url", "image_url": {"url": b64_data}},
+                {"type": "text", "text": "describe"},
+            ],
+        }
         with patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
              patch("src.bot.routers.chat.api") as mock_api, \
              patch("src.bot.routers.chat._run_handle", AsyncMock()) as mock_run, \
              patch("src.bot.routers.chat.t", return_value=""):
-            mock_api.ensure_dialog = AsyncMock(return_value=ensure)
-            mock_api.set_dialog_messages = AsyncMock()
+            mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure([]))
+            mock_api.pop_last_exchange = AsyncMock(return_value=removed)
             await cmd_retry(msg, language="ru", bot=bot, db_user=db_user)
         mock_run.assert_awaited_once()
         _, _, _, _, text, image_buffer = mock_run.call_args[0]

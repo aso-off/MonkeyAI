@@ -157,19 +157,56 @@ async def update_n_used_tokens(
     await session.commit()
 
 
-async def append_dialog_message(
+async def append_messages(
     session: AsyncSession,
     user_id: int,
-    new_message: dict,
     dialog_id: str,
-    max_messages: int = 200,
-) -> str | None:
-    """Atomically append a message using SELECT FOR UPDATE to prevent race conditions.
+    new_messages: list[dict],
+    max_messages: int = 400,
+) -> bool:
+    """Atomically append canonical messages (SELECT FOR UPDATE against races).
+
     Trims the history to the last max_messages entries so the JSON column stays bounded.
-    Assigns a stable ``mid`` to the message and returns it (for client-side reactions).
     """
-    mid = new_message.get("mid") or uuid.uuid4().hex
-    new_message["mid"] = mid
+    result = await session.execute(
+        select(Dialog)
+        .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
+        .with_for_update()
+    )
+    dialog = result.scalar_one_or_none()
+    if dialog is None:
+        await session.commit()
+        return False
+    msgs = list(dialog.messages or []) + list(new_messages)
+    dialog.messages = msgs[-max_messages:]
+    dialog.last_activity = datetime.now(timezone.utc)
+    await session.commit()
+    return True
+
+
+async def get_context(
+    session: AsyncSession,
+    user_id: int,
+    dialog_id: str,
+    limit: int = 20,
+) -> list:
+    """Последние limit сообщений диалога — контекст строится на сервере."""
+    result = await session.execute(
+        select(Dialog.messages).where(Dialog.id == dialog_id, Dialog.user_id == user_id)
+    )
+    msgs = result.scalar_one_or_none() or []
+    return list(msgs)[-limit:]
+
+
+async def delete_last_exchange(
+    session: AsyncSession,
+    user_id: int,
+    dialog_id: str,
+) -> dict | None:
+    """Удаляет последний обмен (хвост assistant-ответов + user-вопрос) — для /retry.
+
+    Возвращает удалённое user-сообщение или None, если удалять нечего.
+    """
     result = await session.execute(
         select(Dialog)
         .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
@@ -179,11 +216,42 @@ async def append_dialog_message(
     if dialog is None:
         await session.commit()
         return None
-    msgs = list(dialog.messages or []) + [new_message]
-    dialog.messages = msgs[-max_messages:]
-    dialog.last_activity = datetime.now(timezone.utc)
+    msgs = list(dialog.messages or [])
+    while msgs and msgs[-1].get("role") == "assistant":
+        msgs.pop()
+    user_msg = msgs.pop() if msgs and msgs[-1].get("role") == "user" else None
+    dialog.messages = msgs
     await session.commit()
-    return mid
+    return user_msg
+
+
+async def set_message_reaction(
+    session: AsyncSession,
+    user_id: int,
+    dialog_id: str,
+    message_id: str,
+    reaction: str | None,
+) -> bool:
+    result = await session.execute(
+        select(Dialog)
+        .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
+        .with_for_update()
+    )
+    dialog = result.scalar_one_or_none()
+    if dialog is None:
+        await session.commit()
+        return False
+    msgs = list(dialog.messages or [])
+    found = False
+    for m in msgs:
+        if m.get("id") == message_id:
+            m["reaction"] = reaction
+            found = True
+            break
+    if found:
+        dialog.messages = msgs
+    await session.commit()
+    return found
 
 
 async def get_dialog_messages_page(

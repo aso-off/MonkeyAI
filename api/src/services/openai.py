@@ -71,8 +71,7 @@ class ChatGPT:
         messages = [{"role": "system", "content": prompt}] if prompt else []
 
         for dm in dialog_messages:
-            messages.append({"role": "user", "content": dm["user"]})
-            messages.append({"role": "assistant", "content": dm["bot"]})
+            messages.append({"role": dm["role"], "content": dm["content"]})
 
         if image_buffer is not None:
             messages.append({
