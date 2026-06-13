@@ -1,73 +1,94 @@
 {
-    "new_chat": "",
-    "settings": "",
-    "empty_chat": "",
-    "describe_image": "",
-    "send_message": "",
-    "for_complex_tasks": "",
-    "for_everyday_tasks": "",
-    "generate_images": "",
-    "input_placeholder_image": "",
-    "input_placeholder_chat": "",
-    "system_language": "",
-    "theme": "",
-    "contact_support": "",
-    "telegram_channel": "",
-    "share_app": "",
-    "version": "",
-    "author": "",
-    "back": "",
-    "user_id": "",
-    "dark": "",
-    "light": "",
-    "system": "",
-    "system_lang": "",
-    "lang_en": "",
-    "lang_ru": "",
-    "lang_de": "",
-    "lang_es": "",
-    "lang_fr": "",
-    "lang_pl": "",
-    "lang_pt": "",
-    "lang_tr": "",
-    "message_flagged": "",
-    "error_response": "",
-    "not_whitelisted_title": "",
-    "loading_init_tg": "",
-    "loading_check_user": "",
-    "loading_data": "",
-    "loading_ui": "",
-    "loading_error": "",
-    "loading_retry": "",
-    "image_generating": "",
-    "load_more_messages": "",
-    "load_more_loading": "",
-    "tooltip_copy": "",
-    "tooltip_copied": "",
-    "tooltip_like": "",
-    "tooltip_dislike": "",
-    "export_txt": "",
-    "export_pdf": "",
-    "loading_welcome": "",
-    "loading_subtitle": "",
-    "loading_tips": [],
-    "privacy_policy": "",
-    "terms_of_service": "",
-    "page_in_development": "",
-    "page_in_development_desc": "",
-    "legal": {
-      "updated": "",
-      "privacy": {
-        "intro": "",
-        "sections": [
-          { "heading": "", "intro": "", "body": "", "items": [{ "b": "", "t": "" }] }
-        ]
-      },
-      "terms": {
-        "intro": "",
-        "sections": [
-          { "heading": "", "intro": "", "body": "", "items": [{ "b": "", "t": "" }] }
-        ]
-      }
+  "new_chat": "",
+  "settings": "",
+  "empty_chat": "",
+  "describe_image": "",
+  "send_message": "",
+  "for_complex_tasks": "",
+  "for_everyday_tasks": "",
+  "generate_images": "",
+  "input_placeholder_image": "",
+  "input_placeholder_chat": "",
+  "system_language": "",
+  "theme": "",
+  "contact_support": "",
+  "telegram_channel": "",
+  "share_app": "",
+  "version": "",
+  "author": "",
+  "back": "",
+  "user_id": "",
+  "dark": "",
+  "light": "",
+  "system": "",
+  "system_lang": "",
+  "lang_en": "",
+  "lang_ru": "",
+  "lang_de": "",
+  "lang_es": "",
+  "lang_fr": "",
+  "lang_pl": "",
+  "lang_pt": "",
+  "lang_tr": "",
+  "message_flagged": "",
+  "error_response": "",
+  "not_whitelisted_title": "",
+  "loading_init_tg": "",
+  "loading_check_user": "",
+  "loading_data": "",
+  "loading_ui": "",
+  "loading_error": "",
+  "loading_retry": "",
+  "image_generating": "",
+  "load_more_messages": "",
+  "load_more_loading": "",
+  "tooltip_copy": "",
+  "tooltip_copied": "",
+  "tooltip_like": "",
+  "tooltip_dislike": "",
+  "export_txt": "",
+  "export_pdf": "",
+  "loading_welcome": "",
+  "loading_subtitle": "",
+  "loading_tips": [],
+  "privacy_policy": "",
+  "terms_of_service": "",
+  "page_in_development": "",
+  "page_in_development_desc": "",
+  "legal": {
+    "updated": "",
+    "privacy": {
+      "intro": "",
+      "sections": [
+        {
+          "heading": "",
+          "intro": "",
+          "body": "",
+          "items": [
+            {
+              "b": "",
+              "t": ""
+            }
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "intro": "",
+      "sections": [
+        {
+          "heading": "",
+          "intro": "",
+          "body": "",
+          "items": [
+            {
+              "b": "",
+              "t": ""
+            }
+          ]
+        }
+      ]
     }
-  }
+  },
+  "share": ""
+}
