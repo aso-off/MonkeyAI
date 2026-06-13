@@ -318,8 +318,6 @@ export class WsClient {
   private _reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   /** Client-side keepalive ping interval (25 s — prevents Cloudflare idle timeout). */
   private _keepaliveTimer: ReturnType<typeof setInterval> | null = null;
-  /** True after disconnect() is called explicitly — suppresses auto-reconnect. */
-  private _stopped = false;
   /** Timestamp of the last message received from the server (used for zombie detection). */
   private _lastServerMsgAt = Date.now();
 
@@ -329,7 +327,7 @@ export class WsClient {
   constructor() {
     // Reconnect immediately when the device regains network access.
     window.addEventListener('online', () => {
-      if (!this._stopped && !this.connected) {
+      if (!this.connected) {
         if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
         this.connect().catch(() => {});
       }
@@ -342,11 +340,11 @@ export class WsClient {
     // A 300 ms delay lets any in-flight TCP close reach the server before we
     // open a new connection (same rationale as the onclose 500 ms delay).
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && !this._stopped && !this.connected) {
+      if (document.visibilityState === 'visible' && !this.connected) {
         if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
         this._reconnectTimer = setTimeout(() => {
           this._reconnectTimer = null;
-          if (!this._stopped && !this.connected) this.connect().catch(() => {});
+          if (!this.connected) this.connect().catch(() => {});
         }, 300);
       }
     });
@@ -354,7 +352,7 @@ export class WsClient {
     // Belt-and-suspenders watchdog: reconnect every 30 s if somehow still
     // disconnected (handles edge cases where onclose did not fire).
     setInterval(() => {
-      if (!this._stopped && !this.connected && !this._reconnectTimer) {
+      if (!this.connected && !this._reconnectTimer) {
         this.connect().catch(() => {});
       }
     }, 30_000);
@@ -378,7 +376,6 @@ export class WsClient {
    * Safe to call multiple times — deduplicates concurrent calls.
    */
   async connect(): Promise<boolean> {
-    this._stopped = false;
     if (this.connected) return true;
     if (this._connectPromise) return this._connectPromise;
 
@@ -424,10 +421,10 @@ export class WsClient {
         this._handlers.clear();
         // Notify global connection_lost handler (e.g. to reset streaming state in UI).
         this._typeHandlers.get('connection_lost')?.({ type: 'connection_lost' });
-        // Auto-reconnect after a short delay unless the user explicitly called disconnect().
+        // Auto-reconnect after a short delay.
         // 500 ms gives the server time to process the TCP close before we open a new
         // connection — prevents a brief "devices=2" state from the same client.
-        if (!this._stopped && !this._reconnectTimer) {
+        if (!this._reconnectTimer) {
           this._reconnectTimer = setTimeout(() => {
             this._reconnectTimer = null;
             this.connect().catch(() => {});
@@ -441,14 +438,6 @@ export class WsClient {
     const result = await this._connectPromise;
     this._connectPromise = null;
     return result;
-  }
-
-  disconnect(): void {
-    this._stopped = true;
-    if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
-    if (this._keepaliveTimer) { clearInterval(this._keepaliveTimer); this._keepaliveTimer = null; }
-    this._ws?.close(1000, 'client disconnect');
-    this._ws = null;
   }
 
   private _route(msg: Record<string, unknown>): void {

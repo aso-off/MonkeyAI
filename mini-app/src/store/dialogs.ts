@@ -14,8 +14,8 @@ export const useDialogsStore = defineStore('dialogs', {
     loaded: false,
   }),
   actions: {
-    async loadInitial(force = false) {
-      if (this.loading || (this.loaded && !force)) return
+    async loadInitial() {
+      if (this.loading || this.loaded) return
       this.loading = true
       try {
         const [r, p] = await Promise.all([api.listDialogs(null, 10), api.listPinned()])

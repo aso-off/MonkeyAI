@@ -10,8 +10,8 @@ export const useImagesStore = defineStore('images', {
     loaded: false,
   }),
   actions: {
-    async loadInitial(force = false) {
-      if (this.loading || (this.loaded && !force)) return
+    async loadInitial() {
+      if (this.loading || this.loaded) return
       this.loading = true
       try {
         const r = await api.listImages(null, 30)
