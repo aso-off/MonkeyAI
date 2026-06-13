@@ -1747,7 +1747,7 @@ onMounted(async () => {
 
   // Connected while a generation is already running on another device.
   // Push the original user message + empty bot slot so the spinner shows
-  // and incoming chat_token / image_progress frames have somewhere to land.
+  // and incoming chat_delta / image_progress frames have somewhere to land.
   wsClient.setTypeHandler("connection_ack", async (msg) => {
     const genId = msg.generating_id as string | undefined;
     if (msg.is_generating) {
@@ -1972,7 +1972,7 @@ onBeforeUnmount(() => {
   for (const type of [
     "user_message",
     "generation_start",
-    "chat_token",
+    "chat_delta",
     "chat_done",
     "chat_error",
     "image_progress",
