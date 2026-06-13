@@ -8,7 +8,16 @@
             <div v-if="!avatarLoaded" class="home__avatar-skel"></div>
             <img v-if="photoUrl" :src="photoUrl" alt="" draggable="false" @load="avatarLoaded = true" />
           </div>
-          <div class="home__name">{{ fullName }}</div>
+          <div class="home__name-row">
+            <div class="home__name">{{ fullName }}</div>
+            <img
+              v-if="isPremium"
+              class="home__premium"
+              :src="premiumBadge"
+              alt=""
+              draggable="false"
+            />
+          </div>
         </div>
 
         <!-- Кнопка Изображения -->
@@ -132,6 +141,7 @@ import searchSvg from '@/components/img/search.svg';
 import settingsSvg from '@/components/img/settings.svg';
 import newChatSvg from '@/components/img/new_chat.svg';
 import editSvg from '@/components/img/editdialog.svg';
+import premiumBadge from '@/components/img/premium_badge.svg';
 
 defineOptions({ name: 'MainPage' });
 
@@ -165,6 +175,14 @@ const photoUrl = computed<string | null>(() => {
     return initData.user()?.photo_url ?? null;
   } catch {
     return null;
+  }
+});
+
+const isPremium = computed<boolean>(() => {
+  try {
+    return initData.user()?.is_premium ?? false;
+  } catch {
+    return false;
   }
 });
 
@@ -408,7 +426,7 @@ onMounted(() => {
 .home__header {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   padding: 10px 8px;
   border-radius: 14px;
   margin-top: 10px;
@@ -444,10 +462,26 @@ onMounted(() => {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+.home__name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
 .home__name {
   font-size: 17px;
   font-weight: 600;
   color: var(--text-color);
+}
+.home__premium {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 /* Карточка-контейнер как в настройках */

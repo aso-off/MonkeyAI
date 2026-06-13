@@ -104,12 +104,6 @@ export const useUserStore = defineStore('user', {
       this.chatHistory = [...messages]
     },
 
-    clearChatHistory() {
-      this.chatHistory = []
-      this.chatHistoryPrefetchOk = false
-      this.chatHistoryNextCursor = 0
-    },
-
     async setModel(modelId: string) {
       const prev = this.currentModel
       const prevUserModel = this.user?.current_model
