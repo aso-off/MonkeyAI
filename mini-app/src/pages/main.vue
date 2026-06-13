@@ -474,8 +474,8 @@ onMounted(() => {
   color: var(--text-color);
 }
 .home__premium {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   pointer-events: none;
   user-select: none;

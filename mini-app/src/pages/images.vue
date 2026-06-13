@@ -60,9 +60,14 @@
     <Transition name="viewer">
       <div v-if="viewer" class="viewer" @click.self="viewer = null">
         <img class="viewer-img" :src="viewer" alt="" />
-        <button v-if="canExport" v-ripple class="viewer-save" @click="saveImage(viewer)">
-          {{ $t('save') }}
-        </button>
+        <div class="viewer-actions">
+          <button v-if="canExport" v-ripple class="viewer-btn" @click="saveImage(viewer)">
+            {{ $t('save') }}
+          </button>
+          <button v-ripple class="viewer-btn" @click="shareImage(viewer)">
+            {{ $t('share') }}
+          </button>
+        </div>
       </div>
     </Transition>
   </div>
@@ -71,7 +76,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { retrieveLaunchParams } from '@tma.js/sdk-vue';
+import { retrieveLaunchParams, openTelegramLink } from '@tma.js/sdk-vue';
 import { api } from '@/services/api';
 import { useUserStore } from '@/store/user';
 import { useImagesStore } from '@/store/images';
@@ -135,6 +140,11 @@ type ShowSaveFilePicker = (opts: {
   suggestedName?: string;
   types?: { description: string; accept: Record<string, string[]> }[];
 }) => Promise<FsHandle>;
+
+/** Поделиться ссылкой на картинку через нативный шит Telegram (как «Поделиться приложением»). */
+function shareImage(url: string) {
+  openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}`);
+}
 
 /**
  * Системное сохранение — только диалог «куда сохранить»:
@@ -321,7 +331,13 @@ onMounted(() => {
   object-fit: contain;
   border-radius: 12px;
 }
-.viewer-save {
+.viewer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.viewer-btn {
   padding: 13px 36px;
   border-radius: 24px;
   border: none;
