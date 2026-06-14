@@ -171,7 +171,24 @@
             ]"
           >
             <!-- Сообщение пользователя -->
-            <span v-if="msg.type === 'user'">{{ msg.text }}</span>
+            <template v-if="msg.type === 'user'">
+              <div v-if="msg.imageUrl" class="image-container user-image">
+                <ChatLoader
+                  v-if="!loadedImages.has(msg.imageUrl)"
+                  variant="image"
+                />
+                <img
+                  :src="msg.imageUrl"
+                  alt=""
+                  class="generated-image"
+                  :class="{ 'image-loading': !loadedImages.has(msg.imageUrl ?? '') }"
+                  @load="onImageLoad(msg.imageUrl!)"
+                  @error="loadedImages.add(msg.imageUrl!)"
+                  @click="openFullImage(msg.imageUrl ?? '')"
+                />
+              </div>
+              <span v-if="msg.text">{{ msg.text }}</span>
+            </template>
 
             <!-- Сообщение бота с обработкой разных типов контента -->
             <div v-else>
@@ -369,8 +386,82 @@
       </button>
     </Transition>
     <footer>
+      <!-- Панель выбора источника фото (вверх от «+») -->
+      <Transition name="attach-panel">
+        <div v-if="attachPanelOpen" class="attach-panel" @click.stop>
+          <button
+            v-if="showCamera"
+            v-ripple
+            type="button"
+            class="attach-panel-item"
+            @click="pickCamera"
+          >
+            <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor">
+              <path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Z" />
+            </svg>
+            <span>{{ $t('camera') }}</span>
+          </button>
+          <button
+            v-ripple
+            type="button"
+            class="attach-panel-item"
+            @click="pickGallery"
+          >
+            <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor">
+              <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Z" />
+            </svg>
+            <span>{{ $t('gallery') }}</span>
+          </button>
+        </div>
+      </Transition>
+
+      <input
+        ref="cameraInput"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        @change="onFileChange"
+      />
+      <input
+        ref="galleryInput"
+        type="file"
+        accept="image/*"
+        hidden
+        @change="onFileChange"
+      />
+
       <form class="footer__input" @submit.prevent="sendMessage">
         <div class="input__text null">
+          <!-- Превью прикреплённого фото -->
+          <div v-if="attachment" class="attach-preview">
+            <div class="attach-thumb-wrap">
+              <img :src="attachment.preview" alt="" class="attach-thumb" />
+              <div
+                v-if="attachment.status === 'uploading'"
+                class="attach-progress"
+              >
+                <svg viewBox="0 0 40 40" class="attach-ring">
+                  <circle class="attach-ring-bg" cx="20" cy="20" r="16" />
+                  <circle
+                    class="attach-ring-fg"
+                    cx="20"
+                    cy="20"
+                    r="16"
+                    :stroke-dasharray="ringCircumference"
+                    :stroke-dashoffset="ringOffset"
+                  />
+                </svg>
+              </div>
+              <div v-else-if="attachment.status === 'error'" class="attach-failed">!</div>
+              <div class="input__text-image-delete" @click="removeAttachment">
+                <svg viewBox="0 -960 960 960" width="10" height="10" fill="currentColor">
+                  <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
           <div
             id="editable-message-text"
             contenteditable="true"
@@ -388,6 +479,22 @@
           >
             {{ inputPlaceholder }}
           </span>
+
+          <!-- Кнопка прикрепления фото (vision) — слева, размер как «отправить» -->
+          <button
+            v-if="!isImageModel"
+            type="button"
+            class="input__attach"
+            :class="{ disabled: !!attachment }"
+            :disabled="!!attachment"
+            @click.stop="toggleAttachPanel"
+            aria-label="attach"
+          >
+            <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor">
+              <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
+            </svg>
+          </button>
+
           <label
             class="input__submit"
             :class="{ disabled: isSubmitDisabled }"
@@ -554,6 +661,117 @@ function closeFullImage() {
   document.body.style.overflow = "auto";
 }
 
+/* === Прикрепление фото (vision) === */
+interface Attachment {
+  preview: string;
+  status: "uploading" | "ready" | "error";
+  progress: number;
+  url?: string;
+}
+const attachment = ref<Attachment | null>(null);
+const attachPanelOpen = ref(false);
+const cameraInput = ref<HTMLInputElement | null>(null);
+const galleryInput = ref<HTMLInputElement | null>(null);
+
+const isImageModel = computed(() => currentModelId.value === "gpt-image-1.5");
+
+// камера — только нативное приложение телефона
+const showCamera = computed(() => {
+  try {
+    const p = retrieveLaunchParams().tgWebAppPlatform ?? "";
+    return p === "ios" || p === "android";
+  } catch {
+    return false;
+  }
+});
+
+const ringCircumference = 2 * Math.PI * 16;
+const ringOffset = computed(() =>
+  attachment.value
+    ? ringCircumference * (1 - attachment.value.progress)
+    : ringCircumference,
+);
+
+function toggleAttachPanel() {
+  if (attachment.value) return;
+  attachPanelOpen.value = !attachPanelOpen.value;
+}
+
+function pickCamera() {
+  attachPanelOpen.value = false;
+  cameraInput.value?.click();
+}
+
+function pickGallery() {
+  attachPanelOpen.value = false;
+  galleryInput.value?.click();
+}
+
+function removeAttachment() {
+  attachment.value = null;
+}
+
+function resizeToJpeg(
+  file: File,
+  maxSide: number,
+  quality: number,
+): Promise<{ b64: string; dataUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read error"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("decode error"));
+      img.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("no canvas ctx"));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve({ dataUrl, b64: dataUrl.split(",", 2)[1] ?? "" });
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function onFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = ""; // повторный выбор того же файла
+  if (!file) return;
+
+  let resized: { b64: string; dataUrl: string };
+  try {
+    resized = await resizeToJpeg(file, 1024, 0.9);
+  } catch {
+    return;
+  }
+
+  attachment.value = { preview: resized.dataUrl, status: "uploading", progress: 0 };
+  try {
+    const { url } = await api.uploadImage(resized.b64, (r) => {
+      if (attachment.value) attachment.value.progress = r;
+    });
+    if (attachment.value) {
+      attachment.value.url = url;
+      attachment.value.status = "ready";
+      attachment.value.progress = 1;
+    }
+  } catch {
+    if (attachment.value) attachment.value.status = "error";
+  }
+}
+
 /* === Выбор модели === */
 const models = computed<ModelOption[]>(() => [
   {
@@ -620,6 +838,10 @@ async function selectModel(model: ModelOption) {
   const prevName = selectedModel.value;
   currentModelId.value = model.id;
   selectedModel.value = model.name;
+  if (model.id === "gpt-image-1.5") {
+    attachment.value = null;
+    attachPanelOpen.value = false;
+  }
   try {
     await store.setModel(model.id);
   } catch {
@@ -639,6 +861,7 @@ function handleDocumentClick(e: MouseEvent) {
     }
   }
   moreMenuIndex.value = null;
+  attachPanelOpen.value = false;
 }
 
 /* === Чат === */
@@ -650,8 +873,13 @@ const editableDiv = ref<HTMLElement | null>(null);
 const chatContent = ref<HTMLElement | null>(null);
 
 const isStreaming = computed(() => streamingBotIdx.value !== -1);
+// фото прикреплено, но ещё грузится / упало — отправку блокируем
+const attachBlocking = computed(
+  () => !!attachment.value && attachment.value.status !== "ready",
+);
 const isSubmitDisabled = computed(
-  () => messageText.value.trim() === "" || isStreaming.value,
+  () =>
+    messageText.value.trim() === "" || isStreaming.value || attachBlocking.value,
 );
 
 /**
@@ -1028,8 +1256,12 @@ function maybeAutoGenerate() {
 /* === Отправка сообщения === */
 async function sendMessage() {
   if (isStreaming.value) return;
+  if (attachBlocking.value) return;
   const text = messageText.value.trim();
   if (!text) return;
+
+  const imageUrl =
+    attachment.value?.status === "ready" ? attachment.value.url : undefined;
 
   // ленивое создание: диалог появляется только с первым сообщением
   let genDialogId = store.dialogId;
@@ -1048,7 +1280,14 @@ async function sendMessage() {
   // генерация привязана к диалогу: если переключимся — UI этого диалога не трогаем
   const stillActive = () => store.dialogId === genDialogId;
 
-  chatMessages.value.push({ text, type: "user" });
+  chatMessages.value.push({
+    text,
+    type: "user",
+    contentType: imageUrl ? "image" : "text",
+    imageUrl: imageUrl ?? null,
+  });
+  attachment.value = null;
+  attachPanelOpen.value = false;
   messageText.value = "";
   if (editableDiv.value) editableDiv.value.innerText = "";
   // живое обновление времени диалога в списке (поднимается в «Сегодня»)
@@ -1111,6 +1350,7 @@ async function sendMessage() {
           dialog_id: genDialogId ?? undefined,
           model: currentModelId.value,
           chat_mode: store.user?.mini_app_chat_mode ?? "mini_app_assistant",
+          image_url: imageUrl,
         },
         (delta) => {
           if (!stillActive() || !delta) return;
@@ -1627,12 +1867,18 @@ onMounted(async () => {
   // Another device sent a user message → add it + an empty bot slot.
   wsClient.setTypeHandler("user_message", (msg) => {
     const text = (msg.text as string) ?? "";
-    if (!text) return;
+    const imageUrl = (msg.image_url as string) ?? null;
+    if (!text && !imageUrl) return;
     // Ensure prior history is visible before appending the new stream slot.
     if (!chatMessages.value.length && store.chatHistory.length) {
       chatMessages.value = [...store.chatHistory];
     }
-    chatMessages.value.push({ text, type: "user" });
+    chatMessages.value.push({
+      text,
+      type: "user",
+      contentType: imageUrl ? "image" : "text",
+      imageUrl,
+    });
     chatMessages.value.push({ type: "bot", contentType: "text", text: "" });
     const botIdx = chatMessages.value.length - 1;
     remoteBotSlots.set(msg.id as string, botIdx);
@@ -2087,6 +2333,163 @@ onBeforeUnmount(() => {
   max-height: 90%;
   object-fit: contain;
   border-radius: 4px;
+}
+
+/* === Прикрепление фото (vision) === */
+.input__attach {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--third-bg-color);
+  color: var(--icons-storke-color);
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
+  z-index: 2;
+}
+
+.input__attach.disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+.attach-panel {
+  position: absolute;
+  left: 10px;
+  bottom: calc(100% + 6px);
+  min-width: 184px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: var(--second-bg-color);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.attach-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.attach-panel-item svg {
+  color: var(--icons-storke-color);
+  flex-shrink: 0;
+}
+
+.attach-panel-enter-active,
+.attach-panel-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.attach-panel-enter-from,
+.attach-panel-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.attach-preview {
+  padding: 8px 8px 0 8px;
+  display: flex;
+}
+
+.attach-thumb-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.attach-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+.attach-progress {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+}
+
+.attach-ring {
+  width: 40px;
+  height: 40px;
+  transform: rotate(-90deg);
+}
+
+.attach-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 4;
+}
+
+.attach-ring-fg {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.15s linear;
+}
+
+.attach-failed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(214, 48, 49, 0.55);
+  color: #fff;
+  font-weight: 700;
+}
+
+.attach-thumb-wrap .input__text-image-delete {
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  background-color: var(--second-bg-color);
+  border: 1px solid var(--border-color);
+}
+
+.attach-thumb-wrap .input__text-image-delete svg {
+  fill: var(--icons-storke-color);
+}
+
+.user-message .image-container {
+  margin: 0 0 4px;
+  align-items: flex-end;
+}
+
+.user-message .image-container .generated-image {
+  width: 200px;
+  height: 200px;
 }
 
 

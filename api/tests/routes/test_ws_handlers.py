@@ -378,6 +378,50 @@ class TestHandleChat:
         assert done is not None
         assert done["dialog_id"] == resolved_id
 
+    @pytest.mark.asyncio
+    async def test_image_url_routes_to_vision_stream(self) -> None:
+        import routes.ws as ws_mod
+        ws = _make_ws()
+        uid = _uid()
+        dialog_id = str(fake.uuid4())
+        img = "https://i.ibb.co/abc/photo.jpg"
+        frame = {"type": "chat", "id": "rv", "message": "что на фото?",
+                 "dialog_id": dialog_id, "image_url": img}
+
+        async def _stream(*a, **kw):
+            yield "done", "вижу кота", (5, 7), 0
+
+        vision = MagicMock(side_effect=_stream)
+        chatgpt_instance = MagicMock()
+        chatgpt_instance.send_vision_message_stream = vision
+        chatgpt_instance.send_message_stream = MagicMock(side_effect=AssertionError("text stream used"))
+        chatgpt_cls = MagicMock(return_value=chatgpt_instance)
+
+        broadcasts = []
+        async def _cap(user_id, payload, exclude=None):
+            broadcasts.append(payload)
+
+        cm, session = _mock_session_cm()
+
+        with patch("routes.ws._broadcast", side_effect=_cap), \
+             patch("routes.ws._send", new=AsyncMock()), \
+             patch("routes.ws.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
+             patch("routes.ws.ChatGPT", chatgpt_cls), \
+             patch("routes.ws.Session", cm), \
+             patch("routes.ws.dialog_repo.append_messages", new=AsyncMock()) as append, \
+             patch("routes.ws.dialog_repo.get_context", new=AsyncMock(return_value=[])), \
+             patch("routes.ws.dialog_repo.update_n_used_tokens", new=AsyncMock()), \
+             patch("routes.ws.user_repo.update_last_interaction", new=AsyncMock()):
+            await ws_mod._handle_chat(ws, uid, frame)
+
+        assert vision.call_args.kwargs.get("image_url") == img
+        user_echo = next((p for p in broadcasts if p.get("type") == "user_message"), None)
+        assert user_echo is not None and user_echo["image_url"] == img
+        persisted = append.call_args_list[0][0][3][0]
+        parts = {i["type"] for i in persisted["content"]}
+        assert parts == {"text", "image_url"}
+        assert uid not in ws_mod._USER_GENERATING
+
 
 # ── _handle_image ─────────────────────────────────────────────────────────────
 
