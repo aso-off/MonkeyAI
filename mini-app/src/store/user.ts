@@ -23,7 +23,12 @@ export function dialogMessagesToChat(messages: DialogMessage[]): ChatMessage[] {
       ? (m.content.find(p => p.type === 'text')?.text ?? '')
       : String(m.content ?? '')
     if (m.role === 'user') {
-      return { type: 'user', text, id: m.id }
+      const imageUrl = Array.isArray(m.content)
+        ? (m.content.find(p => p.type === 'image_url')?.image_url?.url ?? null)
+        : null
+      return imageUrl
+        ? { type: 'user', contentType: 'image', text, imageUrl, id: m.id }
+        : { type: 'user', text, id: m.id }
     }
     const isImageUrl = text.startsWith('http') || text.startsWith('data:image/')
     return isImageUrl

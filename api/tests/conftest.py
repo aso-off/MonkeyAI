@@ -52,6 +52,7 @@ def _make_fake_settings() -> types.SimpleNamespace:
         image_quality="medium",
         image_rate_limit_count=15,
         image_rate_limit_window_seconds=3600,
+        imgbb_api_key="test-imgbb-key",
         whitelist_mode=True,
         dialog_context_limit=20,
         message_max_length=4096,

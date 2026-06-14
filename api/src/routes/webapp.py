@@ -32,6 +32,7 @@ from schemas.chat import Usage
 from schemas.user import UserRead
 from services.messages import assistant_message, user_message
 from services.image_generation import IMAGE_MODELS, generate_image_url
+from services.image_processing import upload_to_imgbb
 from services.moderation import moderate_content
 from services.openai import ChatGPT
 from services.title import handle_first_message_title
@@ -216,6 +217,14 @@ class WebAppChatResponse(BaseModel):
     usage: Usage = Usage()
     n_first_removed: int = 0
     is_flagged: bool = False
+
+
+class _UploadImageBody(BaseModel):
+    image_b64: str
+
+
+class _UploadImageResponse(BaseModel):
+    url: str
 
 
 class _DialogIdResponse(BaseModel):
@@ -608,6 +617,34 @@ async def list_images(
         next_before=next_before,
         has_more=has_more,
     )
+
+
+@router.post("/upload-image", response_model=_UploadImageResponse)
+async def upload_image(
+    body: _UploadImageBody,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> _UploadImageResponse:
+    """Загрузить прикреплённое фото (vision) на ImgBB, вернуть публичный URL."""
+    tg = _extract_tg_user(init_data)
+    user_id = tg["id"]
+    await _require_whitelisted(session, user_id)
+
+    b64 = body.image_b64
+    if "," in b64:
+        b64 = b64.split(",", 1)[1]
+    try:
+        base64.b64decode(b64, validate=True)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid image data") from exc
+
+    try:
+        url = await upload_to_imgbb(b64, settings.imgbb_api_key)
+    except Exception as exc:
+        logger.exception("Failed to upload vision image for user %d", user_id)
+        raise HTTPException(status_code=502, detail="Image upload failed") from exc
+
+    return _UploadImageResponse(url=url)
 
 
 @router.post("/chat", response_model=WebAppChatResponse)
