@@ -302,6 +302,43 @@ class TestUpdateMe:
 # ── POST /webapp/dialogs/new ──────────────────────────────────────────────────
 
 
+class TestWebappUploadImage:
+
+    @pytest.mark.api
+    def test_upload_returns_url(self, webapp_client) -> None:
+        import base64
+        client, _ = webapp_client
+        b64 = base64.b64encode(b"\xff\xd8\xff\x00fake").decode()
+        url = "https://i.ibb.co/abc/photo.jpg"
+
+        with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
+             patch("routes.webapp.upload_to_imgbb", new=AsyncMock(return_value=url)):
+            resp = client.post("/webapp/upload-image", json={"image_b64": b64})
+
+        assert resp.status_code == 200
+        assert resp.json()["url"] == url
+
+    @pytest.mark.api
+    def test_upload_invalid_base64_returns_400(self, webapp_client) -> None:
+        client, _ = webapp_client
+        with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)):
+            resp = client.post("/webapp/upload-image", json={"image_b64": "!!!not-b64!!!"})
+        assert resp.status_code == 400
+
+    @pytest.mark.api
+    def test_upload_imgbb_failure_returns_502(self, webapp_client) -> None:
+        import base64
+        client, _ = webapp_client
+        b64 = base64.b64encode(b"\xff\xd8\xff\x00fake").decode()
+        with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
+             patch("routes.webapp.upload_to_imgbb", new=AsyncMock(side_effect=Exception("imgbb down"))):
+            resp = client.post("/webapp/upload-image", json={"image_b64": b64})
+        assert resp.status_code == 502
+
+
+# ── POST /webapp/dialogs/new ──────────────────────────────────────────────────
+
+
 class TestWebappDialogsNew:
 
     @pytest.mark.api

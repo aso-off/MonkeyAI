@@ -307,6 +307,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
     model = str(frame.get("model") or "gpt-5.4-nano")
     dialog_id: str | None = frame.get("dialog_id")
     chat_mode = str(frame.get("chat_mode") or "mini_app_assistant")
+    image_url: str | None = frame.get("image_url") or None
 
     if not message:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "empty message"})
@@ -318,7 +319,12 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "already generating"})
         return
 
-    user_msg = user_message(message)
+    user_content: str | list = (
+        [{"type": "text", "text": message},
+         {"type": "image_url", "image_url": {"url": image_url}}]
+        if image_url else message
+    )
+    user_msg = user_message(user_content)
 
     # 1. Broadcast user’s message to all OTHER devices immediately.
     await _broadcast(user_id, {
@@ -326,6 +332,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         "id": req_id,
         "message_id": user_msg["id"],
         "text": message,
+        "image_url": image_url,
         "dialog_id": dialog_id,
     }, exclude=ws)
 
@@ -377,10 +384,16 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         final_answer = ""
         n_input = n_output = n_removed = 0
         last_delta = 0.0
-        try:
-            async for status, answer, (ni, no), nr in chatgpt.send_message_stream(
+        if image_url:
+            stream = chatgpt.send_vision_message_stream(
+                message, dialog_messages=context, chat_mode=chat_mode, image_url=image_url
+            )
+        else:
+            stream = chatgpt.send_message_stream(
                 message, dialog_messages=context, chat_mode=chat_mode
-            ):
+            )
+        try:
+            async for status, answer, (ni, no), nr in stream:
                 final_answer = answer
                 n_input, n_output, n_removed = ni, no, nr
                 if status == "not_finished":
