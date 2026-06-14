@@ -287,6 +287,16 @@ export const api = {
     );
   },
 
+  /** Пометить диалог активным — reload мини-аппа вернёт именно его. */
+  activateDialog(dialogId: string): Promise<void> {
+    return apiFetch<void>(
+      `/webapp/dialogs/${dialogId}/activate`,
+      { method: 'POST' },
+      8_000,
+      0,
+    );
+  },
+
   /** List the user's generated images (gallery). */
   listImages(before?: string | null, limit = 30): Promise<ImagesResult> {
     const params = new URLSearchParams({ limit: String(limit) });
