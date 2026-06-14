@@ -451,6 +451,24 @@ class TestDialogCrud:
         assert resp.status_code == 404
 
     @pytest.mark.api
+    def test_activate_returns_204(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
+             patch("routes.webapp.dialog_repo.set_active_mini_app_dialog",
+                   new=AsyncMock(return_value=True)):
+            resp = client.post("/webapp/dialogs/abc/activate")
+        assert resp.status_code == 204
+
+    @pytest.mark.api
+    def test_activate_missing_returns_404(self, webapp_client) -> None:
+        client, tg = webapp_client
+        with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
+             patch("routes.webapp.dialog_repo.set_active_mini_app_dialog",
+                   new=AsyncMock(return_value=False)):
+            resp = client.post("/webapp/dialogs/abc/activate")
+        assert resp.status_code == 404
+
+    @pytest.mark.api
     def test_search_ok(self, webapp_client) -> None:
         client, tg = webapp_client
         with patch("routes.webapp.dialog_repo.search_dialogs", new=AsyncMock(return_value=[_fake_dialog_row("Docker")])):

@@ -579,6 +579,19 @@ async def pin_dialog(
         raise HTTPException(status_code=404, detail="Dialog not found")
 
 
+@router.post("/dialogs/{dialog_id}/activate", status_code=204, summary="Set active mini-app dialog")
+async def activate_dialog(
+    dialog_id: str,
+    init_data: dict = Depends(verify_webapp_init_data),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    """Пометить диалог активным — чтобы reload мини-аппа вернул именно его."""
+    user_id = _extract_tg_user(init_data)["id"]
+    await _require_whitelisted(session, user_id)
+    if not await dialog_repo.set_active_mini_app_dialog(session, user_id, dialog_id):
+        raise HTTPException(status_code=404, detail="Dialog not found")
+
+
 # ---------------------------------------------------------------------------
 # Generated images gallery
 # ---------------------------------------------------------------------------
