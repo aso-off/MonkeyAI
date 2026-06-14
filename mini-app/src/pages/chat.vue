@@ -171,16 +171,17 @@
             <div
               v-if="msg.type === 'user' && msg.imageUrl"
               class="user-photo"
+              :class="{ 'user-photo--sized': !!(msg.imageW && msg.imageH) }"
+              :style="photoStyle(msg)"
             >
-              <ChatLoader
-                v-if="!loadedImages.has(msg.imageUrl)"
-                variant="image"
-              />
+              <div
+                v-if="!loadedImages.has(msg.imageUrl) && !!msg.imageW"
+                class="user-photo-skeleton"
+              ></div>
               <img
                 :src="msg.imageUrl"
                 alt=""
                 class="user-photo-img"
-                :class="{ 'image-loading': !loadedImages.has(msg.imageUrl ?? '') }"
                 @load="onImageLoad(msg.imageUrl!)"
                 @error="loadedImages.add(msg.imageUrl!)"
                 @click="openFullImage(msg.imageUrl ?? '')"
@@ -422,10 +423,7 @@
       />
 
       <form class="footer__input" @submit.prevent="sendMessage">
-        <div
-          class="input__text null"
-          :class="{ 'composer--stacked': composerStacked, 'has-attach': !!attachment }"
-        >
+        <div class="input__text null" :class="{ 'has-attach': !!attachment }">
           <!-- Превью прикреплённого фото — над строкой ввода -->
           <div v-if="attachment" class="attach-preview">
             <div
@@ -662,18 +660,27 @@ function closeFullImage() {
   document.body.style.overflow = "auto";
 }
 
+/** Фиксированный бокс фото в ленте по сохранённым размерам — скелетон 1:1, без рывка. */
+function photoStyle(msg: ChatMessage): Record<string, string> {
+  const w = msg.imageW;
+  const h = msg.imageH;
+  if (!w || !h) return {};
+  const displayW = Math.min(300, (380 * w) / h);
+  return { aspectRatio: `${w} / ${h}`, width: `${Math.round(displayW)}px` };
+}
+
 /* === Прикрепление фото (vision) === */
 interface Attachment {
   preview: string;
   status: "uploading" | "ready" | "error";
   progress: number;
   url?: string;
+  w: number;
+  h: number;
 }
 const attachment = ref<Attachment | null>(null);
 const attachPanelOpen = ref(false);
 const galleryInput = ref<HTMLInputElement | null>(null);
-// текст занял >1 строки → кнопки уходят вниз (как у ChatGPT)
-const composerStacked = ref(false);
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
 const isImageModel = computed(() => currentModelId.value === "gpt-image-1.5");
@@ -700,24 +707,11 @@ function removeAttachment() {
   attachment.value = null;
 }
 
-/** Пересчёт одно-/многострочной раскладки композера. */
-function updateComposerLayout() {
-  const el = editableDiv.value;
-  if (!el) {
-    composerStacked.value = false;
-    return;
-  }
-  const cs = getComputedStyle(el);
-  const lh = parseFloat(cs.lineHeight) || 22;
-  const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) || 0;
-  composerStacked.value = el.scrollHeight - padV > lh * 1.5;
-}
-
 function resizeToJpeg(
   file: File,
   maxSide: number,
   quality: number,
-): Promise<{ b64: string; dataUrl: string }> {
+): Promise<{ b64: string; dataUrl: string; w: number; h: number }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error("read error"));
@@ -738,7 +732,7 @@ function resizeToJpeg(
         }
         ctx.drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL("image/jpeg", quality);
-        resolve({ dataUrl, b64: dataUrl.split(",", 2)[1] ?? "" });
+        resolve({ dataUrl, b64: dataUrl.split(",", 2)[1] ?? "", w, h });
       };
       img.src = reader.result as string;
     };
@@ -753,14 +747,20 @@ async function onFileChange(e: Event) {
   if (!file) return;
   if (file.size > MAX_UPLOAD_BYTES) return; // >8 МБ — молча игнор
 
-  let resized: { b64: string; dataUrl: string };
+  let resized: { b64: string; dataUrl: string; w: number; h: number };
   try {
     resized = await resizeToJpeg(file, 1536, 0.92);
   } catch {
     return;
   }
 
-  attachment.value = { preview: resized.dataUrl, status: "uploading", progress: 0 };
+  attachment.value = {
+    preview: resized.dataUrl,
+    status: "uploading",
+    progress: 0,
+    w: resized.w,
+    h: resized.h,
+  };
   try {
     const { url } = await api.uploadImage(resized.b64, (r) => {
       if (attachment.value) attachment.value.progress = r;
@@ -893,7 +893,6 @@ const remoteBotSlots = new Map<string, number>();
 
 function onInput(e: Event) {
   messageText.value = (e.target as HTMLElement).innerText;
-  updateComposerLayout();
 }
 
 /**
@@ -916,7 +915,6 @@ function onPaste(e: ClipboardEvent) {
   sel.addRange(range);
   messageText.value =
     (editableDiv.value as HTMLElement | null)?.innerText ?? "";
-  updateComposerLayout();
 }
 
 function scrollToBottom() {
@@ -1267,8 +1265,10 @@ async function sendMessage() {
   const text = messageText.value.trim();
   if (!text) return;
 
-  const imageUrl =
-    attachment.value?.status === "ready" ? attachment.value.url : undefined;
+  const ready = attachment.value?.status === "ready" ? attachment.value : null;
+  const imageUrl = ready?.url;
+  const imageW = ready?.w;
+  const imageH = ready?.h;
 
   // ленивое создание: диалог появляется только с первым сообщением
   let genDialogId = store.dialogId;
@@ -1292,11 +1292,14 @@ async function sendMessage() {
     type: "user",
     contentType: imageUrl ? "image" : "text",
     imageUrl: imageUrl ?? null,
+    imageW: imageW ?? null,
+    imageH: imageH ?? null,
   });
+  // фото уже у нас — скелетон не нужен (покажется только при перезагрузке истории)
+  if (imageUrl) loadedImages.add(imageUrl);
   attachment.value = null;
   attachPanelOpen.value = false;
   messageText.value = "";
-  composerStacked.value = false;
   if (editableDiv.value) editableDiv.value.innerText = "";
   // живое обновление времени диалога в списке (поднимается в «Сегодня»)
   if (genDialogId) dialogsStore.touch(genDialogId);
@@ -1359,6 +1362,8 @@ async function sendMessage() {
           model: currentModelId.value,
           chat_mode: store.user?.mini_app_chat_mode ?? "mini_app_assistant",
           image_url: imageUrl,
+          image_w: imageW,
+          image_h: imageH,
         },
         (delta) => {
           if (!stillActive() || !delta) return;
@@ -1886,6 +1891,8 @@ onMounted(async () => {
       type: "user",
       contentType: imageUrl ? "image" : "text",
       imageUrl,
+      imageW: (msg.image_w as number) ?? null,
+      imageH: (msg.image_h as number) ?? null,
     });
     chatMessages.value.push({ type: "bot", contentType: "text", text: "" });
     const botIdx = chatMessages.value.length - 1;
@@ -2343,39 +2350,28 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
-/* === Композер (single-row ↔ stacked, ChatGPT-канон) === */
+/* === Композер (стабильная одна строка, без дёрганья) === */
 /* убираем нижнюю «полку» — кнопки живут в grid-строке */
 footer .footer__input .input__text {
   padding-bottom: 0;
 }
 
+/* кнопки прижаты к низу строки — текст растёт вверх плавно (как у ChatGPT) */
 .composer-row {
   display: grid;
-  grid-template-areas: "plus text send";
   grid-template-columns: auto 1fr auto;
-  align-items: center;
+  align-items: end;
   column-gap: 4px;
   padding: 5px;
-  transition: row-gap 0.15s ease;
-}
-
-.composer--stacked .composer-row {
-  grid-template-areas:
-    "text text"
-    "plus send";
-  grid-template-columns: auto 1fr;
-  row-gap: 2px;
 }
 
 .composer-text {
-  grid-area: text;
   position: relative;
   min-width: 0;
 }
 
 /* «+» — плоская svg, статична в grid; специфичность выше footer .footer__input button{display:none} */
 footer .footer__input .input__attach {
-  grid-area: plus;
   position: static;
   display: flex;
   align-items: center;
@@ -2400,12 +2396,7 @@ footer .footer__input .input__attach.disabled {
 /* «отправить» — статична в grid справа (перебиваем глобальный absolute) */
 footer .footer__input .input__submit {
   position: static;
-  grid-area: send;
   justify-self: end;
-}
-
-.composer--stacked .input__attach {
-  justify-self: start;
 }
 
 /* плейсхолдер — в потоке текстовой зоны, не перекрывает превью */
@@ -2477,27 +2468,27 @@ footer .input__text .input__text-placeholder {
 }
 
 .attach-preview {
-  padding: 8px 8px 0 8px;
+  padding: 6px 8px 0 8px;
   display: flex;
 }
 
 .attach-thumb-wrap {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 44px;
+  height: 44px;
 }
 
 .attach-thumb {
-  width: 72px;
-  height: 72px;
+  width: 44px;
+  height: 44px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 10px;
   display: block;
   transition: filter 0.2s ease;
 }
 
 .attach-thumb-wrap.is-loading .attach-thumb {
-  filter: blur(2.5px);
+  filter: blur(2px);
 }
 
 .attach-progress {
@@ -2507,12 +2498,12 @@ footer .input__text .input__text-placeholder {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .attach-ring {
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
   transform: rotate(-90deg);
 }
 
@@ -2543,10 +2534,10 @@ footer .input__text .input__text-placeholder {
 }
 
 .attach-thumb-wrap .input__text-image-delete {
-  top: -7px;
-  right: -7px;
-  width: 22px;
-  height: 22px;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
   background-color: #fff;
   border: none;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -2573,20 +2564,42 @@ footer .input__text .input__text-placeholder {
 
 /* фото пользователя в ленте — целиком, без пузыря, над текстом */
 .user-photo {
-  display: flex;
-  justify-content: flex-end;
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.user-photo--sized {
   max-width: 80%;
 }
 
 .user-photo-img {
+  display: block;
   max-width: 300px;
   max-height: 380px;
   width: auto;
   height: auto;
-  border-radius: 14px;
   object-fit: contain;
   cursor: pointer;
-  display: block;
+}
+
+/* размеры известны → бокс фиксирован, картинка заполняет 1:1 (аспект совпадает — без кропа) */
+.user-photo--sized .user-photo-img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+}
+
+.user-photo-skeleton {
+  position: absolute;
+  inset: 0;
+  background: #e5e5ea;
+}
+
+body.dark .user-photo-skeleton {
+  background: #3a3a3c;
 }
 
 

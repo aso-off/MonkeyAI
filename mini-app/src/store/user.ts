@@ -13,6 +13,8 @@ export interface ChatMessage {
   type: 'user' | 'bot'
   contentType?: 'text' | 'image'
   imageUrl?: string | null
+  imageW?: number | null
+  imageH?: number | null
   id?: string
   reaction?: 'like' | 'dislike' | null
 }
@@ -27,7 +29,15 @@ export function dialogMessagesToChat(messages: DialogMessage[]): ChatMessage[] {
         ? (m.content.find(p => p.type === 'image_url')?.image_url?.url ?? null)
         : null
       return imageUrl
-        ? { type: 'user', contentType: 'image', text, imageUrl, id: m.id }
+        ? {
+            type: 'user',
+            contentType: 'image',
+            text,
+            imageUrl,
+            imageW: m.image_meta?.w ?? null,
+            imageH: m.image_meta?.h ?? null,
+            id: m.id,
+          }
         : { type: 'user', text, id: m.id }
     }
     const isImageUrl = text.startsWith('http') || text.startsWith('data:image/')
