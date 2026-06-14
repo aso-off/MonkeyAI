@@ -109,6 +109,8 @@ export interface ChatBody {
   model: string;
   image_b64?: string;
   image_url?: string;
+  image_w?: number;
+  image_h?: number;
   skip_moderation?: boolean;
 }
 
@@ -137,6 +139,7 @@ export interface DialogMessage {
   usage?: Usage;
   reaction?: 'like' | 'dislike' | null;
   created_at?: string;
+  image_meta?: { w: number; h: number } | null;
 }
 
 export interface DialogBootstrapResult {
@@ -555,6 +558,8 @@ export class WsClient {
         dialog_id: body.dialog_id ?? null,
         chat_mode: body.chat_mode ?? 'mini_app_assistant',
         image_url: body.image_url ?? null,
+        image_w:   body.image_w ?? null,
+        image_h:   body.image_h ?? null,
       }));
     });
   }
