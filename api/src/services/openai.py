@@ -61,6 +61,7 @@ class ChatGPT:
         dialog_messages: list,
         chat_mode: str,
         image_buffer: BytesIO | None = None,
+        image_url: str | None = None,
     ) -> list:
         system_prompt = settings.chat_modes.get("system_prompt", "")
         mode_prompt = settings.chat_modes[chat_mode].get("prompt_start", "")
@@ -73,7 +74,15 @@ class ChatGPT:
         for dm in dialog_messages:
             messages.append({"role": dm["role"], "content": dm["content"]})
 
-        if image_buffer is not None:
+        if image_url is not None:
+            messages.append({
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": message},
+                    {"type": "image_url", "image_url": {"url": image_url, "detail": "auto"}},
+                ],
+            })
+        elif image_buffer is not None:
             messages.append({
                 "role": "user",
                 "content": [
@@ -201,6 +210,7 @@ class ChatGPT:
         dialog_messages: list | None = None,
         chat_mode: str = "assistant",
         image_buffer: BytesIO | None = None,
+        image_url: str | None = None,
     ) -> AsyncGenerator[tuple[str, str, tuple[int, int], int], None]:
         dialog_messages = list(dialog_messages or [])
         n_before = len(dialog_messages)
@@ -208,7 +218,7 @@ class ChatGPT:
 
         while True:
             try:
-                messages = self._build_messages(message, dialog_messages, chat_mode, image_buffer)
+                messages = self._build_messages(message, dialog_messages, chat_mode, image_buffer, image_url)
                 stream = await self.client.chat.completions.create(
                     model=self.model,
                     messages=messages,

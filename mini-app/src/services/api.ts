@@ -108,6 +108,7 @@ export interface ChatBody {
   chat_mode?: string;
   model: string;
   image_b64?: string;
+  image_url?: string;
   skip_moderation?: boolean;
 }
 
@@ -291,6 +292,36 @@ export const api = {
     const params = new URLSearchParams({ limit: String(limit) });
     if (before) params.set('before', before);
     return apiFetch(`/webapp/images?${params}`, {}, 15_000, 1);
+  },
+
+  /** Загрузить vision-фото на ImgBB. onProgress: 0..1 (XHR upload). */
+  uploadImage(imageB64: string, onProgress?: (ratio: number) => void): Promise<{ url: string }> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${BASE_URL}/webapp/upload-image`);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Authorization', getAuthHeader());
+      xhr.timeout = 45_000;
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            reject(new Error('bad response'));
+          }
+        } else {
+          let detail = `HTTP ${xhr.status}`;
+          try { detail = JSON.parse(xhr.responseText)?.detail || detail; } catch { /* ignore */ }
+          reject(new Error(detail));
+        }
+      };
+      xhr.onerror = () => reject(new Error('network error'));
+      xhr.ontimeout = () => reject(new Error('timeout'));
+      xhr.send(JSON.stringify({ image_b64: imageB64 }));
+    });
   },
 
 };
@@ -513,6 +544,7 @@ export class WsClient {
         model:     body.model,
         dialog_id: body.dialog_id ?? null,
         chat_mode: body.chat_mode ?? 'mini_app_assistant',
+        image_url: body.image_url ?? null,
       }));
     });
   }

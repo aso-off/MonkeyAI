@@ -179,6 +179,25 @@ class TestBuildMessages:
         assert "text" in types_in_content and "image_url" in types_in_content
 
     @pytest.mark.unit
+    def test_image_url_creates_vision_message(self, gpt) -> None:
+        url = "https://i.ibb.co/abc/photo.jpg"
+        msgs = gpt._build_messages("describe this", [], "assistant", image_url=url)
+        last = msgs[-1]
+        assert last["role"] == "user"
+        assert isinstance(last["content"], list)
+        img = next(i for i in last["content"] if i["type"] == "image_url")
+        assert img["image_url"]["url"] == url
+        assert img["image_url"]["detail"] == "auto"
+
+    @pytest.mark.unit
+    def test_image_url_takes_precedence_over_buffer(self, gpt) -> None:
+        url = "https://i.ibb.co/abc/photo.jpg"
+        buf = BytesIO(b"\xff\xd8\xff" + b"\x00" * 50)
+        msgs = gpt._build_messages("hi", [], "assistant", image_buffer=buf, image_url=url)
+        img = next(i for i in msgs[-1]["content"] if i["type"] == "image_url")
+        assert img["image_url"]["url"] == url
+
+    @pytest.mark.unit
     def test_no_image_creates_text_message(self, gpt, fake) -> None:
         text = fake.sentence()
         msgs = gpt._build_messages(text, [], "assistant")
