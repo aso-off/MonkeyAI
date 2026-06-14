@@ -10,11 +10,14 @@ const RADIUS_BUFFER = 12;
 const RADIUS_SCALE = 1.4;
 // страховка: не держим переход дольше, чем волна реально играет
 const CLICK_AWAIT_TIMEOUT = 500;
+// висящая волна от long-press
+const WAVE_STALE_MS = 700;
 
 interface WaveHandle {
   wave: HTMLSpanElement;
   expand: Animation;
   released: boolean;
+  created: number;
 }
 
 interface RippleEl extends HTMLElement {
@@ -47,7 +50,7 @@ function spawnWave(
     ],
     { duration: EXPAND_DURATION, easing: "ease-out", fill: "forwards" },
   );
-  const handle: WaveHandle = { wave, expand, released: false };
+  const handle: WaveHandle = { wave, expand, released: false, created: performance.now() };
   waves.add(handle);
   return handle;
 }
@@ -122,6 +125,7 @@ export const ripple: Directive<RippleEl> = {
       const handle = el._rippleLastWave;
       el._rippleLastWave = null;
       if (!handle) return; // клик без свежей волны (клавиатура/синтетика) — пропускаем
+      if (performance.now() - handle.created > WAVE_STALE_MS) return; // висящая волна long-press
       e.preventDefault();
       e.stopImmediatePropagation();
       let fired = false;

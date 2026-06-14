@@ -4,6 +4,15 @@
   -webkit-user-select: none;
 }
 
+/* плавная смена темы */
+html.theme-anim,
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition: background-color 0.25s ease, color 0.25s ease,
+    border-color 0.25s ease, fill 0.25s ease !important;
+}
+
 .sidebar__item-icon {
   width: 30px;
   height: 30px;

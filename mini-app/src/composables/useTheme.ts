@@ -17,8 +17,16 @@ import { useUserStore } from '@/store/user'
 
 export type ThemeOverride = 'system' | 'light' | 'dark'
 
-function applyClass(scheme: 'light' | 'dark'): void {
+let themeAnimTimer: ReturnType<typeof setTimeout> | null = null
+
+function applyClass(scheme: 'light' | 'dark', animate = false): void {
   const isDark = scheme === 'dark'
+  if (animate) {
+    const root = document.documentElement
+    root.classList.add('theme-anim')
+    if (themeAnimTimer) clearTimeout(themeAnimTimer)
+    themeAnimTimer = setTimeout(() => root.classList.remove('theme-anim'), 280)
+  }
   document.body.classList.toggle('dark', isDark)
   // Mirror onto <html> so the root element gets a solid themed background (see :root.dark
   // in index.css). Prevents the native-background flash during Telegram resume/expand.
@@ -74,9 +82,9 @@ export function useTheme() {
       // isDark() reads the current value from the signal
       const dark = (themeParams.isDark as unknown as () => boolean | undefined)()
       if (dark !== undefined) {
-        applyClass(dark ? 'dark' : 'light')
+        applyClass(dark ? 'dark' : 'light', true)
       } else {
-        applyClass(getTgScheme())
+        applyClass(getTgScheme(), true)
       }
     }
   }
@@ -93,7 +101,7 @@ export function useTheme() {
 
   // React to changes (settings page calls store.setTheme())
   watch(() => store.currentTheme, (t) => {
-    applyClass(resolveScheme(t as ThemeOverride))
+    applyClass(resolveScheme(t as ThemeOverride), true)
   })
 
   function setThemeOverride(override: ThemeOverride): void {
