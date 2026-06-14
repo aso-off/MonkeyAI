@@ -162,36 +162,44 @@
         </template>
         <!-- Иначе вывод списка сообщений -->
         <template v-else>
-          <div
-            v-for="(msg, index) in chatMessages"
-            :key="index"
-            :class="[
-              'message',
-              msg.type === 'user' ? 'user-message' : 'bot-message',
-            ]"
-          >
-            <!-- Сообщение пользователя -->
-            <template v-if="msg.type === 'user'">
-              <div v-if="msg.imageUrl" class="image-container user-image">
-                <ChatLoader
-                  v-if="!loadedImages.has(msg.imageUrl)"
-                  variant="image"
-                />
-                <img
-                  :src="msg.imageUrl"
-                  alt=""
-                  class="generated-image"
-                  :class="{ 'image-loading': !loadedImages.has(msg.imageUrl ?? '') }"
-                  @load="onImageLoad(msg.imageUrl!)"
-                  @error="loadedImages.add(msg.imageUrl!)"
-                  @click="openFullImage(msg.imageUrl ?? '')"
-                />
-              </div>
-              <span v-if="msg.text">{{ msg.text }}</span>
-            </template>
+          <template v-for="(msg, index) in chatMessages" :key="index">
+            <div
+              class="msg-group"
+              :class="msg.type === 'user' ? 'msg-group--user' : 'msg-group--bot'"
+            >
+            <!-- Фото пользователя — отдельным блоком над пузырём, без фона -->
+            <div
+              v-if="msg.type === 'user' && msg.imageUrl"
+              class="user-photo"
+            >
+              <ChatLoader
+                v-if="!loadedImages.has(msg.imageUrl)"
+                variant="image"
+              />
+              <img
+                :src="msg.imageUrl"
+                alt=""
+                class="user-photo-img"
+                :class="{ 'image-loading': !loadedImages.has(msg.imageUrl ?? '') }"
+                @load="onImageLoad(msg.imageUrl!)"
+                @error="loadedImages.add(msg.imageUrl!)"
+                @click="openFullImage(msg.imageUrl ?? '')"
+              />
+            </div>
 
-            <!-- Сообщение бота с обработкой разных типов контента -->
-            <div v-else>
+            <!-- Пузырь: бот всегда; пользователь — только если есть текст -->
+            <div
+              v-if="msg.type !== 'user' || msg.text"
+              :class="[
+                'message',
+                msg.type === 'user' ? 'user-message' : 'bot-message',
+              ]"
+            >
+              <!-- Сообщение пользователя -->
+              <span v-if="msg.type === 'user'">{{ msg.text }}</span>
+
+              <!-- Сообщение бота с обработкой разных типов контента -->
+              <div v-else>
               <!-- Для изображений -->
               <div v-if="msg.contentType === 'image'">
                 <p v-if="msg.text">{{ msg.text }}</p>
@@ -353,6 +361,8 @@
               </div>
             </div>
           </div>
+          </div>
+          </template>
         </template>
         <!-- Spacer: replaces padding-bottom — fixes iOS Safari not including padding in scrollHeight -->
         <div class="chat-end-spacer"></div>
@@ -386,23 +396,10 @@
       </button>
     </Transition>
     <footer>
-      <!-- Панель выбора источника фото (вверх от «+») -->
+      <!-- Панель «+» (пока только Галерея; на будущее — файлы и т.д.) -->
       <Transition name="attach-panel">
         <div v-if="attachPanelOpen" class="attach-panel" @click.stop>
           <button
-            v-if="showCamera"
-            v-ripple
-            type="button"
-            class="attach-panel-item"
-            @click="pickCamera"
-          >
-            <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor">
-              <path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Z" />
-            </svg>
-            <span>{{ $t('camera') }}</span>
-          </button>
-          <button
-            v-ripple
             type="button"
             class="attach-panel-item"
             @click="pickGallery"
@@ -415,27 +412,26 @@
         </div>
       </Transition>
 
-      <input
-        ref="cameraInput"
-        type="file"
-        accept="image/*"
-        capture="environment"
-        hidden
-        @change="onFileChange"
-      />
+      <!-- off-screen, не hidden — иначе iOS не открывает пикер -->
       <input
         ref="galleryInput"
         type="file"
         accept="image/*"
-        hidden
+        class="composer-file-input"
         @change="onFileChange"
       />
 
       <form class="footer__input" @submit.prevent="sendMessage">
-        <div class="input__text null">
-          <!-- Превью прикреплённого фото -->
+        <div
+          class="input__text null"
+          :class="{ 'composer--stacked': composerStacked, 'has-attach': !!attachment }"
+        >
+          <!-- Превью прикреплённого фото — над строкой ввода -->
           <div v-if="attachment" class="attach-preview">
-            <div class="attach-thumb-wrap">
+            <div
+              class="attach-thumb-wrap"
+              :class="{ 'is-loading': attachment.status === 'uploading' }"
+            >
               <img :src="attachment.preview" alt="" class="attach-thumb" />
               <div
                 v-if="attachment.status === 'uploading'"
@@ -462,67 +458,71 @@
             </div>
           </div>
 
-          <div
-            id="editable-message-text"
-            contenteditable="true"
-            role="textbox"
-            dir="ltr"
-            ref="editableDiv"
-            @input="onInput"
-            @paste.prevent="onPaste"
-            @dragover.prevent
-            @drop.prevent
-          ></div>
-          <span
-            v-if="messageText.trim() === ''"
-            class="input__text-placeholder"
-          >
-            {{ inputPlaceholder }}
-          </span>
-
-          <!-- Кнопка прикрепления фото (vision) — слева, плоская svg как в ChatGPT -->
-          <button
-            v-if="!isImageModel"
-            v-ripple
-            type="button"
-            class="input__attach"
-            :class="{ disabled: !!attachment }"
-            :disabled="!!attachment"
-            @click.stop="toggleAttachPanel"
-            aria-label="attach"
-          >
-            <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor">
-              <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-            </svg>
-          </button>
-
-          <label
-            class="input__submit"
-            :class="{ disabled: isSubmitDisabled }"
-            :style="isSubmitDisabled ? { pointerEvents: 'none' } : {}"
-          >
+          <!-- Строка: [+] · текст · [↑] -->
+          <div class="composer-row">
             <button
-              :disabled="isSubmitDisabled"
-              id="chat__input-submitbutton"
-              type="submit"
-            ></button>
-            <!-- Инлайн SVG для СТРЕЛКИ ВВЕРХ -->
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+              v-if="!isImageModel"
+              v-ripple
+              type="button"
+              class="input__attach"
+              :class="{ disabled: !!attachment }"
+              :disabled="!!attachment"
+              @click.stop="toggleAttachPanel"
+              aria-label="attach"
             >
-              <path
-                d="M12 19V5M5 12L12 5L19 12"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </label>
+              <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor">
+                <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
+              </svg>
+            </button>
+
+            <div class="composer-text">
+              <div
+                id="editable-message-text"
+                contenteditable="true"
+                role="textbox"
+                dir="ltr"
+                ref="editableDiv"
+                @input="onInput"
+                @paste.prevent="onPaste"
+                @dragover.prevent
+                @drop.prevent
+              ></div>
+              <span
+                v-if="messageText.trim() === ''"
+                class="input__text-placeholder"
+              >
+                {{ inputPlaceholder }}
+              </span>
+            </div>
+
+            <label
+              class="input__submit"
+              :class="{ disabled: isSubmitDisabled }"
+              :style="isSubmitDisabled ? { pointerEvents: 'none' } : {}"
+            >
+              <button
+                :disabled="isSubmitDisabled"
+                id="chat__input-submitbutton"
+                type="submit"
+              ></button>
+              <!-- Инлайн SVG для СТРЕЛКИ ВВЕРХ -->
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 19V5M5 12L12 5L19 12"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </label>
+          </div>
         </div>
       </form>
     </footer>
@@ -671,20 +671,12 @@ interface Attachment {
 }
 const attachment = ref<Attachment | null>(null);
 const attachPanelOpen = ref(false);
-const cameraInput = ref<HTMLInputElement | null>(null);
 const galleryInput = ref<HTMLInputElement | null>(null);
+// текст занял >1 строки → кнопки уходят вниз (как у ChatGPT)
+const composerStacked = ref(false);
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
 const isImageModel = computed(() => currentModelId.value === "gpt-image-1.5");
-
-// камера — только нативное приложение телефона
-const showCamera = computed(() => {
-  try {
-    const p = retrieveLaunchParams().tgWebAppPlatform ?? "";
-    return p === "ios" || p === "android";
-  } catch {
-    return false;
-  }
-});
 
 const ringCircumference = 2 * Math.PI * 16;
 const ringOffset = computed(() =>
@@ -698,18 +690,27 @@ function toggleAttachPanel() {
   attachPanelOpen.value = !attachPanelOpen.value;
 }
 
-function pickCamera() {
-  attachPanelOpen.value = false;
-  cameraInput.value?.click();
-}
-
 function pickGallery() {
-  attachPanelOpen.value = false;
+  // синхронно в жесте — иначе iOS не откроет пикер
   galleryInput.value?.click();
+  attachPanelOpen.value = false;
 }
 
 function removeAttachment() {
   attachment.value = null;
+}
+
+/** Пересчёт одно-/многострочной раскладки композера. */
+function updateComposerLayout() {
+  const el = editableDiv.value;
+  if (!el) {
+    composerStacked.value = false;
+    return;
+  }
+  const cs = getComputedStyle(el);
+  const lh = parseFloat(cs.lineHeight) || 22;
+  const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) || 0;
+  composerStacked.value = el.scrollHeight - padV > lh * 1.5;
 }
 
 function resizeToJpeg(
@@ -750,10 +751,11 @@ async function onFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = ""; // повторный выбор того же файла
   if (!file) return;
+  if (file.size > MAX_UPLOAD_BYTES) return; // >8 МБ — молча игнор
 
   let resized: { b64: string; dataUrl: string };
   try {
-    resized = await resizeToJpeg(file, 1024, 0.9);
+    resized = await resizeToJpeg(file, 1536, 0.92);
   } catch {
     return;
   }
@@ -891,6 +893,7 @@ const remoteBotSlots = new Map<string, number>();
 
 function onInput(e: Event) {
   messageText.value = (e.target as HTMLElement).innerText;
+  updateComposerLayout();
 }
 
 /**
@@ -913,6 +916,7 @@ function onPaste(e: ClipboardEvent) {
   sel.addRange(range);
   messageText.value =
     (editableDiv.value as HTMLElement | null)?.innerText ?? "";
+  updateComposerLayout();
 }
 
 function scrollToBottom() {
@@ -1292,6 +1296,7 @@ async function sendMessage() {
   attachment.value = null;
   attachPanelOpen.value = false;
   messageText.value = "";
+  composerStacked.value = false;
   if (editableDiv.value) editableDiv.value.innerText = "";
   // живое обновление времени диалога в списке (поднимается в «Сегодня»)
   if (genDialogId) dialogsStore.touch(genDialogId);
@@ -2338,17 +2343,45 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
-/* === Прикрепление фото (vision) === */
-/* специфичность выше глобального footer .footer__input button { display:none } */
+/* === Композер (single-row ↔ stacked, ChatGPT-канон) === */
+/* убираем нижнюю «полку» — кнопки живут в grid-строке */
+footer .footer__input .input__text {
+  padding-bottom: 0;
+}
+
+.composer-row {
+  display: grid;
+  grid-template-areas: "plus text send";
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 4px;
+  padding: 5px;
+  transition: row-gap 0.15s ease;
+}
+
+.composer--stacked .composer-row {
+  grid-template-areas:
+    "text text"
+    "plus send";
+  grid-template-columns: auto 1fr;
+  row-gap: 2px;
+}
+
+.composer-text {
+  grid-area: text;
+  position: relative;
+  min-width: 0;
+}
+
+/* «+» — плоская svg, статична в grid; специфичность выше footer .footer__input button{display:none} */
 footer .footer__input .input__attach {
-  position: absolute;
-  left: 6px;
-  bottom: 6px;
+  grid-area: plus;
+  position: static;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -2356,12 +2389,42 @@ footer .footer__input .input__attach {
   cursor: pointer;
   overflow: hidden;
   transition: color 0.1s ease, opacity 0.1s ease;
-  z-index: 2;
 }
 
 footer .footer__input .input__attach.disabled {
   opacity: 0.4;
   cursor: default;
+  pointer-events: none;
+}
+
+/* «отправить» — статична в grid справа (перебиваем глобальный absolute) */
+footer .footer__input .input__submit {
+  position: static;
+  grid-area: send;
+  justify-self: end;
+}
+
+.composer--stacked .input__attach {
+  justify-self: start;
+}
+
+/* плейсхолдер — в потоке текстовой зоны, не перекрывает превью */
+footer .input__text .input__text-placeholder {
+  top: 8px;
+  left: 8px;
+}
+
+/* off-screen инпут — не display:none/hidden, иначе iOS не открывает пикер */
+.composer-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
   pointer-events: none;
 }
 
@@ -2430,6 +2493,11 @@ footer .footer__input .input__attach.disabled {
   object-fit: cover;
   border-radius: 12px;
   display: block;
+  transition: filter 0.2s ease;
+}
+
+.attach-thumb-wrap.is-loading .attach-thumb {
+  filter: blur(2.5px);
 }
 
 .attach-progress {
@@ -2438,7 +2506,7 @@ footer .footer__input .input__attach.disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 12px;
 }
 
@@ -2488,14 +2556,37 @@ footer .footer__input .input__attach.disabled {
   fill: #1c1c1c;
 }
 
-.user-message .image-container {
-  margin: 0 0 4px;
+/* группа сообщения: фото + пузырь рядом (gap 4px), между группами — gap чата (18px) */
+.msg-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg-group--user {
   align-items: flex-end;
 }
 
-.user-message .image-container .generated-image {
-  width: 200px;
-  height: 200px;
+.msg-group--bot {
+  align-items: flex-start;
+}
+
+/* фото пользователя в ленте — целиком, без пузыря, над текстом */
+.user-photo {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 80%;
+}
+
+.user-photo-img {
+  max-width: 300px;
+  max-height: 380px;
+  width: auto;
+  height: auto;
+  border-radius: 14px;
+  object-fit: contain;
+  cursor: pointer;
+  display: block;
 }
 
 
