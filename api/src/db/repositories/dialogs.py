@@ -358,6 +358,26 @@ async def get_mini_app_dialog_id(
     return ids.get(mode)
 
 
+async def set_active_mini_app_dialog(session: AsyncSession, user_id: int, dialog_id: str) -> bool:
+    """Сделать диалог активным для текущего mini-app режима — чтобы reload вернул именно его."""
+    user = await get_user(session, user_id)
+    if user is None:
+        return False
+    result = await session.execute(
+        select(Dialog.id).where(Dialog.id == dialog_id, Dialog.user_id == user_id)
+    )
+    if result.scalar_one_or_none() is None:
+        return False
+    chat_mode = user.state.mini_app_chat_mode
+    ids = dict(user.state.mini_app_dialog_ids or {})
+    if ids.get(chat_mode) == dialog_id:
+        return True
+    ids[chat_mode] = dialog_id
+    user.state.mini_app_dialog_ids = ids
+    await session.commit()
+    return True
+
+
 async def set_initial_title(session: AsyncSession, dialog_id: str, text: str) -> str | None:
     """Set a word-boundary truncated title if the dialog has none yet.
 

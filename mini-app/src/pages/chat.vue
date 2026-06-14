@@ -480,9 +480,10 @@
             {{ inputPlaceholder }}
           </span>
 
-          <!-- Кнопка прикрепления фото (vision) — слева, размер как «отправить» -->
+          <!-- Кнопка прикрепления фото (vision) — слева, плоская svg как в ChatGPT -->
           <button
             v-if="!isImageModel"
+            v-ripple
             type="button"
             class="input__attach"
             :class="{ disabled: !!attachment }"
@@ -1231,6 +1232,8 @@ async function loadDialogById(id: string) {
     cursorIdx.value = next_before_index;
     hasMoreToLoad.value = next_before_index > 0;
     hasLoadedOlderPages.value = false;
+    // активным становится открытый диалог — reload вернёт именно его
+    api.activateDialog(id).catch(() => {});
     await nextTick();
     jumpToBottomSilent();
   } catch (e) {
@@ -2336,7 +2339,8 @@ onBeforeUnmount(() => {
 }
 
 /* === Прикрепление фото (vision) === */
-.input__attach {
+/* специфичность выше глобального footer .footer__input button { display:none } */
+footer .footer__input .input__attach {
   position: absolute;
   left: 6px;
   bottom: 6px;
@@ -2347,15 +2351,16 @@ onBeforeUnmount(() => {
   height: 42px;
   border-radius: 50%;
   border: none;
-  background-color: var(--third-bg-color);
+  background: transparent;
   color: var(--icons-storke-color);
   cursor: pointer;
-  transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
+  overflow: hidden;
+  transition: color 0.1s ease, opacity 0.1s ease;
   z-index: 2;
 }
 
-.input__attach.disabled {
-  opacity: 0.45;
+footer .footer__input .input__attach.disabled {
+  opacity: 0.4;
   cursor: default;
   pointer-events: none;
 }
@@ -2415,13 +2420,13 @@ onBeforeUnmount(() => {
 
 .attach-thumb-wrap {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
 }
 
 .attach-thumb {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   object-fit: cover;
   border-radius: 12px;
   display: block;
@@ -2470,16 +2475,17 @@ onBeforeUnmount(() => {
 }
 
 .attach-thumb-wrap .input__text-image-delete {
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  background-color: var(--second-bg-color);
-  border: 1px solid var(--border-color);
+  top: -7px;
+  right: -7px;
+  width: 22px;
+  height: 22px;
+  background-color: #fff;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .attach-thumb-wrap .input__text-image-delete svg {
-  fill: var(--icons-storke-color);
+  fill: #1c1c1c;
 }
 
 .user-message .image-container {
