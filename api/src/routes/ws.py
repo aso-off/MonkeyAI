@@ -308,6 +308,8 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
     dialog_id: str | None = frame.get("dialog_id")
     chat_mode = str(frame.get("chat_mode") or "mini_app_assistant")
     image_url: str | None = frame.get("image_url") or None
+    image_w = frame.get("image_w")
+    image_h = frame.get("image_h")
 
     if not message:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "empty message"})
@@ -325,6 +327,12 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         if image_url else message
     )
     user_msg = user_message(user_content)
+    # размеры фото — для скелетона 1:1 при перезагрузке истории (не уходит в OpenAI)
+    if image_url and image_w and image_h:
+        try:
+            user_msg["image_meta"] = {"w": int(image_w), "h": int(image_h)}
+        except (TypeError, ValueError):
+            pass
 
     # 1. Broadcast user’s message to all OTHER devices immediately.
     await _broadcast(user_id, {
@@ -333,6 +341,8 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         "message_id": user_msg["id"],
         "text": message,
         "image_url": image_url,
+        "image_w": image_w,
+        "image_h": image_h,
         "dialog_id": dialog_id,
     }, exclude=ws)
 
