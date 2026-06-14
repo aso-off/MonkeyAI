@@ -129,7 +129,7 @@
         @scroll="onChatScroll"
       >
         <!-- Load more button shown when there are older messages -->
-        <div v-if="hasMoreToLoad" class="load-more-row">
+        <div v-if="hasMoreToLoad && chatMessages.length" class="load-more-row">
           <button
             class="load-more-btn"
             :class="{ 'load-more-btn--loading': isLoadingOlderMessages }"
@@ -175,16 +175,16 @@
               :style="photoStyle(msg)"
             >
               <div
-                v-if="!loadedImages.has(msg.imageUrl) && !!msg.imageW"
+                v-if="!msg.localUrl && !loadedImages.has(msg.imageUrl) && !!msg.imageW"
                 class="user-photo-skeleton"
               ></div>
               <img
-                :src="msg.imageUrl"
+                :src="msg.localUrl || msg.imageUrl"
                 alt=""
                 class="user-photo-img"
                 @load="onImageLoad(msg.imageUrl!)"
                 @error="loadedImages.add(msg.imageUrl!)"
-                @click="openFullImage(msg.imageUrl ?? '')"
+                @click="openFullImage(msg.localUrl || msg.imageUrl || '')"
               />
             </div>
 
@@ -1267,6 +1267,7 @@ async function sendMessage() {
 
   const ready = attachment.value?.status === "ready" ? attachment.value : null;
   const imageUrl = ready?.url;
+  const localUrl = ready?.preview;
   const imageW = ready?.w;
   const imageH = ready?.h;
 
@@ -1292,10 +1293,11 @@ async function sendMessage() {
     type: "user",
     contentType: imageUrl ? "image" : "text",
     imageUrl: imageUrl ?? null,
+    localUrl: localUrl ?? null,
     imageW: imageW ?? null,
     imageH: imageH ?? null,
   });
-  // фото уже у нас — скелетон не нужен (покажется только при перезагрузке истории)
+  // фото уже у нас (localUrl) — скелетон не нужен (покажется только при перезагрузке истории)
   if (imageUrl) loadedImages.add(imageUrl);
   attachment.value = null;
   attachPanelOpen.value = false;
@@ -1879,6 +1881,8 @@ onMounted(async () => {
 
   // Another device sent a user message → add it + an empty bot slot.
   wsClient.setTypeHandler("user_message", (msg) => {
+    // только если это сообщение из открытого сейчас диалога (иначе чужой чат)
+    if ((msg.dialog_id ?? null) !== (store.dialogId ?? null)) return;
     const text = (msg.text as string) ?? "";
     const imageUrl = (msg.image_url as string) ?? null;
     if (!text && !imageUrl) return;
@@ -1924,18 +1928,17 @@ onMounted(async () => {
   wsClient.setTypeHandler("chat_done", (msg) => {
     const id = msg.id as string;
     const botIdx = remoteBotSlots.get(id);
+    if (botIdx === undefined) return; // не наш слот / чужой диалог
     remoteBotSlots.delete(id);
     streamingBotIdx.value = -1;
-    if (botIdx !== undefined) {
-      const isFlagged = (msg.is_flagged as boolean) ?? false;
-      const m = (msg.message ?? null) as { id?: string; content?: string } | null;
-      chatMessages.value[botIdx] = {
-        type: "bot",
-        contentType: "text",
-        text: isFlagged ? t("message_flagged") : (m?.content ?? ""),
-        id: m?.id,
-      };
-    }
+    const isFlagged = (msg.is_flagged as boolean) ?? false;
+    const m = (msg.message ?? null) as { id?: string; content?: string } | null;
+    chatMessages.value[botIdx] = {
+      type: "bot",
+      contentType: "text",
+      text: isFlagged ? t("message_flagged") : (m?.content ?? ""),
+      id: m?.id,
+    };
     if (msg.dialog_id) store.setDialogId(msg.dialog_id as string);
     store.setChatHistory(chatMessages.value);
     nextTick().then(scrollToBottomIfAtBottom);
@@ -1945,16 +1948,15 @@ onMounted(async () => {
   wsClient.setTypeHandler("chat_error", (msg) => {
     const id = msg.id as string;
     const botIdx = remoteBotSlots.get(id);
+    if (botIdx === undefined) return;
     remoteBotSlots.delete(id);
     streamingBotIdx.value = -1;
-    if (botIdx !== undefined) {
-      chatMessages.value[botIdx] = {
-        type: "bot",
-        contentType: "text",
-        text:
-          t("error_response") + ": " + ((msg.error as string) || "chat error"),
-      };
-    }
+    chatMessages.value[botIdx] = {
+      type: "bot",
+      contentType: "text",
+      text:
+        t("error_response") + ": " + ((msg.error as string) || "chat error"),
+    };
     store.setChatHistory(chatMessages.value);
   });
 
@@ -1965,19 +1967,18 @@ onMounted(async () => {
   wsClient.setTypeHandler("image_done", (msg) => {
     const id = msg.id as string;
     const botIdx = remoteBotSlots.get(id);
+    if (botIdx === undefined) return;
     remoteBotSlots.delete(id);
     streamingBotIdx.value = -1;
-    if (botIdx !== undefined) {
-      const rawUrl = (msg.url as string) ?? "";
-      const imageUrl = rawUrl.startsWith("/") ? `${BASE_URL}${rawUrl}` : rawUrl;
-      chatMessages.value[botIdx] = {
-        type: "bot",
-        contentType: "image",
-        imageUrl,
-        text: "",
-        id: (msg.message as { id?: string } | undefined)?.id,
-      };
-    }
+    const rawUrl = (msg.url as string) ?? "";
+    const imageUrl = rawUrl.startsWith("/") ? `${BASE_URL}${rawUrl}` : rawUrl;
+    chatMessages.value[botIdx] = {
+      type: "bot",
+      contentType: "image",
+      imageUrl,
+      text: "",
+      id: (msg.message as { id?: string } | undefined)?.id,
+    };
     if (msg.dialog_id) store.setDialogId(msg.dialog_id as string);
     store.setChatHistory(chatMessages.value);
     nextTick().then(scrollToBottomIfAtBottom);
@@ -1987,16 +1988,15 @@ onMounted(async () => {
   wsClient.setTypeHandler("image_error", (msg) => {
     const id = msg.id as string;
     const botIdx = remoteBotSlots.get(id);
+    if (botIdx === undefined) return;
     remoteBotSlots.delete(id);
     streamingBotIdx.value = -1;
-    if (botIdx !== undefined) {
-      chatMessages.value[botIdx] = {
-        type: "bot",
-        contentType: "text",
-        text:
-          t("error_response") + ": " + ((msg.error as string) || "image error"),
-      };
-    }
+    chatMessages.value[botIdx] = {
+      type: "bot",
+      contentType: "text",
+      text:
+        t("error_response") + ": " + ((msg.error as string) || "image error"),
+    };
     store.setChatHistory(chatMessages.value);
   });
 

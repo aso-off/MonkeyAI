@@ -13,6 +13,8 @@ export interface ChatMessage {
   type: 'user' | 'bot'
   contentType?: 'text' | 'image'
   imageUrl?: string | null
+  /** dataURL только что отправленного фото — мгновенный показ без ожидания CDN */
+  localUrl?: string | null
   imageW?: number | null
   imageH?: number | null
   id?: string
