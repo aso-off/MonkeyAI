@@ -911,25 +911,41 @@ function updateComposerLayout() {
   const row = editable.closest(".composer-row") as HTMLElement | null;
   if (!row) return;
 
+  // точная ширина текста в ИНЛАЙНЕ = строка − паддинги − «+» − «↑» − гэпы − паддинг текста
+  const rowCS = getComputedStyle(row);
+  const gap = parseFloat(rowCS.columnGap) || 0;
+  const rowInner =
+    row.clientWidth -
+    (parseFloat(rowCS.paddingLeft) + parseFloat(rowCS.paddingRight) || 0);
+  const attachEl = row.querySelector(".input__attach") as HTMLElement | null;
+  const sendEl = row.querySelector(".input__submit") as HTMLElement | null;
+  const attachW = attachEl ? attachEl.offsetWidth + gap : 0;
+  const sendW = sendEl ? sendEl.offsetWidth + gap : 0;
+  const cs = getComputedStyle(editable);
+  const editPad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) || 0;
+  const textW = Math.max(20, rowInner - attachW - sendW - editPad);
+  const lh =
+    cs.lineHeight === "normal"
+      ? parseFloat(cs.fontSize) * 1.2
+      : parseFloat(cs.lineHeight) || 22;
+
   if (!composerMirror) {
     composerMirror = document.createElement("div");
     composerMirror.style.cssText =
       "position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;" +
-      "white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;box-sizing:border-box;";
+      "white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;box-sizing:content-box;padding:0;";
     document.body.appendChild(composerMirror);
   }
-  const cs = getComputedStyle(editable);
-  // ширина текста в инлайне = строка минус «+», «↑» и гэпы (≈ 40+42+12)
-  const inlineTextW = Math.max(40, row.clientWidth - 94);
-  composerMirror.style.width = `${inlineTextW}px`;
-  composerMirror.style.font = cs.font;
+  composerMirror.style.width = `${textW}px`;
+  composerMirror.style.fontFamily = cs.fontFamily;
+  composerMirror.style.fontSize = cs.fontSize;
+  composerMirror.style.fontWeight = cs.fontWeight;
+  composerMirror.style.letterSpacing = cs.letterSpacing;
   composerMirror.style.lineHeight = cs.lineHeight;
-  composerMirror.style.padding = cs.padding;
   composerMirror.textContent = txt;
 
-  const lh = parseFloat(cs.lineHeight) || 22;
-  const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) || 0;
-  composerStacked.value = composerMirror.scrollHeight - padV > lh * 1.5;
+  // запас 0.5 строки — переключаемся ровно когда реально появляется 2-я строка
+  composerStacked.value = composerMirror.scrollHeight > lh * 1.5;
 }
 
 function onInput(e: Event) {
