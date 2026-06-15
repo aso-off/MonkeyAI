@@ -16,7 +16,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from core.logger import logger
 from core.redis import init_redis, close_redis
@@ -57,7 +57,7 @@ class PrometheusMiddleware:
         status_code = 500
         response_size = 0
 
-        async def send_wrapper(message: dict) -> None:
+        async def send_wrapper(message: Message) -> None:
             nonlocal status_code, response_size
             if message["type"] == "http.response.start":
                 status_code = message.get("status", 500)

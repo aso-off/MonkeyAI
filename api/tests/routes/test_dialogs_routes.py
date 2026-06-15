@@ -261,6 +261,7 @@ class TestAppendExchange:
 
         assert resp.status_code == 200
         assert resp.json()["ok"] is True
+        assert mock_append.await_args is not None
         msgs = mock_append.await_args.args[3]
         assert [m["role"] for m in msgs] == ["user", "assistant"]
         assert msgs[1]["parent_id"] == msgs[0]["id"]

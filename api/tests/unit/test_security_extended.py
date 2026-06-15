@@ -17,6 +17,7 @@ import importlib
 import importlib.util
 import time
 from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 
 import pytest
@@ -31,11 +32,12 @@ _SECURITY_FILE = Path(__file__).resolve().parents[2] / "src" / "core" / "securit
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
-def _load_real_security():
+def _load_real_security() -> Any:
     """Загружаем реальный security.py через importlib, минуя stub из conftest."""
     spec = importlib.util.spec_from_file_location(
         f"_real_security_{fake.lexify('????')}", _SECURITY_FILE
     )
+    assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

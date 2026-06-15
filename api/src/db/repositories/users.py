@@ -63,6 +63,8 @@ async def get_or_create_user(
         # Another concurrent request already inserted this user — roll back and fetch.
         await session.rollback()
         user = await get_user(session, user_id)
+        if user is None:
+            raise RuntimeError(f"User {user_id} vanished after concurrent insert")
         return user, False
     return user, True
 

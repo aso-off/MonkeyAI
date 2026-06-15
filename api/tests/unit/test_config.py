@@ -62,6 +62,7 @@ def _load_config_module(env: dict, yaml_map: dict | None = None):
     spec = importlib.util.spec_from_file_location(
         f"_real_api_config_{fake.lexify('????')}", _CONFIG_FILE
     )
+    assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     with mock.patch.dict(os.environ, env, clear=False):
         with mock.patch("builtins.open", side_effect=_open_mock(yaml_map)):

@@ -7,6 +7,7 @@ import logging
 import sys
 import types
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,7 +15,7 @@ from fastapi.testclient import TestClient
 
 def _install_ci_stubs() -> None:
     """Avoid /app/logs setup during import on GitHub Actions runners."""
-    fake_logger = types.ModuleType("core.logger")
+    fake_logger: Any = types.ModuleType("core.logger")
     fake_logger.logger = logging.getLogger("api_test")
     sys.modules["core.logger"] = fake_logger
 
@@ -37,14 +38,14 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
         image_size="1024x1024",
         image_quality="medium",
     )
-    fake_core_config = types.ModuleType("core.config")
+    fake_core_config: Any = types.ModuleType("core.config")
     fake_core_config.settings = fake_settings
     sys.modules["core.config"] = fake_core_config
 
     class _FakeRedis:
         async def ping(self): return True
 
-    fake_redis = types.ModuleType("core.redis")
+    fake_redis: Any = types.ModuleType("core.redis")
     fake_redis.init_redis = lambda: None
     fake_redis.close_redis = lambda: None
     fake_redis.get_redis = lambda: _FakeRedis()

@@ -77,6 +77,7 @@ class TestRedisReadStats:
             mock_r.get = AsyncMock(return_value=json.dumps(data).encode())
             with patch("routes.users.get_redis", return_value=mock_r):
                 result = await _redis_read_stats()
+            assert result is not None
             assert result["all_users_count"] == count
 
 

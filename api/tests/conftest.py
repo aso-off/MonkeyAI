@@ -10,6 +10,7 @@ import logging
 import sys
 import types
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -66,11 +67,11 @@ def _make_fake_settings() -> types.SimpleNamespace:
 
 # ── Module-level stubs (выполняются при импорте conftest, до коллекции тестов) ─
 
-_stub_logger = types.ModuleType("core.logger")
+_stub_logger: Any = types.ModuleType("core.logger")
 _stub_logger.logger = logging.getLogger("api_test")
 sys.modules.setdefault("core.logger", _stub_logger)
 
-_stub_config = types.ModuleType("core.config")
+_stub_config: Any = types.ModuleType("core.config")
 _stub_config.settings = _make_fake_settings()
 sys.modules.setdefault("core.config", _stub_config)
 
@@ -91,7 +92,7 @@ class _SyncFakeRedis:
 
 
 _stub_redis_instance = _SyncFakeRedis()
-_stub_redis = types.ModuleType("core.redis")
+_stub_redis: Any = types.ModuleType("core.redis")
 _stub_redis.init_redis = lambda: None
 _stub_redis.close_redis = lambda: None
 _stub_redis.get_redis = lambda: _stub_redis_instance
@@ -99,7 +100,7 @@ _stub_redis.get_redis_binary = lambda: _stub_redis_instance
 sys.modules.setdefault("core.redis", _stub_redis)
 
 # core.security — нужен routes.health и другим роутерам при импорте
-_stub_security = types.ModuleType("core.security")
+_stub_security: Any = types.ModuleType("core.security")
 
 
 async def _noop_verify_service_token() -> None:

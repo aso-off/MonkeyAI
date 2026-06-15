@@ -251,7 +251,7 @@ class TestSendMessage:
                 raise _bad_request_error()
             return completion
 
-        gpt.client.chat.completions.create = _create
+        setattr(gpt.client.chat.completions, "create", _create)
         dialog = _fake_dialog(3)
 
         result, _, n_removed = await gpt.send_message(
@@ -324,7 +324,7 @@ class TestSendMessageStream:
                 raise _bad_request_error()
             return FakeAsyncStream(_fake_stream_chunks(answer))
 
-        gpt.client.chat.completions.create = _create
+        setattr(gpt.client.chat.completions, "create", _create)
         dialog = _fake_dialog(2)
 
         events = []
@@ -398,7 +398,7 @@ class TestSendVisionMessage:
                 raise _bad_request_error()
             return _fake_completion(answer)
 
-        gpt.client.chat.completions.create = _create
+        setattr(gpt.client.chat.completions, "create", _create)
         dialog = _fake_dialog(2)
 
         result, _, n_removed = await gpt.send_vision_message(
@@ -454,7 +454,7 @@ class TestSendVisionMessageStream:
                 raise _bad_request_error()
             return FakeAsyncStream(_fake_stream_chunks(answer))
 
-        gpt.client.chat.completions.create = _create
+        setattr(gpt.client.chat.completions, "create", _create)
 
         events = []
         async for status, _, _, _ in gpt.send_vision_message_stream(
