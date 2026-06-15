@@ -3256,8 +3256,10 @@ body:not(.dark) code:not(pre > code) {
 .md-body li > ul,
 .md-body li > ol { margin: 0.25em 0 0.3em; }
 
-.md-body strong { font-weight: 700; }
-.md-body em { font-style: italic; }
+.md-body strong,
+.md-body b { font-weight: 700; font-size: inherit; }
+.md-body em,
+.md-body i { font-style: italic; font-size: inherit; }
 
 .md-body a { color: #2f81f7; text-decoration: none; width: auto; }
 
@@ -3344,7 +3346,8 @@ body:not(.dark) code:not(pre > code) {
 }
 .md-body .code-copy:hover { background: rgba(255, 255, 255, 0.08); color: #c9d1d9; }
 .md-body .code-copy svg { width: 15px; height: 15px; }
-.md-body .code-copy--done { color: #3fb950; }
+.md-body .code-copy--done,
+.md-body .code-copy--done:hover { color: #5985E1; background: transparent; }
 
 .md-body .code-block__pre {
   margin: 0 !important;
@@ -3457,4 +3460,65 @@ body:not(.dark) .md-body .hljs-emphasis { color: #24292f; font-style: italic; }
 body:not(.dark) .md-body .hljs-strong { color: #24292f; font-weight: 700; }
 body:not(.dark) .md-body .hljs-addition { color: #116329; background-color: #dafbe1; }
 body:not(.dark) .md-body .hljs-deletion { color: #82071e; background-color: #ffebe9; }
+
+/* Незакрытый блок во время стрима — обычный текст */
+.md-body .md-stream-tail { display: block; white-space: pre-wrap; word-break: break-word; }
+
+/* GitHub-callouts */
+.md-body .md-callout {
+  margin: 0 0 0.8em;
+  padding: 8px 14px;
+  border-left: 4px solid var(--cl-accent, #4493f8);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--cl-accent, #4493f8) 12%, transparent);
+}
+.md-body .md-callout__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.9em;
+  color: var(--cl-accent, #4493f8);
+  margin-bottom: 2px;
+}
+.md-body .md-callout__body > *:last-child { margin-bottom: 0 !important; }
+.md-body .md-callout--note { --cl-accent: #4493f8; }
+.md-body .md-callout--tip { --cl-accent: #3fb950; }
+.md-body .md-callout--important { --cl-accent: #ab7df8; }
+.md-body .md-callout--warning { --cl-accent: #d29922; }
+.md-body .md-callout--caution { --cl-accent: #f85149; }
+body:not(.dark) .md-body .md-callout--note { --cl-accent: #0969da; }
+body:not(.dark) .md-body .md-callout--tip { --cl-accent: #1a7f37; }
+body:not(.dark) .md-body .md-callout--important { --cl-accent: #8250df; }
+body:not(.dark) .md-body .md-callout--warning { --cl-accent: #9a6700; }
+body:not(.dark) .md-body .md-callout--caution { --cl-accent: #cf222e; }
+
+/* Task-lists */
+.md-body li:has(> input.md-task) { list-style: none; margin-left: -1.15em; }
+.md-body input.md-task {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  margin: 0 6px 0 0;
+  vertical-align: -2px;
+  border: 1.5px solid var(--icons-storke-color, #888);
+  border-radius: 4px;
+  background: transparent;
+  flex-shrink: 0;
+}
+.md-body input.md-task:checked {
+  background: #5985E1;
+  border-color: #5985E1;
+}
+.md-body input.md-task:checked::after {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 8px;
+  margin: 1px auto 0;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
 
