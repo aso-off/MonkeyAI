@@ -19,10 +19,7 @@ _USER_TTL = 300   # 5 minutes — hot path for every bot message
 _STATS_TTL = 60   # 1 minute — rough counts, staleness acceptable
 _FULL_TTL = 120   # 2 minutes — aggregated profile (user + message_count)
 
-
-# ---------------------------------------------------------------------------
 # Redis helpers
-# ---------------------------------------------------------------------------
 
 def _user_key(user_id: int) -> str:
     return f"user:{user_id}"

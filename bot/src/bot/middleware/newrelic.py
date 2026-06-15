@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class NewRelicMiddleware(BaseMiddleware):
     """Outer middleware for aiogram updates to automatically instrument transactions in New Relic.
-    
+
     Categorizes incoming updates (commands, callback queries, texts, voice messages, etc.)
     and assigns descriptive transaction names so they don't all group under 'POST /webhook'.
     Also records custom attributes (e.g. user_id) and captures errors.
@@ -68,7 +68,7 @@ class NewRelicMiddleware(BaseMiddleware):
                     username = cb.from_user.username
                 if cb.message:
                     chat_id = cb.message.chat.id
-                
+
                 # Group callback queries by their prefix/action (e.g. select_model:gpt-4 -> callback/select_model)
                 data_prefix = "unknown"
                 if cb.data:

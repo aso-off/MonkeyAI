@@ -22,10 +22,7 @@ router = Router()
 USER_IDS_PATH = Path("/app/configs/user-ids.yml")
 _SUPERADMIN_ID = settings.admin_ids[0] if settings.admin_ids else None
 
-
-# ---------------------------------------------------------------------------
 # Async file helpers (run in thread to avoid blocking the event loop)
-# ---------------------------------------------------------------------------
 
 def _read_user_ids() -> dict:
     if USER_IDS_PATH.exists():
@@ -47,10 +44,7 @@ async def _load_user_ids() -> dict:
 async def _save_user_ids(data: dict) -> None:
     await asyncio.to_thread(_write_user_ids, data)
 
-
-# ---------------------------------------------------------------------------
 # Keyboard / text builders
-# ---------------------------------------------------------------------------
 
 def _whitelist_keyboard(lang: str, wl: bool) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
