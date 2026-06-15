@@ -17,8 +17,6 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
-from aiogram.types import Message
-
 import pytest
 from faker import Faker
 
@@ -228,6 +226,8 @@ def fake_callback(fake: Faker):
 
         cb.data = data
         cb.id = str(fake.random_int(min=10**17, max=10**18 - 1))
+
+        from aiogram.types import Message
 
         cb.message = MagicMock(spec=Message, name="Message")
         cb.message.chat = MagicMock()
