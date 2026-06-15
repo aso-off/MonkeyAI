@@ -3346,8 +3346,10 @@ body:not(.dark) code:not(pre > code) {
 }
 .md-body .code-copy:hover { background: rgba(255, 255, 255, 0.08); color: #c9d1d9; }
 .md-body .code-copy svg { width: 15px; height: 15px; }
-.md-body .code-copy--done,
-.md-body .code-copy--done:hover { color: #5985E1; background: transparent; }
+.md-body .code-copy.code-copy--done,
+.md-body .code-copy.code-copy--done:hover,
+body:not(.dark) .md-body .code-copy.code-copy--done,
+body:not(.dark) .md-body .code-copy.code-copy--done:hover { color: #5985E1; background: transparent; }
 
 .md-body .code-block__pre {
   margin: 0 !important;
@@ -3521,4 +3523,3 @@ body:not(.dark) .md-body .md-callout--caution { --cl-accent: #cf222e; }
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-

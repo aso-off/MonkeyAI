@@ -34,7 +34,7 @@ watch(
 
 const showLoading = ref(true);
 
-// ── Visibility listener (set up once) ───────────────────────────────────────
+// Visibility listener (set up once)
 let visibilityListenerAdded = false;
 
 function setupVisibilityListener() {
@@ -48,7 +48,7 @@ function setupVisibilityListener() {
   });
 }
 
-// ── Called by AppLoading when it finishes ────────────────────────────────────
+// Called by AppLoading when it finishes
 function onLoadingDone() {
   showLoading.value = false;
   setupVisibilityListener();

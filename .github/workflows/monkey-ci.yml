@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  # ── Job 1: Lint (быстрый, не блокирует тесты) ────────────────────────────────
+  # Job 1: Lint
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
       - name: Ruff lint
         run: .venv/bin/ruff check api bot
 
-  # ── Job 2: Locale validation (bot + mini-app) ─────────────────────────────────
+  # Job 2: Locale validation (bot + mini-app)
   locale-check:
     name: Locale keys validation
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
       - name: Bot locale keys
         run: pytest bot/tests/unit/test_bot_locale_keys.py -v
 
-  # ── Job 3: Unit tests + coverage ─────────────────────────────────────────────
+  # Job 3: Unit tests + coverage
   unit-tests:
     name: Unit tests (coverage ≥ 60%)
     runs-on: ubuntu-latest

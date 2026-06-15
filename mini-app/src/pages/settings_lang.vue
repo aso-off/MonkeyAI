@@ -179,4 +179,3 @@ const updateLanguage = async (lang: string): Promise<void> => {
   line-height: 16px;
 }
 </style>
-

@@ -17,4 +17,3 @@ class MetricsAiohttpSession(AiohttpSession):
             except Exception:
                 tg_api_requests_total.labels(method_name, "false").inc()
                 raise
-

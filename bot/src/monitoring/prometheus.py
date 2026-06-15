@@ -40,4 +40,3 @@ def observe_duration_seconds(hist: Histogram, *label_values: str) -> Iterator[No
         yield
     finally:
         hist.labels(*label_values).observe(time.perf_counter() - t0)
-
