@@ -26,8 +26,8 @@ def _status_keyboard(lang: str) -> InlineKeyboardMarkup:
 
 
 async def _build_status_text(lang: str) -> str:
-    from src.core.bot import dp  # ленивый импорт — избегает circular import с core.bot
-    redis = dp.storage.redis
+    from src.core.bot import fsm_redis  # ленивый импорт — избегает circular import с core.bot
+    redis = fsm_redis()
 
     # Uptime из Redis
     raw_start = await redis.get(REDIS_KEY_START_TIME)
@@ -101,6 +101,8 @@ async def cb_admin_status(query: CallbackQuery, language: str, db_user=None) -> 
     if not await require_admin(query, language, db_user=db_user):
         return
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(f"⏳ {t('status_checking', language)}", reply_markup=query.message.reply_markup)
     text = await _build_status_text(language)
     await query.message.edit_text(text, reply_markup=_status_keyboard(language))

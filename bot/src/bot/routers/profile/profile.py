@@ -59,5 +59,7 @@ async def cmd_profile(message: Message, language: str, db_user=None) -> None:
 @router.callback_query(F.data == "profile", StateFilter("*"))
 async def cb_profile(query: CallbackQuery, language: str, db_user=None) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     text = _build_profile_text(db_user, language)
     await query.message.edit_text(text, reply_markup=_profile_keyboard(language), parse_mode="Markdown")

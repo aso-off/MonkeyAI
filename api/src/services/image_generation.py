@@ -1,7 +1,7 @@
 import base64
 import logging
 from io import BytesIO
-from typing import Literal, cast
+from typing import Literal, cast, get_args
 
 import httpx
 
@@ -16,6 +16,21 @@ _ImageSize = Literal[
     "auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"
 ]
 _ImageQuality = Literal["standard", "hd", "low", "medium", "high", "auto"]
+
+_SIZES: frozenset[str] = frozenset(get_args(_ImageSize))
+_QUALITIES: frozenset[str] = frozenset(get_args(_ImageQuality))
+
+
+def _validate_size(size: str) -> _ImageSize:
+    if size not in _SIZES:
+        raise ValueError(f"Unsupported image size {size!r}; allowed: {sorted(_SIZES)}")
+    return cast(_ImageSize, size)
+
+
+def _validate_quality(quality: str) -> _ImageQuality:
+    if quality not in _QUALITIES:
+        raise ValueError(f"Unsupported image quality {quality!r}; allowed: {sorted(_QUALITIES)}")
+    return cast(_ImageQuality, quality)
 
 
 async def generate_image_b64(
@@ -34,8 +49,8 @@ async def generate_image_b64(
         model=model,
         prompt=prompt,
         n=1,
-        size=cast(_ImageSize, size),
-        quality=cast(_ImageQuality, quality),
+        size=_validate_size(size),
+        quality=_validate_quality(quality),
     )
     if not response.data:
         raise ValueError("No image data in OpenAI response")
@@ -67,8 +82,8 @@ async def generate_image_url(
         model=model,
         prompt=prompt,
         n=1,
-        size=cast(_ImageSize, size),
-        quality=cast(_ImageQuality, quality),
+        size=_validate_size(size),
+        quality=_validate_quality(quality),
     )
     if not response.data:
         raise ValueError("No image data in OpenAI response")
@@ -90,8 +105,8 @@ async def generate_images(
         model=IMAGE_MODEL,
         prompt=prompt,
         n=n_images,
-        size=cast(_ImageSize, size),
-        quality=cast(_ImageQuality, quality),
+        size=_validate_size(size),
+        quality=_validate_quality(quality),
     )
     results: list[BytesIO] = []
     for item in response.data or []:

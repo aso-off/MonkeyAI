@@ -109,6 +109,8 @@ async def cb_admin_whitelist(query: CallbackQuery, state: FSMContext, language: 
         return
     await state.clear()
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     text = await _whitelist_text(language)
     await query.message.edit_text(text, reply_markup=_whitelist_keyboard(language, settings.whitelist_mode))
 
@@ -118,7 +120,9 @@ async def cb_set_access_mode(query: CallbackQuery, language: str, db_user=None) 
     if not await require_admin(query, language, db_user=db_user):
         return
 
-    mode = query.data.split("|")[1]
+    if not isinstance(query.message, Message):
+        return
+    mode = (query.data or "").split("|")[1]
     is_whitelist = mode == "whitelist"
     settings.whitelist_mode = is_whitelist
     logger.info("Access mode changed to '%s' by user %s", mode, query.from_user.id)
@@ -135,6 +139,8 @@ async def cb_manage_users(query: CallbackQuery, state: FSMContext, language: str
         return
     await state.clear()
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(t("user_management_title", language), reply_markup=_manage_users_keyboard(language))
 
 
@@ -143,7 +149,9 @@ async def cb_user_action(query: CallbackQuery, state: FSMContext, language: str,
     if not await require_admin(query, language, db_user=db_user):
         return
 
-    action = query.data.split("|")[1]
+    if not isinstance(query.message, Message):
+        return
+    action = (query.data or "").split("|")[1]
 
     if action in ("add_admin", "remove_admin") and query.from_user.id != _SUPERADMIN_ID:
         await query.answer(t("superadmin_only", language), show_alert=True)
@@ -183,11 +191,15 @@ async def cb_user_action(query: CallbackQuery, state: FSMContext, language: str,
 async def cb_cancel_user_operation(query: CallbackQuery, state: FSMContext, language: str) -> None:
     await state.clear()
     await query.answer(t("operation_cancelled", language))
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(t("user_management_title", language), reply_markup=_manage_users_keyboard(language))
 
 
 @router.message(WhitelistStates.waiting_for_user_id)
 async def msg_user_id_input(message: Message, state: FSMContext, language: str) -> None:
+    if message.from_user is None:
+        return
     raw = (message.text or "").strip()
 
     if not raw.isdigit() or not (8 <= len(raw) <= 13):

@@ -69,5 +69,7 @@ async def cmd_balance(message: Message, language: str, db_user=None) -> None:
 @router.callback_query(F.data == "show_balance", StateFilter("*"))
 async def cb_show_balance(query: CallbackQuery, language: str, db_user=None) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     text = _build_balance_text(db_user, language)
     await query.message.edit_text(text, reply_markup=_balance_keyboard(language), parse_mode="HTML")

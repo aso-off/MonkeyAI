@@ -40,10 +40,10 @@ def is_allowed(user_id: int) -> bool:
 
 async def is_allowed_cached(user_id: int) -> bool | None:
     """True/False из общего Redis-сета; None — если Redis недоступен или сет не построен."""
-    from src.core.bot import dp
+    from src.core.bot import fsm_redis
 
     try:
-        r = dp.storage.redis
+        r = fsm_redis()
         if await r.sismember(_ALLOWED_KEY, user_id):
             return True
         if await r.exists(_ALLOWED_KEY):

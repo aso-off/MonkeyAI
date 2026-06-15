@@ -2,7 +2,7 @@ import logging
 
 from aiogram import F, Router
 from aiogram.filters import StateFilter
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from src.core.config import settings
 from src.utils.admin import require_admin
@@ -35,6 +35,8 @@ async def cb_admin_moderation(query: CallbackQuery, language: str, db_user=None)
     if not await require_admin(query, language, db_user=db_user):
         return
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(_moderation_text(language), reply_markup=_moderation_keyboard(language))
 
 
@@ -48,4 +50,6 @@ async def cb_toggle_moderation(query: CallbackQuery, language: str, db_user=None
 
     status_key = "moderation_enabled" if settings.enable_content_moderation else "moderation_disabled"
     await query.answer(t("moderation_status_changed", language).format(t(status_key, language)))
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(_moderation_text(language), reply_markup=_moderation_keyboard(language))

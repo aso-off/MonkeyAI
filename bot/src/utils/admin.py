@@ -7,6 +7,8 @@ from src.utils.localization import t
 async def require_admin(event: CallbackQuery | Message, language: str, db_user=None) -> bool:
     """Check if user is admin. Pass db_user from middleware to skip the API call."""
     from src.core.config import settings
+    if event.from_user is None:
+        return False
     if db_user is not None:
         is_admin = db_user.is_admin or (event.from_user.id in settings.admin_ids)
     else:

@@ -2,7 +2,7 @@ import logging
 
 from aiogram import F, Router
 from aiogram.filters import StateFilter
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from src.services import api_client as api
 from src.utils.formatting import format_date
@@ -21,6 +21,8 @@ def _stats_keyboard(lang: str) -> InlineKeyboardMarkup:
 @router.callback_query(F.data == "profile_stats", StateFilter("*"))
 async def cb_profile_stats(query: CallbackQuery, language: str) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
 
     profile = await api.get_user_full(query.from_user.id)
 

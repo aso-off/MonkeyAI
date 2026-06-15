@@ -32,4 +32,6 @@ async def cmd_settings(message: Message, language: str) -> None:
 @router.callback_query(F.data == "profile_settings", StateFilter("*"))
 async def cb_profile_settings(query: CallbackQuery, language: str) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(t("settings_prompt", language), reply_markup=_settings_keyboard(language))

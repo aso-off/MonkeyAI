@@ -44,6 +44,8 @@ def _model_text(lang: str, current_model: str) -> str:
 
 @router.message(Command("model"), StateFilter("*"))
 async def cmd_model(message: Message, language: str, db_user=None) -> None:
+    if message.from_user is None:
+        return
     if db_user is None:
         await message.answer(t("profile_error", language))
         return
@@ -62,6 +64,8 @@ async def cmd_model(message: Message, language: str, db_user=None) -> None:
 @router.callback_query(F.data == "profile_model", StateFilter("*"))
 async def cb_profile_model(query: CallbackQuery, language: str, db_user=None) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     if db_user is None:
         await query.message.edit_text(t("profile_error", language))
         return
@@ -79,7 +83,7 @@ async def cb_profile_model(query: CallbackQuery, language: str, db_user=None) ->
 
 @router.callback_query(F.data.startswith("set_model|"), StateFilter("*"))
 async def cb_set_model(query: CallbackQuery, language: str, db_user=None) -> None:
-    model_key = query.data.split("|", 1)[1]
+    model_key = (query.data or "").split("|", 1)[1]
     available = settings.models.get("available_text_models", [])
     if model_key not in available:
         await query.answer()
@@ -93,6 +97,8 @@ async def cb_set_model(query: CallbackQuery, language: str, db_user=None) -> Non
 
     logger.info("User %s changed model to %s", query.from_user.id, model_key)
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(
         _model_text(language, model_key),
         reply_markup=_model_keyboard(language, model_key),

@@ -58,6 +58,8 @@ async def cmd_mode(message: Message, language: str, db_user=None) -> None:
 @router.callback_query(F.data == "profile_assistant", StateFilter("*"))
 async def cb_profile_assistant(query: CallbackQuery, language: str, db_user=None) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     if db_user is None:
         await query.message.edit_text(t("profile_error", language))
         return
@@ -73,7 +75,7 @@ async def cb_profile_assistant(query: CallbackQuery, language: str, db_user=None
 
 @router.callback_query(F.data.startswith("set_chat_mode|"), StateFilter("*"))
 async def cb_set_chat_mode(query: CallbackQuery, language: str, db_user=None) -> None:
-    mode_key = query.data.split("|", 1)[1]
+    mode_key = (query.data or "").split("|", 1)[1]
     if mode_key not in settings.chat_modes:
         await query.answer()
         return
@@ -87,6 +89,8 @@ async def cb_set_chat_mode(query: CallbackQuery, language: str, db_user=None) ->
 
     logger.info("User %s changed chat mode to %s", query.from_user.id, mode_key)
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(
         _assistant_text(language, mode_key),
         reply_markup=_assistant_keyboard(language, mode_key),
