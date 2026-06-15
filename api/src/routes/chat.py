@@ -75,7 +75,7 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
             return
         image_buffer.name = "image.jpg"
 
-    is_flagged, _, _ = await moderate_content(text=req.message, image_buffer=image_buffer)
+    is_flagged, _cats, _scores = await moderate_content(text=req.message, image_buffer=image_buffer)
     if image_buffer is not None:
         image_buffer.seek(0)
     if is_flagged and not req.skip_moderation:
@@ -165,7 +165,7 @@ async def chat_complete(
             raise HTTPException(status_code=400, detail="invalid_base64")
         image_buffer.name = "image.jpg"
 
-    is_flagged, _, _ = await moderate_content(text=req.message, image_buffer=image_buffer)
+    is_flagged, _cats, _scores = await moderate_content(text=req.message, image_buffer=image_buffer)
     if image_buffer is not None:
         image_buffer.seek(0)
     if is_flagged and not req.skip_moderation:

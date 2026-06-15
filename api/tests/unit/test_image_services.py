@@ -320,7 +320,9 @@ class TestUploadToImgbb:
 
         mock_client = AsyncMock()
         mock_client.post = AsyncMock(
-            side_effect=httpx.HTTPStatusError("error", request=None, response=MagicMock())
+            side_effect=httpx.HTTPStatusError(
+                "error", request=httpx.Request("POST", "http://test"), response=MagicMock()
+            )
         )
         mock_ctx = MagicMock()
         mock_ctx.__aenter__ = AsyncMock(return_value=mock_client)
