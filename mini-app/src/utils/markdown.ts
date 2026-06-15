@@ -14,6 +14,14 @@ const COPY_ICON =
   '7.22C12.28 7.41 12.59 7.72 12.78 8.09C13 8.52 13 9.08 13 10.2V13" stroke="currentColor" ' +
   'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+const CALLOUTS: Record<string, string> = {
+  NOTE: "Note",
+  TIP: "Tip",
+  IMPORTANT: "Important",
+  WARNING: "Warning",
+  CAUTION: "Caution",
+};
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -52,15 +60,75 @@ marked.use({
         "</code></pre></div>"
       );
     },
+    blockquote({ tokens }) {
+      const inner = this.parser.parse(tokens);
+      const m = inner.match(/^\s*<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(<br\s*\/?>)?\s*/i);
+      if (m) {
+        const type = m[1].toUpperCase();
+        const body = inner.replace(m[0], "<p>");
+        return (
+          `<div class="md-callout md-callout--${type.toLowerCase()}">` +
+          `<div class="md-callout__title">${CALLOUTS[type]}</div>` +
+          `<div class="md-callout__body">${body}</div></div>`
+        );
+      }
+      return `<blockquote>${inner}</blockquote>`;
+    },
+    checkbox({ checked }) {
+      return `<input class="md-task" type="checkbox" disabled${checked ? " checked" : ""}> `;
+    },
   },
+});
+
+// внешние ссылки — всегда в новой вкладке и безопасно
+DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+  if (node.nodeName === "A") {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
+  }
 });
 
 const SANITIZE_OPTS = {
   USE_PROFILES: { html: true, svg: true, mathMl: true },
-  ADD_ATTR: ["style", "aria-hidden"],
+  ADD_ATTR: ["style", "aria-hidden", "target", "rel"],
 };
 
+/**
+ * Незакрытые во время стрима блоки (```код или $$формула) показываем как
+ * обычный текст до прихода закрывающего разделителя — без мигания полу-блока.
+ */
+function splitUnclosed(text: string): { md: string; tail: string } {
+  const lines = text.split("\n");
+  let fenceLine = -1;
+  let fenceChar = "";
+  for (let i = 0; i < lines.length; i++) {
+    const fm = lines[i].match(/^\s{0,3}(`{3,}|~{3,})/);
+    if (!fm) continue;
+    const ch = fm[1][0];
+    if (fenceLine === -1) {
+      fenceLine = i;
+      fenceChar = ch;
+    } else if (ch === fenceChar) {
+      fenceLine = -1;
+      fenceChar = "";
+    }
+  }
+  if (fenceLine !== -1) {
+    return { md: lines.slice(0, fenceLine).join("\n"), tail: lines.slice(fenceLine).join("\n") };
+  }
+  const noCode = text.replace(/```[\s\S]*?```/g, "").replace(/~~~[\s\S]*?~~~/g, "");
+  if ((noCode.split("$$").length - 1) % 2 === 1) {
+    const idx = text.lastIndexOf("$$");
+    return { md: text.slice(0, idx), tail: text.slice(idx) };
+  }
+  return { md: text, tail: "" };
+}
+
 export function renderMarkdown(text: string): string {
-  const html = marked.parse(text, { async: false }) as string;
+  const { md, tail } = splitUnclosed(text);
+  let html = marked.parse(md, { async: false }) as string;
+  if (tail) {
+    html += `<span class="md-stream-tail">${escapeHtml(tail).replace(/\n/g, "<br>")}</span>`;
+  }
   return DOMPurify.sanitize(html, SANITIZE_OPTS);
 }

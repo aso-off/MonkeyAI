@@ -47,6 +47,7 @@ import { useI18n } from 'vue-i18n';
 import { miniApp, initData } from '@tma.js/sdk-vue';
 import { useUserStore } from '@/store/user';
 import { useDialogsStore } from '@/store/dialogs';
+import { preloadMarkdown } from '@/utils/markdownReady';
 import lottie, { type AnimationItem } from 'lottie-web';
 
 defineOptions({ name: 'AppLoading' });
@@ -192,6 +193,7 @@ async function runLoading(): Promise<void> {
       await Promise.all([
         store.prefetchChatHistory(),
         dialogs.loadInitial().catch(() => {}),
+        preloadMarkdown(), // стили/форматирование готовы до показа чата
       ]);
     }
   } catch {

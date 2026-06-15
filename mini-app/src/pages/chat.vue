@@ -231,7 +231,7 @@
                   variant="thinking"
                 />
                 <!-- Текст ответа -->
-                <div v-if="msg.text" class="md-body" v-html="formatMessage(msg.text)" @click="onContentClick"></div>
+                <div v-if="msg.text" class="md-body" v-html="index === streamingBotIdx ? streamHtml : formatMessage(msg.text)" @click="onContentClick"></div>
                 <!-- Кнопки: копировать / лайк / дизлайк / три точки — только когда генерация завершена -->
                 <div
                   v-if="index !== streamingBotIdx && msg.text"
@@ -549,7 +549,7 @@ import {
 } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
-import { retrieveLaunchParams, viewport } from "@tma.js/sdk-vue";
+import { retrieveLaunchParams, viewport, openLink } from "@tma.js/sdk-vue";
 import { api, wsClient, BASE_URL } from "@/services/api";
 import {
   useUserStore,
@@ -559,6 +559,7 @@ import {
 import { useDialogsStore } from "@/store/dialogs";
 import { useImagesStore } from "@/store/images";
 import ChatLoader from "@/components/ChatLoader.vue";
+import { markdownReady, renderMarkdownSafe, preloadMarkdown } from "@/utils/markdownReady";
 
 defineOptions({ name: "ChatPage" });
 
@@ -1373,6 +1374,7 @@ async function sendMessage() {
   const isImageModel = currentModelId.value === "gpt-image-1.5";
   chatMessages.value.push({ type: "bot", contentType: "text", text: "" });
   const botIdx = chatMessages.value.length - 1;
+  resetStreamRender();
   streamingBotIdx.value = botIdx;
 
   // Start watchdog: if no server activity for 22 s while generating, force WS reconnect.
@@ -1431,6 +1433,7 @@ async function sendMessage() {
         (delta) => {
           if (!stillActive() || !delta) return;
           chatMessages.value[botIdx] = { type: "bot", contentType: "text", text: delta };
+          bumpStreamRender();
           nextTick().then(scrollToBottomIfAtBottom);
         },
       );
@@ -1491,13 +1494,8 @@ async function sendMessage() {
   store.setChatHistory(chatMessages.value);
 }
 
-// markdown-стек (marked+katex+hljs+dompurify) грузим отдельным чанком
-const mdReady = ref(false);
-let renderMd: ((s: string) => string) | null = null;
-import("@/utils/markdown").then((m) => {
-  renderMd = m.renderMarkdown;
-  mdReady.value = true;
-});
+// markdown-стек грузится отдельным чанком (обычно уже в AppLoading) — здесь подстраховка
+preloadMarkdown();
 
 function fallbackMd(text: string): string {
   return text
@@ -1507,13 +1505,74 @@ function fallbackMd(text: string): string {
     .replace(/\n/g, "<br>");
 }
 
+function renderRaw(text: string): string {
+  const r = renderMarkdownSafe(text);
+  return r !== null ? r : fallbackMd(text);
+}
+
+// кэш готовых сообщений — formatMessage не пере-парсит статичные ответы на каждый рендер
+const mdCache = new Map<string, string>();
 function formatMessage(text: string): string {
-  void mdReady.value; // реактивная зависимость — перерисовка после загрузки чанка
-  return renderMd ? renderMd(text) : fallbackMd(text);
+  void markdownReady.value; // реактивная зависимость — перерисовка после загрузки чанка
+  const hit = mdCache.get(text);
+  if (hit !== undefined) return hit;
+  const html = renderRaw(text);
+  if (markdownReady.value) {
+    mdCache.set(text, html);
+    if (mdCache.size > 300) mdCache.delete(mdCache.keys().next().value as string);
+  }
+  return html;
+}
+
+// троттлинг рендера активного стрима — тяжёлый markdown не гоняется на каждый чанк
+const STREAM_RENDER_MS = 70;
+const streamHtml = ref("");
+let streamRenderTs = 0;
+let streamRenderTimer: ReturnType<typeof setTimeout> | null = null;
+
+function renderStreamNow() {
+  streamRenderTimer = null;
+  streamRenderTs = Date.now();
+  const i = streamingBotIdx.value;
+  streamHtml.value = i >= 0 ? renderRaw(chatMessages.value[i]?.text ?? "") : "";
+}
+
+function bumpStreamRender() {
+  const elapsed = Date.now() - streamRenderTs;
+  if (elapsed >= STREAM_RENDER_MS) {
+    renderStreamNow();
+  } else if (!streamRenderTimer) {
+    streamRenderTimer = setTimeout(renderStreamNow, STREAM_RENDER_MS - elapsed);
+  }
+}
+
+function resetStreamRender() {
+  if (streamRenderTimer) {
+    clearTimeout(streamRenderTimer);
+    streamRenderTimer = null;
+  }
+  streamRenderTs = 0;
+  streamHtml.value = "";
 }
 
 function onContentClick(e: MouseEvent) {
-  const btn = (e.target as HTMLElement).closest(".code-copy") as HTMLElement | null;
+  const target = e.target as HTMLElement;
+
+  const link = target.closest("a[href]") as HTMLAnchorElement | null;
+  if (link) {
+    const href = link.getAttribute("href") || "";
+    if (/^https?:\/\//i.test(href)) {
+      e.preventDefault();
+      try {
+        openLink(href);
+      } catch {
+        window.open(href, "_blank", "noopener");
+      }
+    }
+    return;
+  }
+
+  const btn = target.closest(".code-copy") as HTMLElement | null;
   if (!btn) return;
   const code = btn.closest(".code-block")?.querySelector("code");
   const text = code?.textContent ?? "";
@@ -1794,7 +1853,7 @@ function writeClipboard(plain: string): Promise<boolean> {
 }
 
 function copyToClipboard(text: string, index: number) {
-  const plain = stripHtml(renderMd ? renderMd(text) : fallbackMd(text));
+  const plain = stripHtml(renderRaw(text));
   writeClipboard(plain).then((ok) => {
     window.getSelection()?.removeAllRanges();
     if (ok) {
@@ -1980,6 +2039,7 @@ onMounted(async () => {
     chatMessages.value.push({ type: "bot", contentType: "text", text: "" });
     const botIdx = chatMessages.value.length - 1;
     remoteBotSlots.set(msg.id as string, botIdx);
+    resetStreamRender();
     streamingBotIdx.value = botIdx;
     nextTick().then(scrollToBottomIfAtBottom);
   });
@@ -2000,6 +2060,7 @@ onMounted(async () => {
     const text = (msg.text as string) ?? "";
     if (!text) return;
     chatMessages.value[botIdx] = { type: "bot", contentType: "text", text };
+    bumpStreamRender();
     nextTick().then(scrollToBottomIfAtBottom);
   });
 
