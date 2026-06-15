@@ -11,6 +11,7 @@ Faker: prompt, file content, user_id, URL, durations.
 
 import io
 from io import BytesIO
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -85,7 +86,7 @@ class TestImagesGenerate:
 
     @pytest.mark.api
     def test_generate_bad_request_returns_422(self, api_client) -> None:
-        bad_req = BadRequestError.__new__(BadRequestError)
+        bad_req: Any = BadRequestError.__new__(BadRequestError)
         bad_req.message = "content_policy_violation"
         bad_req.body = None
         bad_req.response = None

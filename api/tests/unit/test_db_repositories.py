@@ -134,6 +134,7 @@ class TestGetUser:
             session = _make_session()
             session.execute.return_value = _scalar_result(user)
             result = await get_user(session, uid)
+            assert result is not None
             assert result.id == uid
 
 
@@ -227,7 +228,7 @@ class TestGetOrCreateUser:
 
         session = _make_session()
         session.execute.side_effect = _execute
-        session.commit = AsyncMock(side_effect=IntegrityError("", {}, None))
+        session.commit = AsyncMock(side_effect=IntegrityError("", {}, Exception("dup")))
 
         with patch("db.repositories.users.settings") as mock_settings:
             mock_settings.models.get.return_value = []

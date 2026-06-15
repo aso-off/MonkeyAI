@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime, timezone
+from typing import cast
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import CursorResult, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.user import Dialog, User, UserStatistics
@@ -446,7 +447,7 @@ async def set_pinned(session: AsyncSession, user_id: int, dialog_id: str, pinned
         .values(pinned_at=now if pinned else None, last_activity=now)
     )
     await session.commit()
-    return result.rowcount > 0
+    return cast(CursorResult, result).rowcount > 0
 
 
 async def search_dialogs(
@@ -488,7 +489,7 @@ async def rename_dialog(session: AsyncSession, user_id: int, dialog_id: str, tit
         .values(title=title)
     )
     await session.commit()
-    return result.rowcount > 0
+    return cast(CursorResult, result).rowcount > 0
 
 
 async def delete_dialog(session: AsyncSession, user_id: int, dialog_id: str) -> bool:
@@ -496,7 +497,7 @@ async def delete_dialog(session: AsyncSession, user_id: int, dialog_id: str) -> 
         delete(Dialog).where(Dialog.id == dialog_id, Dialog.user_id == user_id)
     )
     await session.commit()
-    return result.rowcount > 0
+    return cast(CursorResult, result).rowcount > 0
 
 
 async def get_all_users_count(session: AsyncSession) -> int:

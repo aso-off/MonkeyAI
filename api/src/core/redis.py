@@ -1,3 +1,6 @@
+from collections.abc import Awaitable, Mapping
+from typing import Any, Protocol, cast
+
 import redis.asyncio as aioredis
 
 from core.config import settings
@@ -5,6 +8,35 @@ from core.logger import logger
 
 _redis: aioredis.Redis | None = None
 _redis_binary: aioredis.Redis | None = None
+
+_Encodable = str | int | float | bytes
+
+
+class RedisAsync(Protocol):
+    """Async-вид клиента: redis-py типизирует методы как sync|async в одном классе."""
+
+    def get(self, name: str) -> Awaitable[Any]: ...
+    def set(self, name: str, value: _Encodable, *, ex: int | None = ...) -> Awaitable[Any]: ...
+    def setex(self, name: str, time: int, value: _Encodable) -> Awaitable[Any]: ...
+    def delete(self, *names: str) -> Awaitable[int]: ...
+    def exists(self, *names: str) -> Awaitable[int]: ...
+    def expire(self, name: str, time: int) -> Awaitable[bool]: ...
+    def ttl(self, name: str) -> Awaitable[int]: ...
+    def incr(self, name: str, amount: int = ...) -> Awaitable[int]: ...
+    def ping(self) -> Awaitable[Any]: ...
+    def sadd(self, name: str, *values: _Encodable) -> Awaitable[int]: ...
+    def srem(self, name: str, *values: _Encodable) -> Awaitable[int]: ...
+    def sismember(self, name: str, value: _Encodable) -> Awaitable[bool]: ...
+    def hset(
+        self,
+        name: str,
+        key: _Encodable | None = ...,
+        value: _Encodable | None = ...,
+        mapping: Mapping[str, _Encodable] | None = ...,
+        items: list[Any] | None = ...,
+    ) -> Awaitable[int]: ...
+    def hgetall(self, name: str) -> Awaitable[dict[Any, Any]]: ...
+    def pipeline(self, transaction: bool = ...) -> Any: ...
 
 
 async def init_redis() -> None:
@@ -33,10 +65,10 @@ async def close_redis() -> None:
     logger.info("Redis closed")
 
 
-def get_redis() -> aioredis.Redis:
+def get_redis() -> RedisAsync:
     if _redis is None:
         raise RuntimeError("Redis pool is not initialized")
-    return _redis
+    return cast(RedisAsync, _redis)
 
 
 def get_redis_binary() -> aioredis.Redis:

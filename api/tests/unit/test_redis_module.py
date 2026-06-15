@@ -8,6 +8,7 @@ mock-объект settings с redis_url. aioredis.from_url мокируется 
 
 import importlib.util
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -32,7 +33,8 @@ def redis_module():
     spec = importlib.util.spec_from_file_location(
         f"_real_api_redis_{fake.lexify('????')}", _REDIS_FILE
     )
-    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    module: Any = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
     mock_settings = mock.MagicMock()

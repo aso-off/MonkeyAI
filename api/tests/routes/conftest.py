@@ -52,6 +52,7 @@ def api_app():
     """Создаём FastAPI app один раз для всего модуля."""
     api_main_path = Path(__file__).resolve().parents[2] / "main.py"
     spec = importlib.util.spec_from_file_location("_api_routes_test_main", api_main_path)
+    assert spec and spec.loader
     api_main = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(api_main)
     app = api_main.create_app()

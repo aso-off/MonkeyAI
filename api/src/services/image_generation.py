@@ -1,6 +1,7 @@
 import base64
 import logging
 from io import BytesIO
+from typing import Literal, cast
 
 import httpx
 
@@ -10,6 +11,11 @@ logger = logging.getLogger(__name__)
 
 IMAGE_MODEL = "gpt-image-1.5"
 IMAGE_MODELS: frozenset[str] = frozenset({IMAGE_MODEL})
+
+_ImageSize = Literal[
+    "auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"
+]
+_ImageQuality = Literal["standard", "hd", "low", "medium", "high", "auto"]
 
 
 async def generate_image_b64(
@@ -28,9 +34,11 @@ async def generate_image_b64(
         model=model,
         prompt=prompt,
         n=1,
-        size=size,
-        quality=quality,
+        size=cast(_ImageSize, size),
+        quality=cast(_ImageQuality, quality),
     )
+    if not response.data:
+        raise ValueError("No image data in OpenAI response")
     item = response.data[0]
     # gpt-image-1.5 возвращает b64_json напрямую
     if item.b64_json:
@@ -59,9 +67,11 @@ async def generate_image_url(
         model=model,
         prompt=prompt,
         n=1,
-        size=size,
-        quality=quality,
+        size=cast(_ImageSize, size),
+        quality=cast(_ImageQuality, quality),
     )
+    if not response.data:
+        raise ValueError("No image data in OpenAI response")
     item = response.data[0]
     if item.url:
         return item.url
@@ -80,11 +90,11 @@ async def generate_images(
         model=IMAGE_MODEL,
         prompt=prompt,
         n=n_images,
-        size=size,
-        quality=quality,
+        size=cast(_ImageSize, size),
+        quality=cast(_ImageQuality, quality),
     )
     results: list[BytesIO] = []
-    for item in response.data:
+    for item in response.data or []:
         if item.url:
             async with httpx.AsyncClient() as http:
                 async with http.stream("GET", item.url) as r:
@@ -92,8 +102,10 @@ async def generate_images(
                     buf = BytesIO()
                     async for chunk in r.aiter_bytes(chunk_size=65536):
                         buf.write(chunk)
-        else:
+        elif item.b64_json:
             buf = BytesIO(base64.b64decode(item.b64_json))
+        else:
+            continue
         buf.name = "image.png"
         buf.seek(0)
         results.append(buf)

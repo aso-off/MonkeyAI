@@ -10,6 +10,7 @@ import importlib.util
 import logging
 import sys
 from pathlib import Path
+from typing import cast
 from unittest import mock
 
 import pytest
@@ -43,6 +44,7 @@ def logger_module():
     spec = importlib.util.spec_from_file_location(
         f"_real_api_logger_{fake.lexify('????')}", _LOGGER_FILE
     )
+    assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
 
     mock_file_handler = mock.MagicMock(spec=logging.Handler)
@@ -144,7 +146,7 @@ class TestNoHealthFilter:
         if not health_filters:
             pytest.skip("Фильтр не найден на root-логгере")
 
-        f = health_filters[-1]
+        f = cast(logging.Filter, health_filters[-1])
         assert f.filter(self._make_record("GET /health HTTP/1.1 200")) is False
 
     def test_non_health_path_passes(self, logger_module) -> None:
@@ -153,7 +155,7 @@ class TestNoHealthFilter:
         if not health_filters:
             pytest.skip("Фильтр не найден на root-логгере")
 
-        f = health_filters[-1]
+        f = cast(logging.Filter, health_filters[-1])
         msg = f"POST /chat/complete {fake.random_int()} OK"
         assert f.filter(self._make_record(msg)) is True
 
@@ -163,7 +165,7 @@ class TestNoHealthFilter:
         if not health_filters:
             pytest.skip("Фильтр не найден на root-логгере")
 
-        f = health_filters[-1]
+        f = cast(logging.Filter, health_filters[-1])
         for _ in range(5):
             msg = fake.sentence()
             assert f.filter(self._make_record(msg)) is True

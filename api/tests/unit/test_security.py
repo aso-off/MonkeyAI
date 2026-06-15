@@ -16,6 +16,7 @@ import pytest
 
 _SECURITY_PATH = Path(__file__).resolve().parents[2] / "src" / "core" / "security.py"
 _sec_spec = importlib.util.spec_from_file_location("_real_core_security", _SECURITY_PATH)
+assert _sec_spec and _sec_spec.loader
 _sec_mod = importlib.util.module_from_spec(_sec_spec)
 _sec_spec.loader.exec_module(_sec_mod)
 

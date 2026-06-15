@@ -1,6 +1,9 @@
 import base64
 import logging
 from io import BytesIO
+from typing import cast
+
+from openai.types import ModerationMultiModalInputParam
 
 from core.config import settings
 from services.openai import make_client
@@ -44,7 +47,7 @@ async def moderate_content(
         client = make_client()
         response = await client.moderations.create(
             model="omni-moderation-latest",
-            input=input_data,
+            input=cast(list[ModerationMultiModalInputParam], input_data),
         )
 
         result = response.results[0]

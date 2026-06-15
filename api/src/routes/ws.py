@@ -373,7 +373,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
             return
 
         # 5. Серверный контекст + мгновенный persist вопроса (мульти-девайс).
-        resolved_dialog_id = dialog_id
+        resolved_dialog_id: str = dialog_id or ""
         context: list = []
         try:
             async with Session() as session:
@@ -509,7 +509,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
             return
 
         # Мгновенный persist промпта (мульти-девайс).
-        resolved_dialog_id = dialog_id
+        resolved_dialog_id: str = dialog_id or ""
         try:
             async with Session() as session:
                 if not resolved_dialog_id:
