@@ -7,6 +7,7 @@
 
 import sys
 import types
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -15,7 +16,7 @@ from aiogram.types import CallbackQuery, Message
 from src.utils.admin import require_admin
 
 # Stub-модуль конфига из conftest — через него требует_admin получает settings
-_STUB_CONFIG = sys.modules["src.core.config"]
+_STUB_CONFIG: Any = sys.modules["src.core.config"]
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

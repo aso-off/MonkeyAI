@@ -27,6 +27,8 @@ def _admin_panel_keyboard(lang: str) -> InlineKeyboardMarkup:
 
 @router.message(Command("admin"), StateFilter("*"))
 async def cmd_admin(message: Message, language: str, db_user=None) -> None:
+    if message.from_user is None:
+        return
     is_admin = (db_user is not None and db_user.is_admin) or (message.from_user.id in settings.admin_ids)
     if not is_admin:
         return
@@ -38,4 +40,6 @@ async def cb_admin_panel(query: CallbackQuery, language: str, db_user=None) -> N
     if not await require_admin(query, language, db_user=db_user):
         return
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(t("admin_welcome", language), reply_markup=_admin_panel_keyboard(language))

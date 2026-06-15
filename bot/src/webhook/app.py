@@ -7,7 +7,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from fastapi.responses import JSONResponse
 from fastapi.responses import Response
 
-from src.core.bot import bot, dp
+from src.core.bot import bot, fsm_redis
 from src.core.config import settings
 from src.core.logger import logger
 from src.webhook.router import router as webhook_router
@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
 
     set_bot_meta(me.username, me.id)
 
-    redis = dp.storage.redis
+    redis = fsm_redis()
     await redis.set(REDIS_KEY_START_TIME, str(time.time()))
     await redis.set(REDIS_KEY_ALIVE, "1", ex=ALIVE_TTL)
     await redis.delete("restart_in_progress")

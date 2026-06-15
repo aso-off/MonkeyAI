@@ -7,6 +7,7 @@
             redis throttled → None, ключ содержит user_id
 """
 
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -119,7 +120,7 @@ class TestThrottlingMiddlewareCall:
             result = await mw(handler, MagicMock(), {"event_from_user": user})
         assert result == "ok"
         handler.assert_awaited_once()
-        mw._redis.set.assert_not_awaited()
+        cast(AsyncMock, mw._redis.set).assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_redis_allows_passes_through(self) -> None:

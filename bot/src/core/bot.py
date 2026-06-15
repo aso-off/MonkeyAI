@@ -1,3 +1,6 @@
+from collections.abc import Awaitable, Mapping
+from typing import Any, Protocol, cast
+
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -10,6 +13,34 @@ from src.core.config import settings
 from src.monitoring.tg_session import MetricsAiohttpSession
 
 logger = logging.getLogger(__name__)
+
+_Encodable = str | int | float | bytes
+
+
+class RedisAsync(Protocol):
+    """Async-вид клиента: redis-py типизирует методы как sync|async в одном классе."""
+
+    def get(self, name: str) -> Awaitable[Any]: ...
+    def set(self, name: str, value: _Encodable, *, ex: int | None = ..., nx: bool = ...) -> Awaitable[Any]: ...
+    def setex(self, name: str, time: int, value: _Encodable) -> Awaitable[Any]: ...
+    def delete(self, *names: str) -> Awaitable[int]: ...
+    def exists(self, *names: str) -> Awaitable[int]: ...
+    def expire(self, name: str, time: int) -> Awaitable[bool]: ...
+    def ttl(self, name: str) -> Awaitable[int]: ...
+    def incr(self, name: str, amount: int = ...) -> Awaitable[int]: ...
+    def ping(self) -> Awaitable[Any]: ...
+    def sadd(self, name: str, *values: _Encodable) -> Awaitable[int]: ...
+    def srem(self, name: str, *values: _Encodable) -> Awaitable[int]: ...
+    def sismember(self, name: str, value: _Encodable) -> Awaitable[bool]: ...
+    def hset(
+        self,
+        name: str,
+        key: _Encodable | None = ...,
+        value: _Encodable | None = ...,
+        mapping: Mapping[str, _Encodable] | None = ...,
+    ) -> Awaitable[int]: ...
+    def hgetall(self, name: str) -> Awaitable[dict[Any, Any]]: ...
+    def pipeline(self, transaction: bool = ...) -> Any: ...
 
 
 def create_bot() -> Bot:
@@ -24,6 +55,12 @@ def create_dispatcher() -> Dispatcher:
     redis = Redis.from_url(settings.redis_url)
     storage = RedisStorage(redis=redis)
     return Dispatcher(storage=storage)
+
+
+def fsm_redis() -> RedisAsync:
+    """Redis-клиент из FSM-хранилища (storage всегда RedisStorage)."""
+    storage = cast(RedisStorage, dp.storage)
+    return cast(RedisAsync, storage.redis)
 
 
 def setup_routers(dp: Dispatcher) -> None:
@@ -101,7 +138,7 @@ async def error_handler(event: ErrorEvent) -> None:
     logger.error("Unhandled exception for update %s: %s", update, exc, exc_info=exc)
 
     try:
-        if update.message and update.message.chat.type == "private":
+        if update.message and update.message.from_user and update.message.chat.type == "private":
             from src.utils.localization import t
             from src.utils.stickers import monkey
             from src.services import api_client as api

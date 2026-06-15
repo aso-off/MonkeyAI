@@ -14,6 +14,7 @@ import sys
 import types
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # Предзагрузка реальных модулей: внутри фикстур router/app грузятся под
@@ -76,7 +77,7 @@ def _make_fake_bot_module():
     mock_dp.storage.redis = mock_redis
     mock_dp.feed_update = AsyncMock()
 
-    fake_bot_mod = types.SimpleNamespace(bot=mock_bot, dp=mock_dp)
+    fake_bot_mod = types.SimpleNamespace(bot=mock_bot, dp=mock_dp, fsm_redis=lambda: mock_redis)
     return fake_bot_mod, mock_bot, mock_dp, mock_redis
 
 
@@ -89,7 +90,7 @@ def webhook_router_module():
     stub_settings = sys.modules["src.core.config"].settings
 
     # Создаём minimal prometheus mock
-    fake_prom = types.SimpleNamespace(
+    fake_prom: Any = types.SimpleNamespace(
         tg_updates_total=MagicMock(),
         tg_webhook_requests_total=MagicMock(),
     )
@@ -100,7 +101,8 @@ def webhook_router_module():
     spec = importlib.util.spec_from_file_location(
         f"_real_webhook_router_{fake.lexify('????')}", _ROUTER_FILE
     )
-    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    module: Any = importlib.util.module_from_spec(spec)
 
     with patch.dict(sys.modules, {"src.core.bot": fake_bot_mod}):
         spec.loader.exec_module(module)
@@ -231,7 +233,8 @@ def webhook_app_module():
     spec = importlib.util.spec_from_file_location(
         f"_real_webhook_app_{fake.lexify('????')}", _APP_FILE
     )
-    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    module: Any = importlib.util.module_from_spec(spec)
 
     extras = {
         "src.core.bot": fake_bot_mod,

@@ -13,6 +13,7 @@ import importlib.util
 import logging
 import sys
 from pathlib import Path
+from typing import cast
 from unittest import mock
 
 import pytest
@@ -46,6 +47,7 @@ def bot_logger_module():
     spec = importlib.util.spec_from_file_location(
         f"_real_bot_logger_{fake.lexify('????')}", _LOGGER_FILE
     )
+    assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     mock_fh = mock.MagicMock(spec=logging.Handler)
     mock_fh.level = logging.DEBUG
@@ -118,7 +120,7 @@ class TestNoiseFilter:
         filters = [f for f in uvicorn_logger.filters if hasattr(f, "filter")]
         if not filters:
             pytest.skip("_NoiseFilter не найден на uvicorn.access")
-        return filters[-1]
+        return cast(logging.Filter, filters[-1])
 
     def test_webhook_path_filtered(self, bot_logger_module) -> None:
         f = self._get_filter(bot_logger_module)

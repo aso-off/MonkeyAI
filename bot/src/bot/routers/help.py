@@ -44,6 +44,8 @@ def _help_text(is_admin: bool, lang: str) -> str:
 
 @router.message(Command("help"), StateFilter("*"))
 async def cmd_help(message: Message, language: str, db_user=None) -> None:
+    if message.from_user is None:
+        return
     is_admin = (db_user is not None and db_user.is_admin) or (message.from_user.id in settings.admin_ids)
     await message.answer(_help_text(is_admin, language))
 
@@ -51,6 +53,8 @@ async def cmd_help(message: Message, language: str, db_user=None) -> None:
 @router.callback_query(F.data == "help", StateFilter("*"))
 async def cb_help(query: CallbackQuery, language: str, db_user=None) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     is_admin = (db_user is not None and db_user.is_admin) or (query.from_user.id in settings.admin_ids)
     await query.message.edit_text(_help_text(is_admin, language))
 
@@ -60,7 +64,7 @@ async def cmd_help_group_chat(message: Message, language: str, bot: Bot) -> None
     if message.chat.type != ChatType.PRIVATE:
         return
     bot_info = await bot.get_me()
-    text = t("help_group_chat_message", language).format("@" + bot_info.username)
+    text = t("help_group_chat_message", language).format("@" + (bot_info.username or ""))
     await message.answer(text, parse_mode="HTML")
     if _VIDEO_PATH.exists():
         await message.answer_video(

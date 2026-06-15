@@ -18,6 +18,7 @@ import importlib.util
 import sys
 import types
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -46,7 +47,7 @@ def bot_module():
     stub_settings.redis_url = "redis://localhost:6379"
 
     # Fake tg_session stub (MetricsAiohttpSession требует реального aiohttp)
-    fake_tg_session_mod = types.ModuleType("src.monitoring.tg_session")
+    fake_tg_session_mod: Any = types.ModuleType("src.monitoring.tg_session")
     fake_tg_session_mod.MetricsAiohttpSession = MagicMock()
     sys.modules.setdefault("src.monitoring.tg_session", fake_tg_session_mod)
 
@@ -61,6 +62,7 @@ def bot_module():
     spec = importlib.util.spec_from_file_location(
         f"_real_bot_core_{fake.lexify('????')}", _BOT_FILE
     )
+    assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
 
     with patch("aiogram.Bot", return_value=mock_bot), \

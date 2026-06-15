@@ -72,6 +72,8 @@ def _language_keyboard(effective_lang: str, db_lang: str, tg_lang_code: str | No
 
 @router.message(Command("language"), StateFilter("*"))
 async def cmd_language(message: Message, language: str, db_user=None) -> None:
+    if message.from_user is None:
+        return
     db_lang = db_user.language if db_user else "system"
     await message.answer(
         t("language_prompt", language),
@@ -82,6 +84,8 @@ async def cmd_language(message: Message, language: str, db_user=None) -> None:
 @router.callback_query(F.data == "profile_language", StateFilter("*"))
 async def cb_profile_language(query: CallbackQuery, language: str, db_user=None) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     db_lang = db_user.language if db_user else "system"
     await query.message.edit_text(
         t("language_prompt", language),
@@ -91,7 +95,7 @@ async def cb_profile_language(query: CallbackQuery, language: str, db_user=None)
 
 @router.callback_query(F.data.startswith("set_lang|"), StateFilter("*"))
 async def cb_set_language(query: CallbackQuery, language: str) -> None:
-    lang_code = query.data.split("|", 1)[1]
+    lang_code = (query.data or "").split("|", 1)[1]
     if lang_code not in _FIXED_LANGUAGES and lang_code != "system":
         await query.answer()
         return
@@ -106,6 +110,8 @@ async def cb_set_language(query: CallbackQuery, language: str) -> None:
 
     logger.info("User %s set language to %s (effective: %s) (client: %s)", query.from_user.id, lang_code, effective, query.from_user.language_code)
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     try:
         await query.message.edit_text(
             t("language_prompt", effective),

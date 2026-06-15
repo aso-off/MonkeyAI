@@ -37,8 +37,8 @@ async def cmd_system(message: Message, language: str, db_user=None) -> None:
     if not await require_admin(message, language, db_user=db_user):
         return
 
-    from src.core.bot import dp
-    redis = dp.storage.redis
+    from src.core.bot import fsm_redis
+    redis = fsm_redis()
 
     text = await _get_cached_text(redis)
     if not text:
@@ -53,8 +53,8 @@ async def cb_admin_system(query: CallbackQuery, language: str, db_user=None) -> 
     if not await require_admin(query, language, db_user=db_user):
         return
 
-    from src.core.bot import dp
-    redis = dp.storage.redis
+    from src.core.bot import fsm_redis
+    redis = fsm_redis()
 
     text = await _get_cached_text(redis)
     await query.answer()
@@ -63,6 +63,8 @@ async def cb_admin_system(query: CallbackQuery, language: str, db_user=None) -> 
     if not text:
         text = t("system_info_not_available", language)
 
+    if not isinstance(query.message, Message):
+        return
     try:
         await query.message.edit_text(text, reply_markup=keyboard)
     except Exception as e:

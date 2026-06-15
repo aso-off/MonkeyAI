@@ -11,9 +11,12 @@
 """
 
 import json
+import sys
+import types
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aiogram.types import Message
 from faker import Faker
 
 fake = Faker()
@@ -38,7 +41,7 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.from_user = MagicMock()
     cb.from_user.id = uid or _uid()
     cb.answer = AsyncMock()
-    cb.message = MagicMock()
+    cb.message = MagicMock(spec=Message)
     cb.message.edit_text = AsyncMock()
     cb.message.answer = AsyncMock()
     return cb
@@ -130,7 +133,7 @@ class TestCmdSystem:
         mock_dp.storage.redis = redis
         with patch("src.bot.routers.admin.system.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.core.bot.dp", mock_dp), \
+             patch.dict(sys.modules, {"src.core.bot": types.SimpleNamespace(fsm_redis=lambda: redis)}), \
              patch("src.bot.routers.admin.system.t", return_value="not available"):
             await cmd_system(msg, language="ru", db_user=MagicMock())
         msg.answer.assert_awaited_once()
@@ -147,7 +150,7 @@ class TestCmdSystem:
         mock_dp.storage.redis = redis
         with patch("src.bot.routers.admin.system.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.core.bot.dp", mock_dp):
+             patch.dict(sys.modules, {"src.core.bot": types.SimpleNamespace(fsm_redis=lambda: redis)}):
             await cmd_system(msg, language="en", db_user=MagicMock())
         msg.answer.assert_awaited_once()
         assert msg.answer.call_args[0][0] == system_text
@@ -176,7 +179,7 @@ class TestCbAdminSystem:
         mock_dp.storage.redis = redis
         with patch("src.bot.routers.admin.system.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.core.bot.dp", mock_dp), \
+             patch.dict(sys.modules, {"src.core.bot": types.SimpleNamespace(fsm_redis=lambda: redis)}), \
              patch("src.bot.routers.admin.system.t", return_value="not available"):
             await cb_admin_system(cb, language="ru", db_user=MagicMock())
         cb.answer.assert_awaited_once()
@@ -193,7 +196,7 @@ class TestCbAdminSystem:
         mock_dp.storage.redis = redis
         with patch("src.bot.routers.admin.system.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.core.bot.dp", mock_dp):
+             patch.dict(sys.modules, {"src.core.bot": types.SimpleNamespace(fsm_redis=lambda: redis)}):
             await cb_admin_system(cb, language="en", db_user=MagicMock())
         cb.answer.assert_awaited_once()
         cb.message.edit_text.assert_awaited_once()
@@ -208,7 +211,7 @@ class TestCbAdminSystem:
         mock_dp.storage.redis = redis
         with patch("src.bot.routers.admin.system.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.core.bot.dp", mock_dp), \
+             patch.dict(sys.modules, {"src.core.bot": types.SimpleNamespace(fsm_redis=lambda: redis)}), \
              patch("src.bot.routers.admin.system.t", return_value="text"):
             await cb_admin_system(cb, language="ru", db_user=MagicMock())
         # Не упало
@@ -223,7 +226,7 @@ class TestCbAdminSystem:
         mock_dp.storage.redis = redis
         with patch("src.bot.routers.admin.system.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.core.bot.dp", mock_dp), \
+             patch.dict(sys.modules, {"src.core.bot": types.SimpleNamespace(fsm_redis=lambda: redis)}), \
              patch("src.bot.routers.admin.system.t", return_value="text"):
             await cb_admin_system(cb, language="ru", db_user=MagicMock())
         cb.message.answer.assert_awaited_once()

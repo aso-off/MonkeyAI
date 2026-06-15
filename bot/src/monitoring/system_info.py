@@ -10,6 +10,13 @@ SYSTEM_INFO_TTL = 7200   # 2 часа
 SYSTEM_INFO_INTERVAL = 1800  # 30 минут
 
 
+def _stdout(result) -> str:
+    out = result.stdout
+    if out is None:
+        return ""
+    return out if isinstance(out, str) else out.decode(errors="replace")
+
+
 async def _collect_system_info(redis) -> None:
     """Collect docker stats + host metrics via SSH and cache result in Redis."""
     ssh = settings.ssh_connection
@@ -24,6 +31,7 @@ async def _collect_system_info(redis) -> None:
     lang = "ru"
     project_path = ssh.get("project_path", "/root/bot")
     container_names: list[str] = settings.container_names
+    timeout = ssh.get("timeout", 10)
 
     def _parse_mem_gb(s: str) -> float:
         s = s.strip()
@@ -41,7 +49,6 @@ async def _collect_system_info(redis) -> None:
         return 0.0
 
     try:
-        timeout = ssh.get("timeout", 10)
         async with asyncio.timeout(timeout + 5):
             async with asyncssh.connect(
                 ssh["hostname"],
@@ -56,7 +63,7 @@ async def _collect_system_info(redis) -> None:
                     container_cpus: dict[str, float] = {}
                     try:
                         compose_r = await conn.run(f'cat "{project_path}/docker-compose.yml"')
-                        compose_data = _yaml.safe_load(compose_r.stdout)
+                        compose_data = _yaml.safe_load(_stdout(compose_r))
                         for svc_config in (compose_data or {}).get("services", {}).values():
                             cname = svc_config.get("container_name")
                             cpus_val = svc_config.get("cpus", "0")
@@ -73,8 +80,9 @@ async def _collect_system_info(redis) -> None:
                         f'docker stats --no-stream --format "{fmt}" 2>/dev/null'
                     )
                     container_blocks: list[str] = []
-                    if stats_r.stdout.strip():
-                        for line in stats_r.stdout.strip().splitlines():
+                    stats_out = _stdout(stats_r)
+                    if stats_out.strip():
+                        for line in stats_out.strip().splitlines():
                             parts = line.split("|")
                             if len(parts) < 4:
                                 continue
@@ -110,7 +118,7 @@ async def _collect_system_info(redis) -> None:
                         blocks.extend(container_blocks)
 
                 hostname_r = await conn.run("hostname")
-                hostname = hostname_r.stdout.strip() or "unknown"
+                hostname = _stdout(hostname_r).strip() or "unknown"
 
                 cpu_r = await conn.run(
                     "top -bn1 | grep 'Cpu(s)' | "
@@ -118,27 +126,27 @@ async def _collect_system_info(redis) -> None:
                     "awk '{print 100 - $1}'"
                 )
                 try:
-                    cpu_pct = float(cpu_r.stdout.strip())
+                    cpu_pct = float(_stdout(cpu_r).strip())
                 except ValueError:
                     cpu_pct = 0.0
 
                 cores_r = await conn.run("nproc")
                 try:
-                    cores = int(cores_r.stdout.strip())
+                    cores = int(_stdout(cores_r).strip())
                 except ValueError:
                     cores = 1
 
                 ram_r = await conn.run(
                     "free | awk 'NR==2{printf \"%.2f %.2f\", $3/1024/1024, $2/1024/1024}'"
                 )
-                ram_vals = ram_r.stdout.strip().split()
+                ram_vals = _stdout(ram_r).strip().split()
                 ram_used = float(ram_vals[0]) if len(ram_vals) >= 1 else 0.0
                 ram_total = float(ram_vals[1]) if len(ram_vals) >= 2 else 0.0
 
                 disk_r = await conn.run(
                     "df -BG / | awk 'NR==2{gsub(/G/,\"\"); print $4, $2}'"
                 )
-                disk_vals = disk_r.stdout.strip().split()
+                disk_vals = _stdout(disk_r).strip().split()
                 if len(disk_vals) >= 2:
                     disk_free = float(disk_vals[0])
                     disk_total_gb = float(disk_vals[1])

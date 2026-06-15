@@ -212,6 +212,7 @@ class TestGetUser:
         data = _fake_user_dict(uid)
         with _patch_request(_resp(data, 200)):
             result = await ac.get_user(uid)
+        assert result is not None
         assert result.id == uid
 
     @pytest.mark.asyncio
@@ -310,6 +311,7 @@ class TestAppendExchange:
         with patch("src.services.api_client._request", mock_req):
             await ac.append_exchange(_uid(), "промпт", "https://img", dialog_id=_did())
         mock_req.assert_awaited_once()
+        assert mock_req.await_args is not None
         assert mock_req.await_args.kwargs["json"]["user"] == "промпт"
 
 
@@ -613,6 +615,7 @@ class TestGetUserFull:
         }
         with _patch_request(_resp(data)):
             result = await ac.get_user_full(uid)
+        assert result is not None
         assert result.user.id == uid
 
     @pytest.mark.asyncio

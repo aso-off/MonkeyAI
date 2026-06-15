@@ -36,6 +36,8 @@ def _ping_result_keyboard(lang: str) -> InlineKeyboardMarkup:
 
 @router.message(Command("ping"), StateFilter("*"))
 async def cmd_ping(message: Message, language: str) -> None:
+    if message.from_user is None:
+        return
     ms = await _measure_ping_ms()
     logger.debug("Ping for user %s: %.2f ms", message.from_user.id, ms)
     await message.answer(
@@ -47,6 +49,8 @@ async def cmd_ping(message: Message, language: str) -> None:
 @router.callback_query(F.data == "ping", StateFilter("*"))
 async def cb_ping(query: CallbackQuery, language: str) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     ms = await _measure_ping_ms()
     logger.debug("Ping for user %s: %.2f ms", query.from_user.id, ms)
 

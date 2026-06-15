@@ -41,4 +41,6 @@ async def cmd_about(message: Message, language: str) -> None:
 @router.callback_query(F.data == "about", StateFilter("*"))
 async def cb_about(query: CallbackQuery, language: str) -> None:
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
     await query.message.edit_text(_about_text(language), reply_markup=_about_keyboard(language))

@@ -3,15 +3,18 @@ import base64
 import logging
 import time
 from io import BytesIO
+from typing import TYPE_CHECKING
 
 import httpx
 from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
 from aiogram.types import BufferedInputFile, Message
-from redis.asyncio import Redis
 
 from src.core.config import settings
+
+if TYPE_CHECKING:
+    from src.core.bot import RedisAsync
 from src.services import api_client as api
 from src.utils.formatting import convert_to_markdownv2
 from src.utils.localization import t
@@ -47,10 +50,10 @@ async def _get_bot_meta(bot: Bot) -> tuple[str | None, int | None]:
     return _bot_username, _bot_id
 
 
-def _redis() -> Redis:
-    from src.core.bot import dp
+def _redis() -> "RedisAsync":
+    from src.core.bot import fsm_redis
 
-    return dp.storage.redis
+    return fsm_redis()
 
 
 async def _is_busy(user_id: int, message: Message, language: str) -> bool:
@@ -97,6 +100,8 @@ def _mode_welcome(chat_mode: str, lang: str) -> str:
 
 @router.message(Command("new"), StateFilter("*"))
 async def cmd_new(message: Message, language: str) -> None:
+    if message.from_user is None:
+        return
     user_id = message.from_user.id
     if await _is_busy(user_id, message, language):
         return
@@ -115,6 +120,8 @@ async def cmd_new(message: Message, language: str) -> None:
 
 @router.message(Command("cancel"), StateFilter("*"))
 async def cmd_cancel(message: Message, language: str) -> None:
+    if message.from_user is None:
+        return
     user_id = message.from_user.id
     task = user_tasks.get(user_id)
     if task and not task.done():
@@ -125,6 +132,8 @@ async def cmd_cancel(message: Message, language: str) -> None:
 
 @router.message(Command("retry"), StateFilter("*"))
 async def cmd_retry(message: Message, language: str, bot: Bot, db_user=None) -> None:
+    if message.from_user is None:
+        return
     user_id = message.from_user.id
     if await _is_busy(user_id, message, language):
         return
@@ -374,7 +383,9 @@ async def _run_handle(
         await message.reply(t("wait_for_previous", language), parse_mode="HTML")
         return
 
-    user_tasks[user_id] = asyncio.current_task()
+    task = asyncio.current_task()
+    if task is not None:
+        user_tasks[user_id] = task
     try:
         await _handle_text_or_vision(
             message,
@@ -395,6 +406,8 @@ async def _run_handle(
 async def msg_text(message: Message, language: str, bot: Bot) -> None:
     if not await _is_bot_mentioned(message, bot):
         return
+    if message.from_user is None:
+        return
     user_id = message.from_user.id
     if await _is_busy(user_id, message, language):
         return
@@ -412,15 +425,21 @@ async def msg_text(message: Message, language: str, bot: Bot) -> None:
 async def msg_photo(message: Message, language: str, bot: Bot) -> None:
     if not await _is_bot_mentioned(message, bot):
         return
+    if message.from_user is None:
+        return
     user_id = message.from_user.id
     if await _is_busy(user_id, message, language):
         return
 
     await monkey.send(bot, message.chat.id, "thinking")
 
+    if not message.photo:
+        return
     photo = message.photo[-1]
     file = await bot.get_file(photo.file_id)
     buf = BytesIO()
+    if file.file_path is None:
+        return
     await bot.download_file(file.file_path, buf)
     buf.name = "image.jpg"
     buf.seek(0)
@@ -440,15 +459,21 @@ async def msg_photo(message: Message, language: str, bot: Bot) -> None:
 async def msg_voice(message: Message, language: str, bot: Bot) -> None:
     if not await _is_bot_mentioned(message, bot):
         return
+    if message.from_user is None:
+        return
     user_id = message.from_user.id
     if await _is_busy(user_id, message, language):
         return
 
     await monkey.send(bot, message.chat.id, "thinking")
 
+    if message.voice is None:
+        return
     voice = message.voice
     file = await bot.get_file(voice.file_id)
     buf = BytesIO()
+    if file.file_path is None:
+        return
     await bot.download_file(file.file_path, buf)
     buf.name = "voice.oga"
     buf.seek(0)
