@@ -2410,11 +2410,11 @@ footer .footer__input .input__text {
   padding-bottom: 0;
 }
 
-/* инлайн: [+] · текст · [↑] */
+/* инлайн: [+] · текст · [↑]. minmax(0,1fr) — иначе длинный текст растягивает трек и не переносится */
 .composer-row {
   display: grid;
   grid-template-areas: "plus text send";
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 4px;
   padding: 5px;
