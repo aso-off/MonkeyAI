@@ -423,7 +423,10 @@
       />
 
       <form class="footer__input" @submit.prevent="sendMessage">
-        <div class="input__text null" :class="{ 'has-attach': !!attachment }">
+        <div
+          class="input__text null"
+          :class="{ 'has-attach': !!attachment, 'composer--stacked': composerStacked }"
+        >
           <!-- Превью прикреплённого фото — над строкой ввода -->
           <div v-if="attachment" class="attach-preview">
             <div
@@ -682,6 +685,8 @@ const attachment = ref<Attachment | null>(null);
 const attachPanelOpen = ref(false);
 const galleryInput = ref<HTMLInputElement | null>(null);
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+// текст занял >1 строки → кнопки уходят вниз (ChatGPT). Замер стабильный (фикс. ширина).
+const composerStacked = ref(false);
 
 const isImageModel = computed(() => currentModelId.value === "gpt-image-1.5");
 
@@ -891,8 +896,45 @@ const isSubmitDisabled = computed(
  */
 const remoteBotSlots = new Map<string, number>();
 
+// Скрытое «зеркало» для замера высоты текста на ФИКСИРОВАННОЙ (инлайн) ширине —
+// решение «1 строка / много» не зависит от текущей раскладки → без флип-флопа.
+let composerMirror: HTMLDivElement | null = null;
+
+function updateComposerLayout() {
+  const editable = editableDiv.value;
+  if (!editable) return;
+  const txt = editable.innerText;
+  if (!txt.trim()) {
+    composerStacked.value = false;
+    return;
+  }
+  const row = editable.closest(".composer-row") as HTMLElement | null;
+  if (!row) return;
+
+  if (!composerMirror) {
+    composerMirror = document.createElement("div");
+    composerMirror.style.cssText =
+      "position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;" +
+      "white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;box-sizing:border-box;";
+    document.body.appendChild(composerMirror);
+  }
+  const cs = getComputedStyle(editable);
+  // ширина текста в инлайне = строка минус «+», «↑» и гэпы (≈ 40+42+12)
+  const inlineTextW = Math.max(40, row.clientWidth - 94);
+  composerMirror.style.width = `${inlineTextW}px`;
+  composerMirror.style.font = cs.font;
+  composerMirror.style.lineHeight = cs.lineHeight;
+  composerMirror.style.padding = cs.padding;
+  composerMirror.textContent = txt;
+
+  const lh = parseFloat(cs.lineHeight) || 22;
+  const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) || 0;
+  composerStacked.value = composerMirror.scrollHeight - padV > lh * 1.5;
+}
+
 function onInput(e: Event) {
   messageText.value = (e.target as HTMLElement).innerText;
+  updateComposerLayout();
 }
 
 /**
@@ -915,6 +957,7 @@ function onPaste(e: ClipboardEvent) {
   sel.addRange(range);
   messageText.value =
     (editableDiv.value as HTMLElement | null)?.innerText ?? "";
+  updateComposerLayout();
 }
 
 function scrollToBottom() {
@@ -1302,6 +1345,7 @@ async function sendMessage() {
   attachment.value = null;
   attachPanelOpen.value = false;
   messageText.value = "";
+  composerStacked.value = false;
   if (editableDiv.value) editableDiv.value.innerText = "";
   // живое обновление времени диалога в списке (поднимается в «Сегодня»)
   if (genDialogId) dialogsStore.touch(genDialogId);
@@ -2137,7 +2181,16 @@ onMounted(async () => {
     return;
   }
   if (typeof routeDialogId === "string" && routeDialogId) {
-    await loadDialogById(routeDialogId);
+    // префетч уже загрузил этот же диалог — НЕ перезагружаем (без мерцания фото/двойной загрузки)
+    if (store.chatHistoryPrefetchOk && store.dialogId === routeDialogId) {
+      applyChatHistory([...store.chatHistory]);
+      cursorIdx.value = store.chatHistoryNextCursor;
+      hasMoreToLoad.value = store.chatHistoryNextCursor > 0;
+      await nextTick();
+      jumpToBottomSilent();
+    } else {
+      await loadDialogById(routeDialogId);
+    }
     initialLoadDone.value = true;
     maybeAutoGenerate();
     return;
@@ -2226,6 +2279,7 @@ onBeforeUnmount(() => {
   document.body.style.overflow = "auto";
   if (copyTimeout) clearTimeout(copyTimeout);
   if (smoothScrollWatchdog !== null) clearTimeout(smoothScrollWatchdog);
+  if (composerMirror) { composerMirror.remove(); composerMirror = null; }
   footerResizeObs?.disconnect();
   for (const unsub of viewportUnsub) unsub();
   viewportUnsub.length = 0;
@@ -2350,28 +2404,40 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
-/* === Композер (стабильная одна строка, без дёрганья) === */
-/* убираем нижнюю «полку» — кнопки живут в grid-строке */
+/* === Композер (адаптив ChatGPT: инлайн → многострочие переносит кнопки вниз) === */
+/* убираем нижнюю «полку» — кнопки живут в grid */
 footer .footer__input .input__text {
   padding-bottom: 0;
 }
 
-/* кнопки прижаты к низу строки — текст растёт вверх плавно (как у ChatGPT) */
+/* инлайн: [+] · текст · [↑] */
 .composer-row {
   display: grid;
+  grid-template-areas: "plus text send";
   grid-template-columns: auto 1fr auto;
-  align-items: end;
+  align-items: center;
   column-gap: 4px;
   padding: 5px;
 }
 
+/* многострочие: текст во всю ширину сверху, кнопки снизу */
+.composer--stacked .composer-row {
+  grid-template-areas:
+    "text text text"
+    "plus . send";
+  row-gap: 2px;
+  align-items: end;
+}
+
 .composer-text {
+  grid-area: text;
   position: relative;
   min-width: 0;
 }
 
 /* «+» — плоская svg, статична в grid; специфичность выше footer .footer__input button{display:none} */
 footer .footer__input .input__attach {
+  grid-area: plus;
   position: static;
   display: flex;
   align-items: center;
@@ -2395,6 +2461,7 @@ footer .footer__input .input__attach.disabled {
 
 /* «отправить» — статична в grid справа (перебиваем глобальный absolute) */
 footer .footer__input .input__submit {
+  grid-area: send;
   position: static;
   justify-self: end;
 }
