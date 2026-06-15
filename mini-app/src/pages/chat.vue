@@ -231,7 +231,7 @@
                   variant="thinking"
                 />
                 <!-- Текст ответа -->
-                <div v-if="msg.text" v-html="formatMessage(msg.text)"></div>
+                <div v-if="msg.text" class="md-body" v-html="formatMessage(msg.text)" @click="onContentClick"></div>
                 <!-- Кнопки: копировать / лайк / дизлайк / три точки — только когда генерация завершена -->
                 <div
                   v-if="index !== streamingBotIdx && msg.text"
@@ -1491,11 +1491,38 @@ async function sendMessage() {
   store.setChatHistory(chatMessages.value);
 }
 
-function formatMessage(text: string): string {
-  // модель иногда пишет "< b >" — чиним до валидного тега
+// markdown-стек (marked+katex+hljs+dompurify) грузим отдельным чанком
+const mdReady = ref(false);
+let renderMd: ((s: string) => string) | null = null;
+import("@/utils/markdown").then((m) => {
+  renderMd = m.renderMarkdown;
+  mdReady.value = true;
+});
+
+function fallbackMd(text: string): string {
   return text
-    .replace(/<\s*(\/?)\s*(b|i|u|s|code|pre)\s*>/gi, "<$1$2>")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
     .replace(/\n/g, "<br>");
+}
+
+function formatMessage(text: string): string {
+  void mdReady.value; // реактивная зависимость — перерисовка после загрузки чанка
+  return renderMd ? renderMd(text) : fallbackMd(text);
+}
+
+function onContentClick(e: MouseEvent) {
+  const btn = (e.target as HTMLElement).closest(".code-copy") as HTMLElement | null;
+  if (!btn) return;
+  const code = btn.closest(".code-block")?.querySelector("code");
+  const text = code?.textContent ?? "";
+  if (!text) return;
+  writeClipboard(text).then((ok) => {
+    if (!ok) return;
+    btn.classList.add("code-copy--done");
+    setTimeout(() => btn.classList.remove("code-copy--done"), 1500);
+  });
 }
 
 function stripHtml(html: string): string {
@@ -1743,11 +1770,32 @@ async function exportPdf(html: string) {
   }
 }
 
-function copyToClipboard(text: string, index: number) {
-  const plain = stripHtml(text);
+function legacyCopy(plain: string): boolean {
+  const ta = document.createElement("textarea");
+  ta.value = plain;
+  ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  const ok = document.execCommand("copy");
+  document.body.removeChild(ta);
+  window.getSelection()?.removeAllRanges();
+  return ok;
+}
 
-  const finish = (ok: boolean) => {
-    // Clear any text selection left by iOS touch
+function writeClipboard(plain: string): Promise<boolean> {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard
+      .writeText(plain)
+      .then(() => true)
+      .catch(() => legacyCopy(plain)); // iOS fallback
+  }
+  return Promise.resolve(legacyCopy(plain));
+}
+
+function copyToClipboard(text: string, index: number) {
+  const plain = stripHtml(renderMd ? renderMd(text) : fallbackMd(text));
+  writeClipboard(plain).then((ok) => {
     window.getSelection()?.removeAllRanges();
     if (ok) {
       copiedIndex.value = index;
@@ -1758,37 +1806,7 @@ function copyToClipboard(text: string, index: number) {
     } else {
       copiedIndex.value = null;
     }
-  };
-
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard
-      .writeText(plain)
-      .then(() => finish(true))
-      .catch(() => {
-        // iOS fallback: execCommand
-        const ta = document.createElement("textarea");
-        ta.value = plain;
-        ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        const ok = document.execCommand("copy");
-        document.body.removeChild(ta);
-        window.getSelection()?.removeAllRanges();
-        finish(ok);
-      });
-  } else {
-    // No Clipboard API at all
-    const ta = document.createElement("textarea");
-    ta.value = plain;
-    ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(ta);
-    finish(ok);
-  }
+  });
 }
 
 /* === Случайная обезьянка для пустого чата === */
