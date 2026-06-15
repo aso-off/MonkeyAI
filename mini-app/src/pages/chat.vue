@@ -919,11 +919,12 @@ function updateComposerLayout() {
     (parseFloat(rowCS.paddingLeft) + parseFloat(rowCS.paddingRight) || 0);
   const attachEl = row.querySelector(".input__attach") as HTMLElement | null;
   const sendEl = row.querySelector(".input__submit") as HTMLElement | null;
-  const attachW = attachEl ? attachEl.offsetWidth + gap : 0;
-  const sendW = sendEl ? sendEl.offsetWidth + gap : 0;
+  const attachW = attachEl ? attachEl.offsetWidth : 0;
+  const sendW = sendEl ? sendEl.offsetWidth : 0;
   const cs = getComputedStyle(editable);
   const editPad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) || 0;
-  const textW = Math.max(20, rowInner - attachW - sendW - editPad);
+  // 3 колонки → всегда 2 гэпа, даже когда «+» отсутствует (gpt-image)
+  const textW = Math.max(20, rowInner - attachW - sendW - gap * 2 - editPad);
   const lh =
     cs.lineHeight === "normal"
       ? parseFloat(cs.fontSize) * 1.2
