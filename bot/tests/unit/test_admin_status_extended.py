@@ -12,6 +12,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aiogram.types import Message
 from faker import Faker
 
 fake = Faker()
@@ -38,7 +39,7 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.from_user = MagicMock()
     cb.from_user.id = uid or _uid()
     cb.answer = AsyncMock()
-    cb.message = MagicMock()
+    cb.message = MagicMock(spec=Message)
     cb.message.edit_text = AsyncMock()
     cb.message.reply_markup = MagicMock()
     return cb

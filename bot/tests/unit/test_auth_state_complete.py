@@ -192,7 +192,7 @@ class TestIsAllowedCached:
         mock_dp.storage.redis = mock_redis
 
         # Стабим src.core.bot в sys.modules чтобы избежать реального импорта
-        fake_bot_mod = types.SimpleNamespace(dp=mock_dp, bot=MagicMock())
+        fake_bot_mod = types.SimpleNamespace(dp=mock_dp, bot=MagicMock(), fsm_redis=lambda: mock_redis)
         with patch.dict(sys.modules, {"src.core.bot": fake_bot_mod}):
             result = await auth_state.is_allowed_cached(uid)
 
@@ -211,7 +211,7 @@ class TestIsAllowedCached:
         mock_dp = MagicMock()
         mock_dp.storage.redis = mock_redis
 
-        fake_bot_mod = types.SimpleNamespace(dp=mock_dp, bot=MagicMock())
+        fake_bot_mod = types.SimpleNamespace(dp=mock_dp, bot=MagicMock(), fsm_redis=lambda: mock_redis)
         with patch.dict(sys.modules, {"src.core.bot": fake_bot_mod}):
             result = await auth_state.is_allowed_cached(uid)
 
@@ -229,7 +229,7 @@ class TestIsAllowedCached:
         mock_dp = MagicMock()
         mock_dp.storage.redis = mock_redis
 
-        fake_bot_mod = types.SimpleNamespace(dp=mock_dp, bot=MagicMock())
+        fake_bot_mod = types.SimpleNamespace(dp=mock_dp, bot=MagicMock(), fsm_redis=lambda: mock_redis)
         with patch.dict(sys.modules, {"src.core.bot": fake_bot_mod}):
             result = await auth_state.is_allowed_cached(uid)
 

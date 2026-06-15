@@ -66,12 +66,12 @@ class TestUserCreate:
     @pytest.mark.unit
     def test_missing_id_raises(self, fake) -> None:
         with pytest.raises(ValidationError):
-            UserCreate(chat_id=fake.random_int())
+            UserCreate(chat_id=fake.random_int())  # type: ignore[call-arg]  # намеренно без id
 
     @pytest.mark.unit
     def test_missing_chat_id_raises(self, fake) -> None:
         with pytest.raises(ValidationError):
-            UserCreate(id=fake.random_int())
+            UserCreate(id=fake.random_int())  # type: ignore[call-arg]  # намеренно без chat_id
 
     @pytest.mark.unit
     def test_faker_batch_valid(self, fake) -> None:

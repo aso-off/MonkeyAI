@@ -22,11 +22,8 @@ logger = logging.getLogger(__name__)
 
 try:
     import newrelic.agent as _nr  # type: ignore[import-not-found] # pyright: ignore[reportMissingImports]
-
-    _HAS_NR = True
 except ImportError:
-    _nr = None  # type: ignore[assignment]
-    _HAS_NR = False
+    _nr = None
 
 
 def nr_transaction_name(name: str) -> None:
@@ -44,13 +41,13 @@ def nr_transaction_name(name: str) -> None:
         nr_transaction_name("message/text")
         nr_transaction_name("message/voice")
     """
-    if _HAS_NR:
+    if _nr is not None:
         _nr.set_transaction_name(name, group="Aiogram")
 
 
 def nr_notice_error() -> None:
     """Report the current exception to New Relic."""
-    if _HAS_NR:
+    if _nr is not None:
         _nr.notice_error()
 
 
@@ -60,13 +57,13 @@ def nr_add_custom_parameter(key: str, value) -> None:
     Useful for filtering/searching transactions in New Relic by user_id,
     chat_mode, model, etc.
     """
-    if _HAS_NR:
+    if _nr is not None:
         _nr.add_custom_attribute(key, value)
 
 
 def nr_add_custom_parameters(params: dict) -> None:
     """Add multiple custom parameters to the current transaction."""
-    if _HAS_NR:
+    if _nr is not None:
         # Convert dictionary to list of tuples for add_custom_attributes
         attrs = [(k, v) for k, v in params.items()]
         _nr.add_custom_attributes(attrs)
@@ -83,7 +80,7 @@ def nr_record_custom_event(event_type: str, params: dict | None = None) -> None:
             "tokens": 500,
         })
     """
-    if _HAS_NR:
+    if _nr is not None:
         app = _nr.application()
         if app:
             _nr.record_custom_event(event_type, params or {}, application=app)
@@ -100,13 +97,14 @@ def nr_background_task(name: str):
     """
 
     def decorator(func: Callable) -> Callable:
-        if not _HAS_NR:
+        if _nr is None:
             return func
+        nr = _nr
 
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            with _nr.BackgroundTask(
-                application=_nr.application(),
+            with nr.BackgroundTask(
+                application=nr.application(),
                 name=name,
                 group="Task",
             ):

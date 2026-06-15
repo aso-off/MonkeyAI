@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import Update
+from aiogram.types import TelegramObject, Update
 
 from src.monitoring.newrelic_helpers import (
     nr_transaction_name,
@@ -24,10 +24,13 @@ class NewRelicMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[[Update, dict[str, Any]], Awaitable[Any]],
-        event: Update,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
+        if not isinstance(event, Update):
+            return await handler(event, data)
+
         # Determine the update type and a specific name for the transaction
         tx_name = "update/unknown"
         user_id = None

@@ -97,7 +97,7 @@ class UserFullResponse(msgspec.Struct, frozen=True):
 
 class ImageGenerateResponse(msgspec.Struct, frozen=True):
     images_b64: list[str]
-    imgbb_urls: list[str] = ()
+    imgbb_urls: list[str] = msgspec.field(default_factory=list)
 
 
 class TranscribeResponse(msgspec.Struct, frozen=True):

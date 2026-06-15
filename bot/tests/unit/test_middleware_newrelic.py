@@ -13,6 +13,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aiogram.types import Update
 from faker import Faker
 
 fake = Faker()
@@ -29,7 +30,7 @@ def _make_event(
     my_chat_member=None,
     event_type: str = "message",
 ) -> MagicMock:
-    event = MagicMock()
+    event = MagicMock(spec=Update)
     event.message = message
     event.callback_query = callback_query
     event.my_chat_member = my_chat_member
@@ -263,7 +264,7 @@ class TestNewRelicMiddleware:
         msg.photo = None
         msg.document = None
         msg.sticker = None
-        event = MagicMock()
+        event = MagicMock(spec=Update)
         event.message = msg
         event.callback_query = None
         event.my_chat_member = None

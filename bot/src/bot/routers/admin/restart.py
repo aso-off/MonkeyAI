@@ -38,11 +38,11 @@ async def _do_restart(redis) -> None:
 
 @router.message(Command("restart"), StateFilter("*"))
 async def cmd_restart(message: Message, language: str) -> None:
-    if message.from_user.id not in settings.admin_ids:
+    if message.from_user is None or message.from_user.id not in settings.admin_ids:
         return
 
-    from src.core.bot import dp
-    redis = dp.storage.redis
+    from src.core.bot import fsm_redis
+    redis = fsm_redis()
 
     ssh = settings.ssh_connection
     if not ssh.get("hostname"):
@@ -80,8 +80,8 @@ async def cb_admin_restart(query: CallbackQuery, language: str) -> None:
         await query.answer(t("access_denied", language), show_alert=True)
         return
 
-    from src.core.bot import dp
-    redis = dp.storage.redis
+    from src.core.bot import fsm_redis
+    redis = fsm_redis()
 
     ssh = settings.ssh_connection
     if not ssh.get("hostname"):
@@ -95,6 +95,8 @@ async def cb_admin_restart(query: CallbackQuery, language: str) -> None:
 
     await redis.setex("restart_in_progress", 300, "1")
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
 
     # Сохраняем данные в Redis ДО редактирования сообщения (как в Oblivion)
     try:

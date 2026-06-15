@@ -1,7 +1,6 @@
 import base64
 import logging
 from io import BytesIO
-from typing import cast
 
 from openai.types import ModerationMultiModalInputParam
 
@@ -28,7 +27,7 @@ async def moderate_content(
         if not settings.enable_content_moderation:
             return False, {}, {}
 
-        input_data: list[dict] = []
+        input_data: list[ModerationMultiModalInputParam] = []
         if text and text.strip():
             input_data.append({"type": "text", "text": text})
         if image_buffer:
@@ -47,7 +46,7 @@ async def moderate_content(
         client = make_client()
         response = await client.moderations.create(
             model="omni-moderation-latest",
-            input=cast(list[ModerationMultiModalInputParam], input_data),
+            input=input_data,
         )
 
         result = response.results[0]

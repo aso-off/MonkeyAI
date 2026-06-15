@@ -109,6 +109,7 @@ def _load_bot_config(env: dict, yaml_map: dict | None = None, with_ssh: bool = F
     spec = importlib.util.spec_from_file_location(
         f"_real_bot_config_{fake.lexify('????')}", _CONFIG_FILE
     )
+    assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
 
     with mock.patch.dict(os.environ, env, clear=False):

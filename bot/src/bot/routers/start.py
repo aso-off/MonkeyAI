@@ -43,6 +43,8 @@ def _group_keyboard(lang: str) -> InlineKeyboardMarkup:
 @router.message(Command("start"), StateFilter("*"))
 async def cmd_start(message: Message, state: FSMContext, language: str, bot: Bot, db_user=None) -> None:
     await state.clear()
+    if message.from_user is None:
+        return
     if db_user is None:
         db_user = await api.get_or_create_user(
             user_id=message.from_user.id,
@@ -70,6 +72,8 @@ async def cmd_start(message: Message, state: FSMContext, language: str, bot: Bot
 @router.message(Command("menu"), StateFilter("*"))
 async def cmd_menu(message: Message, state: FSMContext, language: str, db_user=None) -> None:
     await state.clear()
+    if message.from_user is None:
+        return
     if message.chat.type == ChatType.PRIVATE:
         text = f"{t('back_to_menu', language)}\n\n{t('welcome_instruction', language)}"
         is_admin = (db_user is not None and db_user.is_admin) or (message.from_user.id in settings.admin_ids)
@@ -84,6 +88,8 @@ async def cmd_menu(message: Message, state: FSMContext, language: str, db_user=N
 async def cb_back_to_start(query: CallbackQuery, state: FSMContext, language: str, db_user=None) -> None:
     await state.clear()
     await query.answer()
+    if not isinstance(query.message, Message):
+        return
 
     if query.message.chat.type == ChatType.PRIVATE:
         text = (

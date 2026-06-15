@@ -12,6 +12,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aiogram.types import Message
 from faker import Faker
 
 fake = Faker()
@@ -43,7 +44,7 @@ def _fake_callback(data: str = "profile_assistant", uid: int | None = None) -> M
     cb.from_user = MagicMock()
     cb.from_user.id = uid or _uid()
     cb.answer = AsyncMock()
-    cb.message = MagicMock()
+    cb.message = MagicMock(spec=Message)
     cb.message.edit_text = AsyncMock()
     return cb
 
@@ -75,7 +76,7 @@ class TestAssistantKeyboard:
             kb = _assistant_keyboard("ru", "assistant")
         labels = [btn.callback_data for row in kb.inline_keyboard for btn in row]
         for skip_key in ("default_modes", "premium_modes", "system_prompt", "mini_app_assistant", "mini_app_artist"):
-            assert not any(skip_key in l for l in labels)
+            assert not any(skip_key in (l or "") for l in labels)
 
     def test_current_mode_has_checkmark(self) -> None:
         from src.bot.routers.profile.assistant import _assistant_keyboard

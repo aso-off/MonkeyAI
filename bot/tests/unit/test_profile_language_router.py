@@ -11,6 +11,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aiogram.types import Message
 from faker import Faker
 
 fake = Faker()
@@ -44,7 +45,7 @@ def _fake_callback(data: str = "profile_language", uid: int | None = None, tg_la
     cb.from_user.id = uid or _uid()
     cb.from_user.language_code = tg_lang
     cb.answer = AsyncMock()
-    cb.message = MagicMock()
+    cb.message = MagicMock(spec=Message)
     cb.message.edit_text = AsyncMock()
     return cb
 
@@ -88,7 +89,7 @@ class TestLanguageKeyboard:
         kb = _language_keyboard("en", "en", "en")
         for row in kb.inline_keyboard:
             for btn in row:
-                assert btn.callback_data.startswith("set_lang|") or btn.callback_data == "profile_settings"
+                assert (btn.callback_data or "").startswith("set_lang|") or btn.callback_data == "profile_settings"
 
 
 # ── cmd_language ──────────────────────────────────────────────────────────────

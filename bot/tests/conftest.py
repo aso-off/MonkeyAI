@@ -14,7 +14,10 @@ import logging
 import sys
 import types
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
+
+from aiogram.types import Message
 
 import pytest
 from faker import Faker
@@ -99,17 +102,17 @@ def _make_fake_settings() -> types.SimpleNamespace:
 
 _fake_settings_singleton = _make_fake_settings()
 
-_stub_config = types.ModuleType("src.core.config")
+_stub_config: Any = types.ModuleType("src.core.config")
 _stub_config.settings = _fake_settings_singleton
 _stub_config.get_settings = lambda: _fake_settings_singleton
 sys.modules["src.core.config"] = _stub_config
 
-_stub_config_short = types.ModuleType("core.config")
+_stub_config_short: Any = types.ModuleType("core.config")
 _stub_config_short.settings = _fake_settings_singleton
 _stub_config_short.get_settings = lambda: _fake_settings_singleton
 sys.modules.setdefault("core.config", _stub_config_short)
 
-_stub_logger = types.ModuleType("src.core.logger")
+_stub_logger: Any = types.ModuleType("src.core.logger")
 _stub_logger.logger = logging.getLogger("bot_test")
 sys.modules.setdefault("src.core.logger", _stub_logger)
 
@@ -226,7 +229,7 @@ def fake_callback(fake: Faker):
         cb.data = data
         cb.id = str(fake.random_int(min=10**17, max=10**18 - 1))
 
-        cb.message = MagicMock(name="Message")
+        cb.message = MagicMock(spec=Message, name="Message")
         cb.message.chat = MagicMock()
         cb.message.chat.id = cb.from_user.id
         cb.message.chat.type = "private"

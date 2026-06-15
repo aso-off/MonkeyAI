@@ -167,7 +167,8 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    # значения берутся из env (pydantic-settings)
+    return Settings()  # type: ignore[call-arg]
 
 
 settings = get_settings()
