@@ -1,4 +1,5 @@
 import './assets/index.css';
+import 'katex/dist/katex.min.css';
 
 import { createApp } from 'vue';
 import { createI18n } from 'vue-i18n';

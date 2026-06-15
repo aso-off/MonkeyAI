@@ -3221,69 +3221,240 @@ body:not(.dark) code:not(pre > code) {
   /* Темный текст */
 }
 
-/* --- Классы для подсветки синтаксиса --- */
-
-/* Темная тема */
-pre code .comment {
-  color: #6b7280 !important;
-  font-style: italic !important;
+/* === Markdown-ответ (.md-body) === */
+.md-body {
+  font-size: 14px;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
-pre code .keyword {
-  color: #569cd6 !important;
+.md-body > *:first-child { margin-top: 0 !important; }
+.md-body > *:last-child { margin-bottom: 0 !important; }
+
+.md-body p { margin: 0 0 0.7em; }
+
+.md-body h1,
+.md-body h2,
+.md-body h3,
+.md-body h4 {
+  margin: 1.1em 0 0.5em;
+  line-height: 1.3;
+  font-weight: 700;
+}
+.md-body h1 { font-size: 1.35em; }
+.md-body h2 { font-size: 1.22em; }
+.md-body h3 { font-size: 1.1em; }
+.md-body h4 { font-size: 1em; }
+
+.md-body ul,
+.md-body ol {
+  margin: 0 0 0.7em;
+  padding-left: 1.4em;
+}
+.md-body li { margin: 0.25em 0; }
+.md-body li > ul,
+.md-body li > ol { margin: 0.25em 0 0.3em; }
+
+.md-body strong { font-weight: 700; }
+.md-body em { font-style: italic; }
+
+.md-body a { color: #2f81f7; text-decoration: none; width: auto; }
+
+.md-body blockquote {
+  margin: 0 0 0.7em;
+  padding: 2px 12px;
+  border-left: 3px solid var(--icons-storke-color, #888);
+  color: inherit;
+  opacity: 0.9;
 }
 
-pre code .string {
-  color: #ce9178 !important;
+.md-body hr {
+  border: none;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+  margin: 1em 0;
 }
 
-pre code .function {
-  color: #d7b57b !important;
+/* Таблицы */
+.md-body .md-table-wrap,
+.md-body table { width: 100%; }
+.md-body table {
+  border-collapse: collapse;
+  margin: 0 0 0.8em;
+  font-size: 0.92em;
+  display: block;
+  overflow-x: auto;
+}
+.md-body th,
+.md-body td {
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  padding: 6px 10px;
+  text-align: left;
+}
+.md-body th { font-weight: 700; background: rgba(128, 128, 128, 0.12); }
+
+/* KaTeX-формулы */
+.md-body .katex { font-size: 1.05em; }
+.md-body .katex-display {
+  margin: 0.6em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
 }
 
-pre code .variable {
-  color: #4db6ac !important;
+/* === Код-блок (шапка «язык + копировать») === */
+.md-body .code-block {
+  margin: 0 0 0.8em;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0d1117;
+  border: 1px solid #30363d;
 }
 
-pre code .number {
-  color: #b5cea8 !important;
+.md-body .code-block__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 14px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  user-select: none;
 }
 
-pre code .highlight {
-  color: #ffab70 !important;
-  font-weight: bold !important;
-  background-color: rgba(255, 171, 112, 0.15) !important;
+.md-body .code-block__lang {
+  font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: #8b949e;
+  text-transform: lowercase;
 }
 
-/* Светлая тема (переопределения) */
-body:not(.dark) pre code .comment {
-  color: #6a737d !important;
-  font-style: italic !important;
+.md-body .code-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.md-body .code-copy:hover { background: rgba(255, 255, 255, 0.08); color: #c9d1d9; }
+.md-body .code-copy svg { width: 15px; height: 15px; }
+.md-body .code-copy--done { color: #3fb950; }
+
+.md-body .code-block__pre {
+  margin: 0 !important;
+  padding: 12px 14px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: #0d1117 !important;
+  color: #c9d1d9 !important;
+  overflow-x: auto !important;
+  white-space: pre !important;
+  word-wrap: normal !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+.md-body .code-block__pre code.hljs {
+  white-space: inherit !important;
+  background: none !important;
+  padding: 0 !important;
+  color: inherit !important;
 }
 
-body:not(.dark) pre code .keyword {
-  color: #d73a49 !important;
-}
+/* Светлая тема код-блока (GitHub light) */
+body:not(.dark) .md-body .code-block { background: #f6f8fa; border-color: #d0d7de; }
+body:not(.dark) .md-body .code-block__head { background: #eaeef2; border-bottom-color: #d0d7de; }
+body:not(.dark) .md-body .code-block__lang { color: #57606a; }
+body:not(.dark) .md-body .code-copy { color: #57606a; }
+body:not(.dark) .md-body .code-copy:hover { background: rgba(0, 0, 0, 0.06); color: #24292f; }
+body:not(.dark) .md-body .code-block__pre { background: #f6f8fa !important; color: #24292f !important; }
 
-body:not(.dark) pre code .string {
-  color: #032f62 !important;
-}
+/* === Подсветка синтаксиса: канон GitHub (dark) === */
+.md-body .hljs-doctag,
+.md-body .hljs-keyword,
+.md-body .hljs-meta .hljs-keyword,
+.md-body .hljs-template-tag,
+.md-body .hljs-template-variable,
+.md-body .hljs-type,
+.md-body .hljs-variable.language_ { color: #ff7b72; }
+.md-body .hljs-title,
+.md-body .hljs-title.class_,
+.md-body .hljs-title.class_.inherited__,
+.md-body .hljs-title.function_ { color: #d2a8ff; }
+.md-body .hljs-attr,
+.md-body .hljs-attribute,
+.md-body .hljs-literal,
+.md-body .hljs-meta,
+.md-body .hljs-number,
+.md-body .hljs-operator,
+.md-body .hljs-variable,
+.md-body .hljs-selector-attr,
+.md-body .hljs-selector-class,
+.md-body .hljs-selector-id { color: #79c0ff; }
+.md-body .hljs-regexp,
+.md-body .hljs-string,
+.md-body .hljs-meta .hljs-string { color: #a5d6ff; }
+.md-body .hljs-built_in,
+.md-body .hljs-symbol { color: #ffa657; }
+.md-body .hljs-comment,
+.md-body .hljs-code,
+.md-body .hljs-formula { color: #8b949e; }
+.md-body .hljs-name,
+.md-body .hljs-quote,
+.md-body .hljs-selector-tag,
+.md-body .hljs-selector-pseudo { color: #7ee787; }
+.md-body .hljs-subst { color: #c9d1d9; }
+.md-body .hljs-section { color: #1f6feb; font-weight: 700; }
+.md-body .hljs-bullet { color: #f2cc60; }
+.md-body .hljs-emphasis { color: #c9d1d9; font-style: italic; }
+.md-body .hljs-strong { color: #c9d1d9; font-weight: 700; }
+.md-body .hljs-addition { color: #aff5b4; background-color: #033a16; }
+.md-body .hljs-deletion { color: #ffdcd7; background-color: #67060c; }
 
-body:not(.dark) pre code .function {
-  color: #6f42c1 !important;
-}
-
-body:not(.dark) pre code .variable {
-  color: #e36209 !important;
-}
-
-body:not(.dark) pre code .number {
-  color: #116329 !important;
-}
-
-body:not(.dark) pre code .highlight {
-  color: #b31d28 !important;
-  font-weight: bold !important;
-  background-color: rgba(179, 29, 40, 0.1) !important;
-}
+/* === Подсветка синтаксиса: канон GitHub (light) === */
+body:not(.dark) .md-body .hljs-doctag,
+body:not(.dark) .md-body .hljs-keyword,
+body:not(.dark) .md-body .hljs-meta .hljs-keyword,
+body:not(.dark) .md-body .hljs-template-tag,
+body:not(.dark) .md-body .hljs-template-variable,
+body:not(.dark) .md-body .hljs-type,
+body:not(.dark) .md-body .hljs-variable.language_ { color: #cf222e; }
+body:not(.dark) .md-body .hljs-title,
+body:not(.dark) .md-body .hljs-title.class_,
+body:not(.dark) .md-body .hljs-title.class_.inherited__,
+body:not(.dark) .md-body .hljs-title.function_ { color: #8250df; }
+body:not(.dark) .md-body .hljs-attr,
+body:not(.dark) .md-body .hljs-attribute,
+body:not(.dark) .md-body .hljs-literal,
+body:not(.dark) .md-body .hljs-meta,
+body:not(.dark) .md-body .hljs-number,
+body:not(.dark) .md-body .hljs-operator,
+body:not(.dark) .md-body .hljs-variable,
+body:not(.dark) .md-body .hljs-selector-attr,
+body:not(.dark) .md-body .hljs-selector-class,
+body:not(.dark) .md-body .hljs-selector-id { color: #0550ae; }
+body:not(.dark) .md-body .hljs-regexp,
+body:not(.dark) .md-body .hljs-string,
+body:not(.dark) .md-body .hljs-meta .hljs-string { color: #0a3069; }
+body:not(.dark) .md-body .hljs-built_in,
+body:not(.dark) .md-body .hljs-symbol { color: #953800; }
+body:not(.dark) .md-body .hljs-comment,
+body:not(.dark) .md-body .hljs-code,
+body:not(.dark) .md-body .hljs-formula { color: #6e7781; }
+body:not(.dark) .md-body .hljs-name,
+body:not(.dark) .md-body .hljs-quote,
+body:not(.dark) .md-body .hljs-selector-tag,
+body:not(.dark) .md-body .hljs-selector-pseudo { color: #116329; }
+body:not(.dark) .md-body .hljs-subst { color: #24292f; }
+body:not(.dark) .md-body .hljs-section { color: #0550ae; font-weight: 700; }
+body:not(.dark) .md-body .hljs-bullet { color: #735c0f; }
+body:not(.dark) .md-body .hljs-emphasis { color: #24292f; font-style: italic; }
+body:not(.dark) .md-body .hljs-strong { color: #24292f; font-weight: 700; }
+body:not(.dark) .md-body .hljs-addition { color: #116329; background-color: #dafbe1; }
+body:not(.dark) .md-body .hljs-deletion { color: #82071e; background-color: #ffebe9; }
 

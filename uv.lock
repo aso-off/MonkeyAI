@@ -1116,7 +1116,7 @@ wheels = [
 
 [[package]]
 name = "monkey-ai"
-version = "2.8.71"
+version = "2.9.48"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
