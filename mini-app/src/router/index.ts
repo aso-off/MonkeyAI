@@ -1,12 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Main from '../pages/main.vue'
-import Chat from '@/pages/chat.vue'
-import Images from '@/pages/images.vue'
-import Settings from '@/pages/settings.vue'
-import SettingsTheme from '@/pages/settings_theme.vue'
-import SettingsLang from '@/pages/settings_lang.vue'
-import SettingsPrivacy from '@/pages/settings_privacy.vue'
-import SettingsTerms from '@/pages/settings_terms.vue'
 
 const routes = [
   {
@@ -17,37 +10,37 @@ const routes = [
   {
     path: '/chat/:dialogId?',
     name: 'chat',
-    component: Chat
+    component: () => import('@/pages/chat.vue')
   },
   {
     path: '/images',
     name: 'images',
-    component: Images
+    component: () => import('@/pages/images.vue')
   },
   {
     path: '/settings',
     name: 'settings',
-    component: Settings
+    component: () => import('@/pages/settings.vue')
   },
   {
     path: '/settings/language',
     name: 'language',
-    component: SettingsLang
+    component: () => import('@/pages/settings_lang.vue')
   },
   {
     path: '/settings/theme',
     name: 'theme',
-    component: SettingsTheme
+    component: () => import('@/pages/settings_theme.vue')
   },
   {
     path: '/settings/privacy',
     name: 'privacy',
-    component: SettingsPrivacy
+    component: () => import('@/pages/settings_privacy.vue')
   },
   {
     path: '/settings/terms',
     name: 'terms',
-    component: SettingsTerms
+    component: () => import('@/pages/settings_terms.vue')
   }
 ]
 

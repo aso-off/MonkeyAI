@@ -1,7 +1,6 @@
 {
   "new_chat": "Yeni sohbet",
   "images": "Görseller",
-  "recents": "Son diyaloglar",
   "pinned_dialogs": "Sabitlenen sohbetler",
   "pin": "Sabitle",
   "unpin": "Sabiti kaldır",
@@ -39,7 +38,6 @@
   "share_app": "Uygulamayı paylaş",
   "version": "Sürüm",
   "author": "Yazar",
-  "back": "Geri",
   "user_id": "Kullanıcı ID",
   "dark": "Koyu",
   "light": "Açık",
@@ -62,7 +60,6 @@
   "loading_ui": "Arayüz hazırlanıyor...",
   "loading_error": "Bağlantı hatası. İnternetini kontrol et ve tekrar dene.",
   "loading_retry": "Tekrar dene",
-  "image_generating": "Görüntü oluşturuluyor...",
   "load_more_messages": "Daha fazla yükle...",
   "load_more_loading": "Yükleniyor...",
   "tooltip_copy": "Kopyala",
@@ -99,8 +96,6 @@
   ],
   "privacy_policy": "Gizlilik Politikası",
   "terms_of_service": "Kullanım Koşulları",
-  "page_in_development": "Sayfa geliştirme aşamasında",
-  "page_in_development_desc": "Bu bölüm yakında kullanılabilir olacak. Sorular için iletişime geçin",
   "legal": {
     "updated": "Son güncelleme: {date}",
     "privacy": {

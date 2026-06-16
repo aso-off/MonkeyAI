@@ -16,7 +16,6 @@
   "share_app": "",
   "version": "",
   "author": "",
-  "back": "",
   "user_id": "",
   "dark": "",
   "light": "",
@@ -39,7 +38,6 @@
   "loading_ui": "",
   "loading_error": "",
   "loading_retry": "",
-  "image_generating": "",
   "load_more_messages": "",
   "load_more_loading": "",
   "tooltip_copy": "",
@@ -53,8 +51,6 @@
   "loading_tips": [],
   "privacy_policy": "",
   "terms_of_service": "",
-  "page_in_development": "",
-  "page_in_development_desc": "",
   "legal": {
     "updated": "",
     "privacy": {

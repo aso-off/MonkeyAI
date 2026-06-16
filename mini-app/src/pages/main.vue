@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onBeforeUnmount, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { initData } from '@tma.js/sdk-vue';
@@ -390,14 +390,41 @@ function onSearchBlur() {
   }
 }
 
+// Печать заголовка посимвольно в списке (эффект как у ответа в чате)
+const titleTypers = new Map<string, ReturnType<typeof setInterval>>();
+function typeTitle(id: string, full: string) {
+  const prev = titleTypers.get(id);
+  if (prev) clearInterval(prev);
+  const step = full.length > 24 ? 2 : 1;
+  let i = step;
+  dialogs.applyTitle(id, full.slice(0, i));
+  const timer = setInterval(() => {
+    i += step;
+    if (i >= full.length) {
+      dialogs.applyTitle(id, full);
+      clearInterval(timer);
+      titleTypers.delete(id);
+    } else {
+      dialogs.applyTitle(id, full.slice(0, i));
+    }
+  }, 32);
+  titleTypers.set(id, timer);
+}
+
 onMounted(() => {
   dialogs.loadInitial().catch(() => {});
   // Живое обновление заголовка из фоновой nano-генерации
   wsClient.setTypeHandler('dialog_title', (msg) => {
     const id = msg.dialog_id as string;
     const title = msg.title as string;
-    if (id && title) dialogs.applyTitle(id, title);
+    if (id && title) typeTitle(id, title);
   });
+});
+
+onBeforeUnmount(() => {
+  for (const tmr of titleTypers.values()) clearInterval(tmr);
+  titleTypers.clear();
+  wsClient.setTypeHandler('dialog_title', null);
 });
 </script>
 
@@ -702,7 +729,7 @@ body.dark .icon-strong {
   gap: 10px;
   padding: 10px 14px calc(env(safe-area-inset-bottom) + 12px);
   box-sizing: border-box;
-  background: var(--backgorund-color);
+  background: var(--background-color);
 }
 .home__search {
   display: flex;

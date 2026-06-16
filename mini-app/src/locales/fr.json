@@ -1,7 +1,6 @@
 {
   "new_chat": "Nouveau chat",
   "images": "Images",
-  "recents": "Dialogues récents",
   "pinned_dialogs": "Discussions épinglées",
   "pin": "Épingler",
   "unpin": "Détacher",
@@ -39,7 +38,6 @@
   "share_app": "Partager l'app",
   "version": "Version",
   "author": "Auteur",
-  "back": "Retour",
   "user_id": "ID utilisateur",
   "dark": "Sombre",
   "light": "Clair",
@@ -62,7 +60,6 @@
   "loading_ui": "Préparation de l'interface...",
   "loading_error": "Erreur de connexion. Vérifie ta connexion internet et réessaie.",
   "loading_retry": "Réessayer",
-  "image_generating": "Génération de l'image...",
   "load_more_messages": "Charger plus...",
   "load_more_loading": "Chargement...",
   "tooltip_copy": "Copier",
@@ -99,8 +96,6 @@
   ],
   "privacy_policy": "Politique de confidentialité",
   "terms_of_service": "Conditions d'utilisation",
-  "page_in_development": "Page en cours de développement",
-  "page_in_development_desc": "Cette section sera bientôt disponible. Pour toute question, contactez",
   "legal": {
     "updated": "Dernière mise à jour : {date}",
     "privacy": {
