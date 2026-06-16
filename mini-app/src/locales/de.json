@@ -1,7 +1,6 @@
 {
   "new_chat": "Neuer Chat",
   "images": "Bilder",
-  "recents": "Letzte Dialoge",
   "pinned_dialogs": "Angeheftete Chats",
   "pin": "Anheften",
   "unpin": "Lösen",
@@ -39,7 +38,6 @@
   "share_app": "App teilen",
   "version": "Version",
   "author": "Autor",
-  "back": "Zurück",
   "user_id": "Nutzer-ID",
   "dark": "Dunkel",
   "light": "Hell",
@@ -62,7 +60,6 @@
   "loading_ui": "Oberfläche wird vorbereitet...",
   "loading_error": "Verbindungsfehler. Überprüfe deine Internetverbindung und versuche es erneut.",
   "loading_retry": "Erneut versuchen",
-  "image_generating": "Bild wird generiert...",
   "load_more_messages": "Mehr laden...",
   "load_more_loading": "Wird geladen...",
   "tooltip_copy": "Kopieren",
@@ -99,8 +96,6 @@
   ],
   "privacy_policy": "Datenschutzrichtlinie",
   "terms_of_service": "Nutzungsbedingungen",
-  "page_in_development": "Seite in Entwicklung",
-  "page_in_development_desc": "Dieser Abschnitt wird bald verfügbar sein. Bei Fragen wende dich an",
   "legal": {
     "updated": "Zuletzt aktualisiert: {date}",
     "privacy": {

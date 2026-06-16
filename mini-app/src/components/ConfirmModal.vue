@@ -43,7 +43,7 @@ defineEmits<{ cancel: []; confirm: [] }>();
 .cm-head {
   padding: 20px 20px 16px;
   text-align: center;
-  background: var(--backgorund-color);
+  background: var(--background-color);
 }
 .cm-title {
   font-size: 17px;
@@ -60,7 +60,7 @@ defineEmits<{ cancel: []; confirm: [] }>();
   display: flex;
   gap: 8px;
   padding: 4px 12px 14px;
-  background: var(--backgorund-color);
+  background: var(--background-color);
 }
 .cm-btn {
   flex: 1;

@@ -194,7 +194,16 @@ async function runLoading(): Promise<void> {
         store.prefetchChatHistory(),
         dialogs.loadInitial().catch(() => {}),
         preloadMarkdown(), // стили/форматирование готовы до показа чата
+        // чанки ленивых роутов — готовы до перехода, без мерцания
+        import('@/pages/chat.vue'),
+        import('@/pages/images.vue'),
+        import('@/pages/settings.vue'),
       ]);
+      // саб-настройки мелкие — тянем в фон без ожидания
+      void import('@/pages/settings_theme.vue');
+      void import('@/pages/settings_lang.vue');
+      void import('@/pages/settings_privacy.vue');
+      void import('@/pages/settings_terms.vue');
     }
   } catch {
     // API failed — retry up to 3 times with 3 s delay, then show error.
