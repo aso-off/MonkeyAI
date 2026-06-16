@@ -1,7 +1,6 @@
 {
   "new_chat": "Nuevo chat",
   "images": "Imágenes",
-  "recents": "Diálogos recientes",
   "pinned_dialogs": "Chats fijados",
   "pin": "Fijar",
   "unpin": "Quitar fijado",
@@ -39,7 +38,6 @@
   "share_app": "Compartir la app",
   "version": "Versión",
   "author": "Autor",
-  "back": "Volver",
   "user_id": "ID de usuario",
   "dark": "Oscuro",
   "light": "Claro",
@@ -62,7 +60,6 @@
   "loading_ui": "Preparando la interfaz...",
   "loading_error": "Error de conexión. Comprueba tu internet e inténtalo de nuevo.",
   "loading_retry": "Intentar de nuevo",
-  "image_generating": "Generando imagen...",
   "load_more_messages": "Cargar más...",
   "load_more_loading": "Cargando...",
   "tooltip_copy": "Copiar",
@@ -99,8 +96,6 @@
   ],
   "privacy_policy": "Política de privacidad",
   "terms_of_service": "Términos de servicio",
-  "page_in_development": "Página en desarrollo",
-  "page_in_development_desc": "Esta sección estará disponible pronto. Para preguntas, contacta a",
   "legal": {
     "updated": "Última actualización: {date}",
     "privacy": {

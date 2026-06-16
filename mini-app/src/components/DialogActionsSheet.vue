@@ -42,7 +42,7 @@ defineEmits<{ close: []; rename: []; delete: []; pin: []; unpin: [] }>();
 }
 .sheet {
   width: 100%;
-  background: var(--backgorund-color);
+  background: var(--background-color);
   border-radius: 18px 18px 0 0;
   padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
   overflow: hidden;

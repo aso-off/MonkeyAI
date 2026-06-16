@@ -2,7 +2,6 @@
   "new_chat": "New Chat",
   "settings": "Settings",
   "images": "Images",
-  "recents": "Recent dialogs",
   "pinned_dialogs": "Pinned dialogs",
   "pin": "Pin",
   "unpin": "Unpin",
@@ -39,7 +38,6 @@
   "share_app": "Share the app",
   "version": "Version",
   "author": "Author",
-  "back": "Back",
   "user_id": "User ID",
   "dark": "Dark",
   "light": "Light",
@@ -62,7 +60,6 @@
   "loading_ui": "Preparing interface...",
   "loading_error": "Connection error. Check your internet and try again.",
   "loading_retry": "Try Again",
-  "image_generating": "Generating image...",
   "load_more_messages": "Load more...",
   "load_more_loading": "Loading...",
   "tooltip_copy": "Copy",
@@ -99,8 +96,6 @@
   ],
   "privacy_policy": "Privacy Policy",
   "terms_of_service": "Terms of Service",
-  "page_in_development": "Page under development",
-  "page_in_development_desc": "This section will be available soon. For questions, contact",
   "legal": {
     "updated": "Last updated: {date}",
     "privacy": {

@@ -95,7 +95,7 @@ function onLoadingDone() {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: var(--backgorund-color);
+  background-color: var(--background-color);
 }
 
 .nw-card {

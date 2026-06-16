@@ -1,7 +1,6 @@
 {
   "new_chat": "Nowy czat",
   "images": "Obrazy",
-  "recents": "Ostatnie dialogi",
   "pinned_dialogs": "Przypięte czaty",
   "pin": "Przypnij",
   "unpin": "Odepnij",
@@ -39,7 +38,6 @@
   "share_app": "Udostępnij aplikację",
   "version": "Wersja",
   "author": "Autor",
-  "back": "Wstecz",
   "user_id": "ID użytkownika",
   "dark": "Ciemny",
   "light": "Jasny",
@@ -62,7 +60,6 @@
   "loading_ui": "Przygotowywanie interfejsu...",
   "loading_error": "Błąd połączenia. Sprawdź internet i spróbuj ponownie.",
   "loading_retry": "Spróbuj ponownie",
-  "image_generating": "Generuję obraz...",
   "load_more_messages": "Załaduj więcej...",
   "load_more_loading": "Ładowanie...",
   "tooltip_copy": "Kopiuj",
@@ -99,8 +96,6 @@
   ],
   "privacy_policy": "Polityka prywatności",
   "terms_of_service": "Warunki korzystania",
-  "page_in_development": "Strona w trakcie tworzenia",
-  "page_in_development_desc": "Ta sekcja będzie wkrótce dostępna. W razie pytań skontaktuj się z",
   "legal": {
     "updated": "Ostatnia aktualizacja: {date}",
     "privacy": {
