@@ -1,5 +1,6 @@
 test_language:
     welcome_group_minimal: ""
+    thinking: ""
     welcome: ""
     system_error: ""
     access_denied: ""

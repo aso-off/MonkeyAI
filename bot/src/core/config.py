@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     enable_content_moderation: bool = True
     dialog_context_limit: int = 20
     message_max_length: int = 4096
+    enable_rich_messages: bool = True
+    rich_message_max_length: int = 32768
+    enable_thinking_block: bool = True
+    message_effect_id: str = ""
     draft_throttle_seconds: float = 0.4
     busy_lock_ttl_seconds: int = 300
     api_request_timeout_seconds: float = 120.0
@@ -108,6 +112,10 @@ class Settings(BaseSettings):
         self.enable_content_moderation   = cfg.get("enable_content_moderation", self.enable_content_moderation)
         self.dialog_context_limit        = cfg.get("dialog_context_limit", self.dialog_context_limit)
         self.message_max_length          = cfg.get("message_max_length", self.message_max_length)
+        self.enable_rich_messages        = cfg.get("enable_rich_messages", self.enable_rich_messages)
+        self.rich_message_max_length     = cfg.get("rich_message_max_length", self.rich_message_max_length)
+        self.enable_thinking_block       = cfg.get("enable_thinking_block", self.enable_thinking_block)
+        self.message_effect_id           = str(cfg.get("message_effect_id", self.message_effect_id) or "")
         self.draft_throttle_seconds      = cfg.get("draft_throttle_seconds", self.draft_throttle_seconds)
         self.busy_lock_ttl_seconds       = cfg.get("busy_lock_ttl_seconds", self.busy_lock_ttl_seconds)
         self.api_request_timeout_seconds = cfg.get("api_request_timeout_seconds", self.api_request_timeout_seconds)

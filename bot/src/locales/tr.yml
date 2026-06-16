@@ -1,5 +1,6 @@
 tr:
     welcome_group_minimal: "Ben Monkey AI botuyum. Sana nasıl yardımcı olabilirim?"
+    thinking: "Düşünüyorum…"
     welcome: "Hoş geldin, {}!\nBen senin asistanınım!"
     system_error: "Ağ hatası"
     access_denied: "Erişim reddedildi"

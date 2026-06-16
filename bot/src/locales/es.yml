@@ -1,5 +1,6 @@
 es:
     welcome_group_minimal: "Soy Monkey AI. ¿En qué puedo ayudarte?"
+    thinking: "Pensando…"
     welcome: "¡Hola, {}!\n¡Soy tu asistente!"
     system_error: "Error de red"
     access_denied: "Acceso denegado"

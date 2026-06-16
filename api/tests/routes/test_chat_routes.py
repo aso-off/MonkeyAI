@@ -57,8 +57,8 @@ def _mock_chatgpt(answer: str | None = None, n_in: int = 10, n_out: int = 20):
 
     async def _stream_gen(*a, **kw):
         chunk = fake.sentence()
-        yield "not_finished", chunk, (0, 0), 0
-        yield "finished", answer, (n_in, n_out), 0
+        yield "not_finished", chunk, "", (0, 0), 0
+        yield "finished", answer, "thinking summary", (n_in, n_out), 0
 
     instance.send_message_stream = MagicMock(side_effect=_stream_gen)
     instance.send_vision_message_stream = MagicMock(side_effect=_stream_gen)
@@ -260,6 +260,7 @@ class TestChatStream:
         payloads = [json.loads(l[6:]) for l in lines]
         finished = [p for p in payloads if p["status"] == "finished"]
         assert finished[0]["text"] == answer
+        assert finished[0]["reasoning"] == "thinking summary"
 
     @pytest.mark.api
     def test_stream_flagged_content_returns_flagged_event(self, api_client) -> None:
