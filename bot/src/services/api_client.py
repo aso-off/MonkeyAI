@@ -59,6 +59,7 @@ class ChatStreamChunk(msgspec.Struct, frozen=True):
     usage: Usage
     n_first_removed: int
     is_flagged: bool
+    reasoning: str = ""
 
 
 class DialogMessagesResponse(msgspec.Struct, frozen=True):

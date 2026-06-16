@@ -9,13 +9,14 @@ import httpx
 from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
-from aiogram.types import BufferedInputFile, Message
+from aiogram.types import BufferedInputFile, Message, ReplyParameters
 
 from src.core.config import settings
 
 if TYPE_CHECKING:
     from src.core.bot import RedisAsync
 from src.services import api_client as api
+from src.utils import rich_builder as rich
 from src.utils.formatting import convert_to_markdownv2
 from src.utils.localization import t
 from src.utils.stickers import monkey
@@ -96,6 +97,19 @@ def _mode_welcome(chat_mode: str, lang: str) -> str:
     if isinstance(template, str) and template.startswith("{") and template.endswith("}"):
         return t(template.strip("{}"), lang)
     return template
+
+
+def _reply_to(message: Message) -> ReplyParameters:
+    return ReplyParameters(message_id=message.message_id, allow_sending_without_reply=True)
+
+
+async def _send_legacy(message: Message, final_raw: str, parse_mode: str) -> None:
+    final_text = convert_to_markdownv2(final_raw) if parse_mode == "MarkdownV2" else final_raw
+    rp = _reply_to(message)
+    try:
+        await message.answer(final_text, parse_mode=parse_mode, reply_parameters=rp)
+    except Exception:
+        await message.answer(final_raw, parse_mode=None, reply_parameters=rp)
 
 
 @router.message(Command("new"), StateFilter("*"))
@@ -202,24 +216,24 @@ async def generate_image(
         body = e.response.text
         if status in (400, 422) and ("content_policy_violation" in body or "moderation_blocked" in body):
             await monkey.send(bot, message.chat.id, "sad")
-            await message.answer(t("image_generation_rejected", language), parse_mode="HTML")
+            await message.reply(t("image_generation_rejected", language), parse_mode="HTML")
         elif status == 429:
             await monkey.send(bot, message.chat.id, "sad")
-            await message.answer(t("rate_limit_error", language), parse_mode="HTML")
+            await message.reply(t("rate_limit_error", language), parse_mode="HTML")
         else:
             await monkey.send(bot, message.chat.id, "error")
-            await message.answer(t("image_generation_error", language).format(e), parse_mode="HTML")
+            await message.reply(t("image_generation_error", language).format(e), parse_mode="HTML")
         logger.error("Image generation HTTP %d for user %d: %s", status, user_id, body)
         return
     except Exception as e:
         await monkey.send(bot, message.chat.id, "error")
-        await message.answer(t("image_generation_error", language).format(e), parse_mode="HTML")
+        await message.reply(t("image_generation_error", language).format(e), parse_mode="HTML")
         logger.error("Image generation failed for user %d: %s", user_id, e)
         return
 
     for img_buf in image_buffers:
         await bot.send_chat_action(message.chat.id, "upload_photo")
-        await message.answer_photo(BufferedInputFile(img_buf.read(), filename="image.png"))
+        await message.reply_photo(BufferedInputFile(img_buf.read(), filename="image.png"))
 
     # чтобы работал /retry; ImgBB-URL — для галереи
     saved_url = next((u for u in imgbb_urls if u), "[generated_image]")
@@ -260,11 +274,12 @@ async def _handle_text_or_vision(
     await bot.send_chat_action(message.chat.id, "typing")
 
     if not text.strip():
-        await message.answer(t("empty_message", language), parse_mode="HTML")
+        await message.reply(t("empty_message", language), parse_mode="HTML")
         return
 
     raw_pm = settings.chat_modes.get(chat_mode, {}).get("parse_mode", "html")
     parse_mode = _PARSE_MODE_MAP.get(raw_pm, "HTML")
+    use_rich = settings.enable_rich_messages and message.chat.type == ChatType.PRIVATE
 
     image_b64: str | None = None
     if image_buffer is not None:
@@ -277,10 +292,15 @@ async def _handle_text_or_vision(
 
     try:
         if settings.enable_message_streaming:
-            # черновик только в ЛС
-            is_private = message.chat.type == ChatType.PRIVATE
             draft_id = message.message_id
             last_draft = 0.0
+            last_think = 0.0
+            reasoning = ""
+            show_thinking = (
+                use_rich
+                and settings.enable_thinking_block
+                and rich.is_reasoning_model(current_model, settings.models)
+            )
 
             async for chunk in api.chat_stream(
                 user_id=user_id,
@@ -294,20 +314,39 @@ async def _handle_text_or_vision(
                     is_flagged = True
                     break
                 answer = chunk.text
+                if chunk.reasoning:
+                    reasoning = chunk.reasoning
                 n_first_removed = chunk.n_first_removed
 
-                if chunk.status == "not_finished" and is_private and answer.strip():
-                    now = time.monotonic()
-                    if now - last_draft >= settings.draft_throttle_seconds:
+                # rich-черновик только в ЛС
+                if not use_rich or chunk.status != "not_finished":
+                    continue
+
+                now = time.monotonic()
+                if not answer.strip():
+                    # до первого токена ответа — мышление (только reasoning-модели)
+                    if show_thinking and now - last_think >= settings.draft_throttle_seconds:
                         try:
-                            await bot.send_message_draft(
+                            await bot.send_rich_message_draft(
                                 chat_id=message.chat.id,
                                 draft_id=draft_id,
-                                text=answer[: settings.message_max_length],
+                                rich_message=rich.thinking_draft(t("thinking", language), reasoning),
                             )
-                            last_draft = now
+                            last_think = now
                         except Exception as exc:
-                            logger.debug("send_message_draft stream error (user %d): %s", user_id, exc)
+                            logger.debug("thinking draft error (user %d): %s", user_id, exc)
+                    continue
+
+                if now - last_draft >= settings.draft_throttle_seconds:
+                    try:
+                        await bot.send_rich_message_draft(
+                            chat_id=message.chat.id,
+                            draft_id=draft_id,
+                            rich_message=rich.build_draft(answer, settings.rich_message_max_length),
+                        )
+                        last_draft = now
+                    except Exception as exc:
+                        logger.debug("send_rich_message_draft stream error (user %d): %s", user_id, exc)
         else:
             result = await api.chat_complete(
                 user_id=user_id,
@@ -323,28 +362,30 @@ async def _handle_text_or_vision(
 
         if is_flagged:
             await monkey.send(bot, message.chat.id, "sad")
-            await message.answer(t("content_moderation_failed", language), parse_mode="HTML")
+            await message.reply(t("content_moderation_failed", language), parse_mode="HTML")
             return
 
         if not answer.strip():
             await monkey.send(bot, message.chat.id, "error")
-            await message.answer(t("error_response", language), parse_mode="HTML")
+            await message.reply(t("error_response", language), parse_mode="HTML")
             return
 
-        answer = answer[: settings.message_max_length]
-        final_raw = answer.strip()
-        if parse_mode == "MarkdownV2":
-            final_text = convert_to_markdownv2(final_raw)
-        elif parse_mode == "HTML":
-            final_text = final_raw
-        else:
-            final_text = final_raw
+        limit = settings.rich_message_max_length if use_rich else settings.message_max_length
+        final_raw = answer[:limit].strip()
 
         # финал заменяет черновик
-        try:
-            await message.answer(final_text, parse_mode=parse_mode)
-        except Exception:
-            await message.answer(final_raw, parse_mode=None)
+        if use_rich:
+            try:
+                await message.answer_rich(
+                    rich_message=rich.build_message(final_raw, settings.rich_message_max_length),
+                    reply_parameters=_reply_to(message),
+                    message_effect_id=settings.message_effect_id or None,
+                )
+            except Exception as exc:
+                logger.warning("answer_rich failed (user %d), fallback to legacy: %s", user_id, exc)
+                await _send_legacy(message, final_raw[: settings.message_max_length], parse_mode)
+        else:
+            await _send_legacy(message, final_raw, parse_mode)
 
     except asyncio.CancelledError:
         await monkey.send(bot, message.chat.id, "sad")
@@ -352,14 +393,14 @@ async def _handle_text_or_vision(
 
     except Exception as exc:
         await monkey.send(bot, message.chat.id, "error")
-        await message.answer(t("error_message", language).format(exc), parse_mode="HTML")
+        await message.reply(t("error_message", language).format(exc), parse_mode="HTML")
         logger.error("Message handle error for user %d: %s", user_id, exc, exc_info=True)
         return
 
     if n_first_removed == 1:
-        await message.answer(t("context_message_removed_one", language), parse_mode="HTML")
+        await message.reply(t("context_message_removed_one", language), parse_mode="HTML")
     elif n_first_removed > 1:
-        await message.answer(
+        await message.reply(
             t("context_messages_removed_many", language).format(n_first_removed),
             parse_mode="HTML",
         )
@@ -396,7 +437,7 @@ async def _run_handle(
             image_buffer,
         )
     except asyncio.CancelledError:
-        await message.answer(t("operation_cancelled", language), parse_mode="HTML")
+        await message.reply(t("operation_cancelled", language), parse_mode="HTML")
     finally:
         user_tasks.pop(user_id, None)
         await _redis().delete(lock_key)
@@ -483,12 +524,12 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
     except Exception as exc:
         logger.error("Voice transcription failed for user %d: %s", user_id, exc, exc_info=True)
         await monkey.send(bot, message.chat.id, "error")
-        await message.answer(t("voice_recognition_failed", language), parse_mode="HTML")
+        await message.reply(t("voice_recognition_failed", language), parse_mode="HTML")
         return
 
     if not transcribed:
         await monkey.send(bot, message.chat.id, "error")
-        await message.answer(t("voice_recognition_failed", language), parse_mode="HTML")
+        await message.reply(t("voice_recognition_failed", language), parse_mode="HTML")
         return
 
     await _run_handle(message, bot, language, user_id, transcribed)
@@ -499,10 +540,10 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
     StateFilter("*"),
 )
 async def msg_unsupported(message: Message, language: str) -> None:
-    await message.answer(t("unsupported_media", language))
+    await message.reply(t("unsupported_media", language))
 
 
 @router.edited_message(F.text | F.photo, StateFilter("*"))
 async def msg_edited(message: Message, language: str) -> None:
     if message.chat.type == ChatType.PRIVATE:
-        await message.answer(t("edited_message_unsupported", language), parse_mode="HTML")
+        await message.reply(t("edited_message_unsupported", language), parse_mode="HTML")

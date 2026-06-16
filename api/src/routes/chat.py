@@ -113,13 +113,15 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
 
     n_input = n_output = n_removed = 0
     final_answer = ""
+    reasoning = ""
 
     try:
-        async for status, answer, (n_input, n_output), n_removed in gen:
+        async for status, answer, reasoning, (n_input, n_output), n_removed in gen:
             final_answer = answer
             payload = json.dumps({
                 "status": status,
                 "text": answer,
+                "reasoning": reasoning,
                 "usage": Usage.of(n_input, n_output).model_dump(),
                 "n_first_removed": n_removed,
                 "is_flagged": False,
@@ -131,6 +133,7 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
         payload = json.dumps({
             "status": "finished",
             "text": final_answer,
+            "reasoning": reasoning,
             "usage": Usage.of(n_input, n_output).model_dump(),
             "n_first_removed": n_removed,
             "is_flagged": False,

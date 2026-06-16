@@ -1,5 +1,6 @@
 ru:
     welcome_group_minimal: "Я бот Monkey AI. Чем могу вам помочь?"
+    thinking: "Думаю…"
     welcome: "Привет, {}!\nЯ — ваш ассистент!"
     system_error: "Ошибка сети"
     access_denied: "Доступ запрещён"

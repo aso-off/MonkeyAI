@@ -19,6 +19,10 @@ enable_message_streaming: true
 enable_content_moderation: true
 draft_throttle_seconds: 0.4  # троттлинг
 message_max_length: 4096  # лимит TG
+enable_rich_messages: true  # Bot API 10.1
+rich_message_max_length: 32768  # лимит rich
+enable_thinking_block: true  # tg-thinking в драфте
+message_effect_id: ""  # эффект сообщения (Premium); пусто = без эффекта
 
 # Сеть
 api_request_timeout_seconds: 120  # таймаут API

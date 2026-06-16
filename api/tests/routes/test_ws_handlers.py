@@ -310,7 +310,7 @@ class TestHandleChat:
         answer = "The answer is 42"
 
         async def _stream(*a, **kw):
-            yield "done", answer, (10, 20), 0
+            yield "done", answer, "", (10, 20), 0
 
         chatgpt_instance = MagicMock()
         chatgpt_instance.send_message_stream = _stream
@@ -349,7 +349,7 @@ class TestHandleChat:
         frame = {"type": "chat", "id": "req7", "message": "hello", "dialog_id": None}
 
         async def _stream(*a, **kw):
-            yield "done", "answer", (5, 10), 0
+            yield "done", "answer", "", (5, 10), 0
 
         chatgpt_instance = MagicMock()
         chatgpt_instance.send_message_stream = _stream
@@ -389,7 +389,7 @@ class TestHandleChat:
                  "dialog_id": dialog_id, "image_url": img}
 
         async def _stream(*a, **kw):
-            yield "done", "вижу кота", (5, 7), 0
+            yield "done", "вижу кота", "", (5, 7), 0
 
         vision = MagicMock(side_effect=_stream)
         chatgpt_instance = MagicMock()
