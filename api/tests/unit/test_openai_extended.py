@@ -79,28 +79,25 @@ class FakeAsyncStream:
             raise StopAsyncIteration
 
 
-def _fake_stream_chunks(answer: str, n_in: int = 50, n_out: int = 20):
-    words = answer.split()
-    chunks = []
-    for w in words:
-        c = MagicMock()
-        c.usage = None
-        c.choices = [MagicMock()]
-        c.choices[0].delta.content = w + " "
-        chunks.append(c)
-    # last chunk without content
-    last = MagicMock()
-    last.usage = None
-    last.choices = [MagicMock()]
-    last.choices[0].delta.content = None
-    chunks.append(last)
-    # финальный usage-кадр (include_usage): choices пуст
-    final = MagicMock()
-    final.choices = []
-    final.usage.prompt_tokens = n_in
-    final.usage.completion_tokens = n_out
-    chunks.append(final)
-    return chunks
+def _fake_responses_events(answer: str, reasoning: str = "", n_in: int = 50, n_out: int = 20):
+    """Имитирует поток событий Responses API."""
+    events = []
+    for tok in reasoning.split():
+        e = MagicMock()
+        e.type = "response.reasoning_summary_text.delta"
+        e.delta = tok + " "
+        events.append(e)
+    for w in answer.split():
+        e = MagicMock()
+        e.type = "response.output_text.delta"
+        e.delta = w + " "
+        events.append(e)
+    comp = MagicMock()
+    comp.type = "response.completed"
+    comp.response.usage.input_tokens = n_in
+    comp.response.usage.output_tokens = n_out
+    events.append(comp)
+    return events
 
 
 def _bad_request_error():
@@ -299,11 +296,11 @@ class TestSendMessageStream:
     async def test_yields_not_finished_then_finished(self) -> None:
         gpt = _make_gpt()
         answer = _fake_answer()
-        stream = FakeAsyncStream(_fake_stream_chunks(answer))
-        gpt.client.chat.completions.create = AsyncMock(return_value=stream)
+        stream = FakeAsyncStream(_fake_responses_events(answer))
+        gpt.client.responses.create = AsyncMock(return_value=stream)
 
         events = []
-        async for status, text, tokens, n_removed in gpt.send_message_stream(
+        async for status, text, _reasoning, tokens, n_removed in gpt.send_message_stream(
             _fake_message(), dialog_messages=[], chat_mode="assistant"
         ):
             events.append((status, text))
@@ -311,6 +308,21 @@ class TestSendMessageStream:
         statuses = [e[0] for e in events]
         assert "finished" in statuses
         assert events[-1][0] == "finished"
+
+    @pytest.mark.asyncio
+    async def test_stream_emits_reasoning_summary(self) -> None:
+        gpt = _make_gpt()
+        stream = FakeAsyncStream(_fake_responses_events("final answer", reasoning="think hard"))
+        gpt.client.responses.create = AsyncMock(return_value=stream)
+
+        reasonings = []
+        async for status, _text, reasoning, _tokens, _n in gpt.send_message_stream(
+            _fake_message(), chat_mode="assistant"
+        ):
+            reasonings.append(reasoning)
+
+        assert any("think" in r for r in reasonings)
+        assert reasonings[-1] == "think hard "
 
     @pytest.mark.asyncio
     async def test_stream_bad_request_trims_and_retries(self) -> None:
@@ -322,13 +334,13 @@ class TestSendMessageStream:
             call_count[0] += 1
             if call_count[0] == 1:
                 raise _bad_request_error()
-            return FakeAsyncStream(_fake_stream_chunks(answer))
+            return FakeAsyncStream(_fake_responses_events(answer))
 
-        setattr(gpt.client.chat.completions, "create", _create)
+        setattr(gpt.client.responses, "create", _create)
         dialog = _fake_dialog(2)
 
         events = []
-        async for status, text, _, _ in gpt.send_message_stream(
+        async for status, text, _reasoning, _, _ in gpt.send_message_stream(
             _fake_message(), dialog_messages=dialog, chat_mode="assistant"
         ):
             events.append(status)
@@ -338,11 +350,11 @@ class TestSendMessageStream:
     @pytest.mark.asyncio
     async def test_stream_usage_from_final_chunk(self) -> None:
         gpt = _make_gpt()
-        stream = FakeAsyncStream(_fake_stream_chunks("a b c", n_in=11, n_out=7))
-        gpt.client.chat.completions.create = AsyncMock(return_value=stream)
+        stream = FakeAsyncStream(_fake_responses_events("a b c", n_in=11, n_out=7))
+        gpt.client.responses.create = AsyncMock(return_value=stream)
 
         final = None
-        async for status, _, tokens, _ in gpt.send_message_stream(
+        async for status, _, _reasoning, tokens, _ in gpt.send_message_stream(
             _fake_message(), chat_mode="assistant"
         ):
             if status == "finished":
@@ -354,11 +366,11 @@ class TestSendMessageStream:
     async def test_stream_delivers_incremental_text(self) -> None:
         gpt = _make_gpt()
         answer = _fake_answer()
-        stream = FakeAsyncStream(_fake_stream_chunks(answer))
-        gpt.client.chat.completions.create = AsyncMock(return_value=stream)
+        stream = FakeAsyncStream(_fake_responses_events(answer))
+        gpt.client.responses.create = AsyncMock(return_value=stream)
 
         texts = []
-        async for status, text, _, _ in gpt.send_message_stream(
+        async for status, text, _reasoning, _, _ in gpt.send_message_stream(
             _fake_message(), chat_mode="assistant"
         ):
             texts.append(text)
@@ -429,11 +441,11 @@ class TestSendVisionMessageStream:
         gpt = _make_gpt()
         answer = _fake_answer()
         img = BytesIO(fake.binary(length=32))
-        stream = FakeAsyncStream(_fake_stream_chunks(answer))
-        gpt.client.chat.completions.create = AsyncMock(return_value=stream)
+        stream = FakeAsyncStream(_fake_responses_events(answer))
+        gpt.client.responses.create = AsyncMock(return_value=stream)
 
         events = []
-        async for status, text, _, _ in gpt.send_vision_message_stream(
+        async for status, text, _reasoning, _, _ in gpt.send_vision_message_stream(
             _fake_message(), dialog_messages=[], chat_mode="assistant", image_buffer=img
         ):
             events.append(status)
@@ -452,12 +464,12 @@ class TestSendVisionMessageStream:
             call_count[0] += 1
             if call_count[0] == 1:
                 raise _bad_request_error()
-            return FakeAsyncStream(_fake_stream_chunks(answer))
+            return FakeAsyncStream(_fake_responses_events(answer))
 
-        setattr(gpt.client.chat.completions, "create", _create)
+        setattr(gpt.client.responses, "create", _create)
 
         events = []
-        async for status, _, _, _ in gpt.send_vision_message_stream(
+        async for status, _, _reasoning, _, _ in gpt.send_vision_message_stream(
             _fake_message(), dialog_messages=dialog, chat_mode="assistant", image_buffer=img
         ):
             events.append(status)

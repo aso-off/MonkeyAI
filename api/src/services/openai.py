@@ -42,6 +42,25 @@ def _encode_image(image_buffer: BytesIO) -> str:
     return encoded
 
 
+def _to_responses_item(message: dict) -> dict:
+    role = message["role"]
+    content = message["content"]
+    if isinstance(content, str):
+        return {"role": role, "content": content}
+    parts: list = []
+    for p in content:
+        if p.get("type") == "text":
+            parts.append({"type": "input_text", "text": p.get("text", "")})
+        elif p.get("type") == "image_url":
+            iu = p.get("image_url", {})
+            parts.append({
+                "type": "input_image",
+                "image_url": iu.get("url", ""),
+                "detail": iu.get("detail", "auto"),
+            })
+    return {"role": role, "content": parts}
+
+
 class ChatGPT:
     def __init__(self, model: str = "gpt-5.4-nano") -> None:
         available = _text_models()
@@ -54,6 +73,39 @@ class ChatGPT:
         options = BASE_OPTIONS.copy()
         options.update(_model_options(self.model))
         return options
+
+    def _responses_options(self) -> dict:
+        raw = self._options()
+        # не храним ответы на стороне OpenAI — контекст ведём сами
+        opts: dict = {"store": False}
+        if "timeout" in raw:
+            opts["timeout"] = raw["timeout"]
+        if "max_completion_tokens" in raw:
+            opts["max_output_tokens"] = raw["max_completion_tokens"]
+        for k in ("temperature", "top_p"):
+            if k in raw:
+                opts[k] = raw[k]
+        if "reasoning_effort" in raw:
+            opts["reasoning"] = {"effort": raw["reasoning_effort"], "summary": "auto"}
+        return opts
+
+    def _build_responses_input(
+        self,
+        message: str,
+        dialog_messages: list,
+        chat_mode: str,
+        image_buffer: BytesIO | None = None,
+        image_url: str | None = None,
+    ) -> tuple[str, list]:
+        messages = self._build_messages(message, dialog_messages, chat_mode, image_buffer, image_url)
+        instructions = ""
+        items: list = []
+        for m in messages:
+            if m["role"] == "system" and isinstance(m["content"], str):
+                instructions = m["content"]
+                continue
+            items.append(_to_responses_item(m))
+        return instructions, items
 
     def _build_messages(
         self,
@@ -136,7 +188,7 @@ class ChatGPT:
         message: str,
         dialog_messages: list | None = None,
         chat_mode: str = "assistant",
-    ) -> AsyncGenerator[tuple[str, str, tuple[int, int], int], None]:
+    ) -> AsyncGenerator[tuple[str, str, str, tuple[int, int], int], None]:
         dialog_messages = list(dialog_messages or [])
         self._validate_mode(chat_mode)
         n_before = len(dialog_messages)
@@ -144,32 +196,36 @@ class ChatGPT:
 
         while True:
             try:
-                messages = self._build_messages(message, dialog_messages, chat_mode)
-                stream = await self.client.chat.completions.create(
+                instructions, input_items = self._build_responses_input(message, dialog_messages, chat_mode)
+                stream = await self.client.responses.create(
                     model=self.model,
-                    messages=messages,
+                    instructions=instructions or None,
+                    input=input_items,
                     stream=True,
-                    stream_options={"include_usage": True},
-                    **self._options(),
+                    **self._responses_options(),
                 )
+                n_removed = n_before - len(dialog_messages)
                 answer = ""
-                async for chunk in stream:
-                    # финальный usage-кадр приходит с пустым choices
-                    if chunk.usage is not None:
-                        n_input, n_output = chunk.usage.prompt_tokens, chunk.usage.completion_tokens
-                    if not chunk.choices:
-                        continue
-                    delta = chunk.choices[0].delta
-                    if delta.content:
-                        answer += delta.content
-                        yield "not_finished", answer, (n_input, n_output), 0
+                reasoning = ""
+                async for event in stream:
+                    etype = getattr(event, "type", "")
+                    if etype == "response.output_text.delta":
+                        answer += event.delta
+                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
+                    elif etype == "response.reasoning_summary_text.delta":
+                        reasoning += event.delta
+                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
+                    elif etype == "response.completed":
+                        usage = getattr(event.response, "usage", None)
+                        if usage:
+                            n_input, n_output = usage.input_tokens, usage.output_tokens
 
                 answer = answer.strip()
                 if not answer:
                     raise ValueError("Model returned an empty response. Please try again.")
                 if not (n_input or n_output):
-                    logger.warning("Stream ended without usage chunk for model %s", self.model)
-                yield "finished", answer, (n_input, n_output), n_before - len(dialog_messages)
+                    logger.warning("Stream ended without usage for model %s", self.model)
+                yield "finished", answer, reasoning, (n_input, n_output), n_removed
                 return
             except BadRequestError:
                 if not dialog_messages:
@@ -211,39 +267,45 @@ class ChatGPT:
         chat_mode: str = "assistant",
         image_buffer: BytesIO | None = None,
         image_url: str | None = None,
-    ) -> AsyncGenerator[tuple[str, str, tuple[int, int], int], None]:
+    ) -> AsyncGenerator[tuple[str, str, str, tuple[int, int], int], None]:
         dialog_messages = list(dialog_messages or [])
         n_before = len(dialog_messages)
         n_input = n_output = 0
 
         while True:
             try:
-                messages = self._build_messages(message, dialog_messages, chat_mode, image_buffer, image_url)
-                stream = await self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    stream=True,
-                    stream_options={"include_usage": True},
-                    **self._options(),
+                instructions, input_items = self._build_responses_input(
+                    message, dialog_messages, chat_mode, image_buffer, image_url
                 )
+                stream = await self.client.responses.create(
+                    model=self.model,
+                    instructions=instructions or None,
+                    input=input_items,
+                    stream=True,
+                    **self._responses_options(),
+                )
+                n_removed = n_before - len(dialog_messages)
                 answer = ""
-                async for chunk in stream:
-                    # финальный usage-кадр приходит с пустым choices
-                    if chunk.usage is not None:
-                        n_input, n_output = chunk.usage.prompt_tokens, chunk.usage.completion_tokens
-                    if not chunk.choices:
-                        continue
-                    delta = chunk.choices[0].delta
-                    if delta.content:
-                        answer += delta.content
-                        yield "not_finished", answer, (n_input, n_output), n_before - len(dialog_messages)
+                reasoning = ""
+                async for event in stream:
+                    etype = getattr(event, "type", "")
+                    if etype == "response.output_text.delta":
+                        answer += event.delta
+                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
+                    elif etype == "response.reasoning_summary_text.delta":
+                        reasoning += event.delta
+                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
+                    elif etype == "response.completed":
+                        usage = getattr(event.response, "usage", None)
+                        if usage:
+                            n_input, n_output = usage.input_tokens, usage.output_tokens
 
                 answer = answer.strip()
                 if not answer:
                     raise ValueError("Model returned an empty response. Please try again.")
                 if not (n_input or n_output):
-                    logger.warning("Stream ended without usage chunk for model %s", self.model)
-                yield "finished", answer, (n_input, n_output), n_before - len(dialog_messages)
+                    logger.warning("Stream ended without usage for model %s", self.model)
+                yield "finished", answer, reasoning, (n_input, n_output), n_removed
                 return
             except BadRequestError:
                 if not dialog_messages:

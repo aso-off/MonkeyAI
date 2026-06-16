@@ -403,7 +403,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
                 message, dialog_messages=context, chat_mode=chat_mode
             )
         try:
-            async for status, answer, (ni, no), nr in stream:
+            async for status, answer, reasoning, (ni, no), nr in stream:
                 final_answer = answer
                 n_input, n_output, n_removed = ni, no, nr
                 if status == "not_finished":
@@ -416,6 +416,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
                             "id": req_id,
                             "dialog_id": resolved_dialog_id,
                             "text": answer,
+                            "reasoning": reasoning,
                         })
         except Exception as exc:
             logger.warning("Chat stream error for user %d: %s", user_id, exc)
