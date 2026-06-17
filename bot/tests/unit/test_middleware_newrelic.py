@@ -19,10 +19,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _make_event(
     message=None,
@@ -36,7 +34,6 @@ def _make_event(
     event.my_chat_member = my_chat_member
     event.event_type = event_type
     return event
-
 
 def _make_message(
     text: str | None = None,
@@ -58,14 +55,12 @@ def _make_message(
     msg.sticker = MagicMock() if has_sticker else None
     return msg
 
-
 def _nr_patches():
     return (
         patch("src.bot.middleware.newrelic.nr_transaction_name"),
         patch("src.bot.middleware.newrelic.nr_add_custom_parameter"),
         patch("src.bot.middleware.newrelic.nr_notice_error"),
     )
-
 
 class TestNewRelicMiddleware:
 

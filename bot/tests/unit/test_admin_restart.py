@@ -18,10 +18,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_settings(admin_ids=None, has_hostname=True):
     s = MagicMock()
@@ -35,14 +33,12 @@ def _fake_settings(admin_ids=None, has_hostname=True):
     }
     return s
 
-
 def _fake_redis() -> AsyncMock:
     r = AsyncMock()
     r.get = AsyncMock(return_value=None)
     r.setex = AsyncMock()
     r.delete = AsyncMock()
     return r
-
 
 def _fake_message(uid: int | None = None) -> MagicMock:
     msg = MagicMock()
@@ -54,7 +50,6 @@ def _fake_message(uid: int | None = None) -> MagicMock:
     reply.message_id = fake.random_int(min=1, max=99999)
     msg.answer = AsyncMock(return_value=reply)
     return msg
-
 
 def _fake_callback(uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -68,9 +63,7 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.message.reply_markup = MagicMock()
     return cb
 
-
 # _do_restart
-
 
 class TestDoRestart:
 
@@ -113,9 +106,7 @@ class TestDoRestart:
             await _do_restart(redis)
         redis.delete.assert_awaited_with("restart_in_progress")
 
-
 # cmd_restart
-
 
 class TestCmdRestart:
 
@@ -201,9 +192,7 @@ class TestCmdRestart:
             await cmd_restart(msg, language="ru")
         mock_restart.assert_not_awaited()
 
-
 # cb_admin_restart
-
 
 class TestCbAdminRestart:
 

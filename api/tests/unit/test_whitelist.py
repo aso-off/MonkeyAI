@@ -8,16 +8,13 @@ from unittest.mock import patch
 
 from services.whitelist import ALLOWED_KEY, add, is_allowed, rebuild, remove
 
-
 @pytest.fixture
 def redis(mock_redis):
     """Патчим get_redis в пространстве имён whitelist, возвращаем AsyncMock."""
     with patch("services.whitelist.get_redis", return_value=mock_redis):
         yield mock_redis
 
-
 # is_allowed
-
 
 class TestIsAllowed:
     @pytest.mark.unit
@@ -66,9 +63,7 @@ class TestIsAllowed:
         redis.exists.return_value = exists_return
         assert await is_allowed(42) is expected
 
-
 # add
-
 
 class TestAdd:
     @pytest.mark.unit
@@ -87,9 +82,7 @@ class TestAdd:
         await add(42)
         redis.srem.assert_not_awaited()
 
-
 # remove
-
 
 class TestRemove:
     @pytest.mark.unit
@@ -108,9 +101,7 @@ class TestRemove:
         await remove(uid)
         redis.srem.assert_awaited_once_with(ALLOWED_KEY, uid)
 
-
 # rebuild
-
 
 class TestRebuild:
     @pytest.mark.unit

@@ -17,10 +17,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_db_user(
     n_used_tokens: dict | None = None,
@@ -34,14 +32,12 @@ def _fake_db_user(
     u.n_transcribed_seconds = n_transcribed_seconds
     return u
 
-
 def _fake_message(uid: int | None = None) -> MagicMock:
     msg = MagicMock()
     msg.from_user = MagicMock()
     msg.from_user.id = uid or _uid()
     msg.answer = AsyncMock()
     return msg
-
 
 def _fake_callback(uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -52,7 +48,6 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.message = MagicMock(spec=Message)
     cb.message.edit_text = AsyncMock()
     return cb
-
 
 _MODELS_SETTINGS = {
     "info": {
@@ -65,9 +60,7 @@ _MODELS_SETTINGS = {
     }
 }
 
-
 # _balance_keyboard
-
 
 class TestBalanceKeyboard:
 
@@ -78,9 +71,7 @@ class TestBalanceKeyboard:
         assert len(kb.inline_keyboard) == 1
         assert kb.inline_keyboard[0][0].callback_data == "profile"
 
-
 # _build_balance_text
-
 
 class TestBuildBalanceText:
 
@@ -163,9 +154,7 @@ class TestBuildBalanceText:
                 result = _build_balance_text(db_user, "en")
             assert isinstance(result, str)
 
-
 # cmd_balance
-
 
 class TestCmdBalance:
 
@@ -194,9 +183,7 @@ class TestCmdBalance:
             await cmd_balance(msg, language="en", db_user=db_user)
         msg.answer.assert_awaited_once()
 
-
 # cb_show_balance
-
 
 class TestCbShowBalance:
 

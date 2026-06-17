@@ -51,9 +51,7 @@ _BASE_YAML_MAP: dict[str, str] = {
     "ru.yml": "ru:\n  greeting: Привет!\n",
 }
 
-
 # Helpers
-
 
 def _open_mock(yaml_map: dict):
     real_open = open
@@ -70,7 +68,6 @@ def _open_mock(yaml_map: dict):
 
     return _impl
 
-
 def _base_env() -> dict:
     return {
         "TELEGRAM_TOKEN": f"{fake.random_int(10**8, 10**9 - 1)}:{fake.sha256()[:35]}",
@@ -83,13 +80,11 @@ def _base_env() -> dict:
         "ADMIN_IDS": str(fake.random_int(min=100_000_000, max=999_999_999)),
     }
 
-
 def _make_fake_locale_path(name: str) -> Path:
     p = mock.MagicMock(spec=Path)
     p.name = name
     p.__str__ = mock.MagicMock(return_value=f"/app/src/locales/{name}")
     return p
-
 
 def _load_bot_config(env: dict, yaml_map: dict | None = None, with_ssh: bool = False):
     if yaml_map is None:
@@ -119,9 +114,7 @@ def _load_bot_config(env: dict, yaml_map: dict | None = None, with_ssh: bool = F
 
     return module
 
-
 # Fixtures
-
 
 @pytest.fixture(scope="module")
 def bot_cfg():
@@ -136,7 +129,6 @@ def bot_cfg():
     module = _load_bot_config(env, yaml_map)
     return module, env, admin_id, allowed_id
 
-
 @pytest.fixture(scope="module")
 def bot_cfg_ssh():
     """Конфиг с SSH."""
@@ -146,9 +138,7 @@ def bot_cfg_ssh():
     env["SSH_PASSWORD"] = fake.sha256()[:16]
     return _load_bot_config(env, with_ssh=False)
 
-
 # parse_admin_ids
-
 
 class TestParseAdminIds:
 
@@ -177,9 +167,7 @@ class TestParseAdminIds:
         uid = fake.random_int(min=100_000_000, max=999_999_999)
         assert module.Settings.parse_admin_ids(f"  {uid}  ") == [uid]
 
-
 # Properties
-
 
 class TestBotSettingsProperties:
 
@@ -219,9 +207,7 @@ class TestBotSettingsProperties:
         assert url.endswith("/webhook")
         assert env["WEBHOOK_HOST"] in url
 
-
 # YAML-значения (load_yaml_configs)
-
 
 class TestBotYamlValues:
 
@@ -281,9 +267,7 @@ class TestBotYamlValues:
             val = getattr(module.settings, attr)
             assert val > 0, f"{attr} должен быть > 0"
 
-
 # SSH branch
-
 
 class TestSshBranch:
 
@@ -299,9 +283,7 @@ class TestSshBranch:
         if not module.settings.ssh_hostname:
             assert module.settings.ssh_connection == {}
 
-
 # get_settings lru_cache
-
 
 class TestBotGetSettings:
 

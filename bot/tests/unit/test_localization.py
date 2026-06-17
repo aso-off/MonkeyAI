@@ -25,14 +25,12 @@ _TEST_LOCALES = {
     },
 }
 
-
 @pytest.fixture
 def mock_locales(mocker):
     return mocker.patch(
         "src.utils.localization.get_settings",
         return_value=types.SimpleNamespace(locales=_TEST_LOCALES),
     )
-
 
 class TestResolveLang:
     @pytest.mark.unit
@@ -64,7 +62,6 @@ class TestResolveLang:
     @pytest.mark.unit
     def test_unknown_code_returns_en(self) -> None:
         assert resolve_lang("xx") == "en"
-
 
 class TestT:
     @pytest.mark.unit

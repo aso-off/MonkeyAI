@@ -20,14 +20,11 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
 
-
 def _did() -> str:
     return str(uuid.uuid4())
-
 
 def _make_session() -> AsyncMock:
     s = AsyncMock()
@@ -37,18 +34,15 @@ def _make_session() -> AsyncMock:
     s.execute = AsyncMock()
     return s
 
-
 def _scalar_result(value):
     r = MagicMock()
     r.scalar_one_or_none.return_value = value
     return r
 
-
 def _scalar_value(value):
     r = MagicMock()
     r.scalar_one.return_value = value
     return r
-
 
 def _fake_stats():
     from db.models.user import UserStatistics
@@ -57,7 +51,6 @@ def _fake_stats():
     st.n_generated_images = 0
     st.n_transcribed_seconds = 0.0
     return st
-
 
 def _fake_user_obj(uid: int | None = None):
     from db.models.user import User, UserState
@@ -74,7 +67,6 @@ def _fake_user_obj(uid: int | None = None):
     u.statistics = _fake_stats()
     return u
 
-
 def _fake_dialog_obj(uid: int | None = None, did: str | None = None, messages: list | None = None):
     from db.models.user import Dialog
     d = MagicMock(spec=Dialog)
@@ -84,9 +76,7 @@ def _fake_dialog_obj(uid: int | None = None, did: str | None = None, messages: l
     d.messages = messages or []
     return d
 
-
 # get_dialog_messages_by_mode
-
 
 class TestGetDialogMessagesByMode:
 
@@ -155,9 +145,7 @@ class TestGetDialogMessagesByMode:
         assert "assistant" not in result
         assert "artist" in result
 
-
 # get_all_users_count
-
 
 class TestGetAllUsersCount:
 
@@ -190,9 +178,7 @@ class TestGetAllUsersCount:
             result = await get_all_users_count(session)
             assert result == count
 
-
 # get_active_users_count
-
 
 class TestGetActiveUsersCount:
 
@@ -216,9 +202,7 @@ class TestGetActiveUsersCount:
         result = await get_active_users_count(session, days=30)
         assert result == count
 
-
 # get_user_message_count
-
 
 class TestGetUserMessageCount:
 
@@ -253,9 +237,7 @@ class TestGetUserMessageCount:
             result = await get_user_message_count(session, uid)
             assert result == count
 
-
 # set_dialog_messages edge cases
-
 
 class TestSetDialogMessagesEdgeCases:
 
@@ -275,9 +257,7 @@ class TestSetDialogMessagesEdgeCases:
         with pytest.raises((ValueError, AttributeError)):
             await set_dialog_messages(session, _uid(), [], dialog_id=None)
 
-
 # update_n_used_tokens edge cases
-
 
 class TestUpdateNUsedTokensEdgeCases:
 
@@ -327,9 +307,7 @@ class TestUpdateNUsedTokensEdgeCases:
         await update_n_used_tokens(session, _uid(), "gpt-4o", 10, 5)
         session.commit.assert_not_awaited()
 
-
 # start_new_dialog
-
 
 class TestStartNewDialog:
 
@@ -369,9 +347,7 @@ class TestStartNewDialog:
         await start_new_dialog(session, uid, commit=False)
         session.commit.assert_not_awaited()
 
-
 # get_dialog_messages
-
 
 class TestGetDialogMessages:
 
@@ -420,9 +396,7 @@ class TestGetDialogMessages:
         with pytest.raises(ValueError, match="not found"):
             await get_dialog_messages(session, _uid(), dialog_id=None)
 
-
 # get_dialog_messages_page
-
 
 class TestGetDialogMessagesPage:
 
@@ -506,9 +480,7 @@ class TestGetDialogMessagesPage:
             assert len(msgs) <= limit
             assert total == n
 
-
 # append_dialog_message
-
 
 class TestAppendDialogMessage:
 
@@ -550,9 +522,7 @@ class TestAppendDialogMessage:
         assert ok is False
         session.commit.assert_awaited_once()
 
-
 # ensure_active_dialog
-
 
 class TestEnsureActiveDialog:
 
@@ -619,9 +589,7 @@ class TestEnsureActiveDialog:
         assert user.state.current_dialog_id == did
         session.commit.assert_awaited()
 
-
 # ensure_active_mini_app_dialog
-
 
 class TestEnsureActiveMiniAppDialog:
 

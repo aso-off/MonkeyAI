@@ -18,10 +18,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_db_user(model: str = "gpt-4o") -> MagicMock:
     u = MagicMock()
@@ -29,7 +27,6 @@ def _fake_db_user(model: str = "gpt-4o") -> MagicMock:
     u.current_model = model
     u.current_chat_mode = "assistant"
     return u
-
 
 def _fake_models_settings(available: list[str] | None = None) -> dict:
     avail = available or ["gpt-4o", "gpt-5"]
@@ -44,14 +41,12 @@ def _fake_models_settings(available: list[str] | None = None) -> dict:
         },
     }
 
-
 def _fake_message(uid: int | None = None) -> MagicMock:
     msg = MagicMock()
     msg.from_user = MagicMock()
     msg.from_user.id = uid or _uid()
     msg.answer = AsyncMock()
     return msg
-
 
 def _fake_callback(data: str = "profile_model", uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -63,9 +58,7 @@ def _fake_callback(data: str = "profile_model", uid: int | None = None) -> Magic
     cb.message.edit_text = AsyncMock()
     return cb
 
-
 # _model_keyboard
-
 
 class TestModelKeyboard:
 
@@ -110,9 +103,7 @@ class TestModelKeyboard:
         labels = [btn.text for row in kb.inline_keyboard for btn in row]
         assert not any("unknown" in l.lower() for l in labels)
 
-
 # _model_text
-
 
 class TestModelText:
 
@@ -138,9 +129,7 @@ class TestModelText:
             text = _model_text("ru", "gpt-4o")
         assert "🟢" not in text
 
-
 # cmd_model
-
 
 class TestCmdModel:
 
@@ -179,9 +168,7 @@ class TestCmdModel:
         mock_api.update_user.assert_awaited_once()
         msg.answer.assert_awaited_once()
 
-
 # cb_profile_model
-
 
 class TestCbProfileModel:
 
@@ -220,9 +207,7 @@ class TestCbProfileModel:
             await cb_profile_model(cb, language="ru", db_user=db_user)
         mock_api.update_user.assert_awaited_once()
 
-
 # cb_set_model
-
 
 class TestCbSetModel:
 

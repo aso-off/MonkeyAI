@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import types
 
-
 def _make_user_ns(fake, **overrides) -> types.SimpleNamespace:
     """Фабрика: ORM-совместимый объект (users + state + statistics) для UserRead.from_orm_user()."""
     state = types.SimpleNamespace(
@@ -46,7 +45,6 @@ def _make_user_ns(fake, **overrides) -> types.SimpleNamespace:
         statistics=statistics,
     )
 
-
 @pytest.fixture(scope="module")
 def api_app():
     """Создаём FastAPI app один раз для всего модуля."""
@@ -63,7 +61,6 @@ def api_app():
 
     app.router.lifespan_context = _noop_lifespan
     return app
-
 
 @pytest.fixture
 def api_client(api_app, mock_redis):
@@ -90,7 +87,6 @@ def api_client(api_app, mock_redis):
     # Восстанавливаем
     users_mod.get_redis = original_get_redis
     api_app.dependency_overrides.clear()
-
 
 @pytest.fixture
 def user_factory(fake):

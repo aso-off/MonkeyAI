@@ -20,17 +20,13 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 # Helpers
-
 
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
 
-
 def _did() -> str:
     return str(uuid.uuid4())
-
 
 def _fake_user_dict(uid: int | None = None) -> dict:
     uid = uid or _uid()
@@ -53,7 +49,6 @@ def _fake_user_dict(uid: int | None = None) -> dict:
         "last_interaction": None,
     }
 
-
 def _resp(data: Any = None, status: int = 200) -> MagicMock:
     r = MagicMock()
     r.status_code = status
@@ -62,13 +57,10 @@ def _resp(data: Any = None, status: int = 200) -> MagicMock:
     r.raise_for_status = MagicMock()
     return r
 
-
 def _patch_request(return_value):
     return patch("src.services.api_client._request", new=AsyncMock(return_value=return_value))
 
-
 # get_client / close_client
-
 
 class TestGetClient:
 
@@ -114,7 +106,6 @@ class TestGetClient:
         finally:
             ac._client = original
 
-
 class TestCloseClient:
 
     @pytest.mark.asyncio
@@ -141,9 +132,7 @@ class TestCloseClient:
         finally:
             ac._client = original
 
-
 # _decode
-
 
 class TestDecode:
 
@@ -169,9 +158,7 @@ class TestDecode:
         assert result.usage.input_tokens == n_in
         assert result.usage.total_tokens == n_in + n_out
 
-
 # Users
-
 
 class TestGetOrCreateUser:
 
@@ -202,7 +189,6 @@ class TestGetOrCreateUser:
                 result = await ac.get_or_create_user(uid, uid, first_name=fake.first_name())
             assert result.id == uid
 
-
 class TestGetUser:
 
     @pytest.mark.asyncio
@@ -222,7 +208,6 @@ class TestGetUser:
             result = await ac.get_user(_uid())
         assert result is None
 
-
 class TestUpdateUser:
 
     @pytest.mark.asyncio
@@ -235,9 +220,7 @@ class TestUpdateUser:
             result = await ac.update_user(uid, language="en")
         assert result.language == "en"
 
-
 # Dialogs
-
 
 class TestStartNewDialog:
 
@@ -248,7 +231,6 @@ class TestStartNewDialog:
         with _patch_request(_resp({"dialog_id": did})):
             result = await ac.start_new_dialog(_uid())
         assert result == did
-
 
 class TestEnsureDialog:
 
@@ -261,7 +243,6 @@ class TestEnsureDialog:
             result = await ac.ensure_dialog(_uid())
         assert result.dialog_id == did
         assert result.messages == msgs
-
 
 class TestGetDialogMessages:
 
@@ -283,7 +264,6 @@ class TestGetDialogMessages:
             result = await ac.get_dialog_messages(_uid(), dialog_id=None)
         assert result == msgs
 
-
 class TestPopLastExchange:
 
     @pytest.mark.asyncio
@@ -301,7 +281,6 @@ class TestPopLastExchange:
             result = await ac.pop_last_exchange(_uid())
         assert result is None
 
-
 class TestAppendExchange:
 
     @pytest.mark.asyncio
@@ -314,9 +293,7 @@ class TestAppendExchange:
         assert mock_req.await_args is not None
         assert mock_req.await_args.kwargs["json"]["user"] == "промпт"
 
-
 # Chat
-
 
 class TestChatComplete:
 
@@ -357,7 +334,6 @@ class TestChatComplete:
                 chat_mode="assistant", model="gpt-4o",
             )
         assert result.is_flagged is True
-
 
 class TestChatStream:
 
@@ -403,9 +379,7 @@ class TestChatStream:
         assert chunks[0].text == answer
         assert chunks[0].status == "finished"
 
-
 # Media
-
 
 class TestGenerateImages:
 
@@ -430,7 +404,6 @@ class TestGenerateImages:
         assert buffers[0].read() == raw
         assert urls == [imgbb_url]
 
-
 class TestTranscribeAudio:
 
     @pytest.mark.asyncio
@@ -450,9 +423,7 @@ class TestTranscribeAudio:
         assert result_text == text
         assert abs(result_dur - dur) < 0.01
 
-
 # User helpers
-
 
 class TestIsUserAdmin:
 
@@ -494,7 +465,6 @@ class TestIsUserAdmin:
             result = await ac.is_user_admin(uid)
         assert result is False
 
-
 class TestSetUserAdmin:
 
     @pytest.mark.asyncio
@@ -524,7 +494,6 @@ class TestSetUserAdmin:
         with _patch_request(_resp(user_data)):
             await ac.set_user_admin(uid, False)
 
-
 class TestSetUserWhitelisted:
 
     @pytest.mark.asyncio
@@ -549,7 +518,6 @@ class TestSetUserWhitelisted:
         with _patch_request(_resp(data)):
             await ac.set_user_whitelisted(uid, False)
 
-
 class TestGetUsersStats:
 
     @pytest.mark.asyncio
@@ -572,7 +540,6 @@ class TestGetUsersStats:
         assert result.all_users_count == total
         assert result.active_users_count == active
 
-
 class TestApiHealthCheck:
 
     @pytest.mark.asyncio
@@ -591,7 +558,6 @@ class TestApiHealthCheck:
             result = await ac.api_health_check()
         assert result is None
 
-
 class TestGetUserMessageCount:
 
     @pytest.mark.asyncio
@@ -601,7 +567,6 @@ class TestGetUserMessageCount:
         with _patch_request(_resp({"count": count})):
             result = await ac.get_user_message_count(_uid())
         assert result == count
-
 
 class TestGetUserFull:
 
@@ -625,9 +590,7 @@ class TestGetUserFull:
             result = await ac.get_user_full(_uid())
         assert result is None
 
-
 # _b64_to_buf
-
 
 class TestB64ToBuf:
 

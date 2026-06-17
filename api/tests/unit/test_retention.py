@@ -6,19 +6,16 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-
 def _make_session() -> AsyncMock:
     s = AsyncMock()
     s.commit = AsyncMock()
     s.execute = AsyncMock()
     return s
 
-
 def _scalars(values: list) -> MagicMock:
     r = MagicMock()
     r.scalars.return_value.all.return_value = values
     return r
-
 
 @pytest.mark.asyncio
 async def test_purge_single_batch_deletes_and_commits() -> None:
@@ -33,7 +30,6 @@ async def test_purge_single_batch_deletes_and_commits() -> None:
     )
     assert n == 2
     session.commit.assert_awaited_once()
-
 
 @pytest.mark.asyncio
 async def test_purge_loops_until_batch_not_full() -> None:
@@ -52,7 +48,6 @@ async def test_purge_loops_until_batch_not_full() -> None:
     assert n == 3
     assert session.commit.await_count == 2
 
-
 @pytest.mark.asyncio
 async def test_purge_nothing_to_delete() -> None:
     from db.models.user import Dialog
@@ -66,7 +61,6 @@ async def test_purge_nothing_to_delete() -> None:
     )
     assert n == 0
     session.commit.assert_not_awaited()
-
 
 @pytest.mark.asyncio
 async def test_cleanup_dialogs_uses_inactive_cutoff(monkeypatch) -> None:
@@ -89,14 +83,12 @@ async def test_cleanup_dialogs_uses_inactive_cutoff(monkeypatch) -> None:
     expected = datetime.now(timezone.utc) - timedelta(days=90)
     assert abs((captured["cutoff"] - expected).total_seconds()) < 5
 
-
 class _FakeSessionCM:
     async def __aenter__(self):
         return AsyncMock()
 
     async def __aexit__(self, *a):
         return False
-
 
 @pytest.mark.asyncio
 async def test_run_once_calls_cleanups(monkeypatch) -> None:
@@ -106,7 +98,6 @@ async def test_run_once_calls_cleanups(monkeypatch) -> None:
     monkeypatch.setattr(retention, "cleanup_reactions", AsyncMock(return_value=2))
     n_dialogs, n_reactions = await retention.run_once()
     assert (n_dialogs, n_reactions) == (3, 2)
-
 
 @pytest.mark.asyncio
 async def test_cleanup_reactions_uses_created_cutoff(monkeypatch) -> None:

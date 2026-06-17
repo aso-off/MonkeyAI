@@ -25,9 +25,7 @@ Faker.seed(42)
 _BOT_SRC = Path(__file__).resolve().parents[2] / "src"
 _LOGGER_FILE = _BOT_SRC / "core" / "logger.py"
 
-
 # Фикстура загрузки
-
 
 @pytest.fixture(scope="module")
 def bot_logger_module():
@@ -66,9 +64,7 @@ def bot_logger_module():
         except Exception:
             pass
 
-
 # _setup()
-
 
 class TestBotSetup:
 
@@ -103,9 +99,7 @@ class TestBotSetup:
                     bot_logger_module._setup()
         assert logging.getLogger().level == logging.WARNING
 
-
 # _NoiseFilter
-
 
 class TestNoiseFilter:
 
@@ -144,9 +138,7 @@ class TestNoiseFilter:
         f = self._get_filter(bot_logger_module)
         assert f.filter(self._record("POST /webhook/health 200")) is False
 
-
 # _handle_unhandled
-
 
 class TestBotHandleUnhandled:
 
@@ -173,9 +165,7 @@ class TestBotHandleUnhandled:
         call_msg = mock_crit.call_args[0][0]
         assert "Unhandled exception" in call_msg
 
-
 # Async log functions
-
 
 class TestAsyncLogFunctions:
 

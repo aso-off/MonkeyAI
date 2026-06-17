@@ -22,10 +22,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_message(uid: int | None = None) -> MagicMock:
     msg = MagicMock()
@@ -33,7 +31,6 @@ def _fake_message(uid: int | None = None) -> MagicMock:
     msg.from_user.id = uid or _uid()
     msg.answer = AsyncMock()
     return msg
-
 
 def _fake_callback(uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -46,15 +43,12 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.message.answer = AsyncMock()
     return cb
 
-
 def _fake_redis(cached: bytes | None = None) -> AsyncMock:
     r = AsyncMock()
     r.get = AsyncMock(return_value=cached)
     return r
 
-
 # _back_keyboard
-
 
 class TestBackKeyboard:
 
@@ -64,9 +58,7 @@ class TestBackKeyboard:
         assert len(kb.inline_keyboard) == 1
         assert kb.inline_keyboard[0][0].callback_data == "admin_panel"
 
-
 # _get_cached_text
-
 
 class TestGetCachedText:
 
@@ -109,9 +101,7 @@ class TestGetCachedText:
         result = await _get_cached_text(redis)
         assert result is None
 
-
 # cmd_system
-
 
 class TestCmdSystem:
 
@@ -155,9 +145,7 @@ class TestCmdSystem:
         msg.answer.assert_awaited_once()
         assert msg.answer.call_args[0][0] == system_text
 
-
 # cb_admin_system
-
 
 class TestCbAdminSystem:
 

@@ -18,10 +18,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_db_user(mode: str = "assistant") -> MagicMock:
     u = MagicMock()
@@ -29,14 +27,12 @@ def _fake_db_user(mode: str = "assistant") -> MagicMock:
     u.current_chat_mode = mode
     return u
 
-
 def _fake_message(uid: int | None = None) -> MagicMock:
     msg = MagicMock()
     msg.from_user = MagicMock()
     msg.from_user.id = uid or _uid()
     msg.answer = AsyncMock()
     return msg
-
 
 def _fake_callback(data: str = "profile_assistant", uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -48,16 +44,13 @@ def _fake_callback(data: str = "profile_assistant", uid: int | None = None) -> M
     cb.message.edit_text = AsyncMock()
     return cb
 
-
 _BASE_CHAT_MODES = {
     "assistant": {"name": "{assistant_name}", "welcome_message": "{assistant_welcome}"},
     "code_assistant": {"name": "Code Expert", "welcome_message": "Hello from code!"},
     "artist": {"name": "Artist", "welcome_message": ""},
 }
 
-
 # _assistant_keyboard
-
 
 class TestAssistantKeyboard:
 
@@ -118,9 +111,7 @@ class TestAssistantKeyboard:
         )
         assert back_btn is not None
 
-
 # _assistant_text
-
 
 class TestAssistantText:
 
@@ -157,9 +148,7 @@ class TestAssistantText:
             text = _assistant_text("ru", "nonexistent")
         assert isinstance(text, str)
 
-
 # cmd_mode
-
 
 class TestCmdMode:
 
@@ -184,9 +173,7 @@ class TestCmdMode:
             await cmd_mode(msg, language="en", db_user=db_user)
         msg.answer.assert_awaited_once()
 
-
 # cb_profile_assistant
-
 
 class TestCbProfileAssistant:
 
@@ -227,9 +214,7 @@ class TestCbProfileAssistant:
             await cb_profile_assistant(cb, language="ru", db_user=db_user)
         # Не должно поднимать исключение
 
-
 # cb_set_chat_mode
-
 
 class TestCbSetChatMode:
 

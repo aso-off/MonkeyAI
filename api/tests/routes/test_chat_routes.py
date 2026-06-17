@@ -23,9 +23,7 @@ Faker.seed(42)
 
 _MODELS = ["gpt-4o", "gpt-5.4-nano", "gpt-5.4-mini"]
 
-
 # Helpers
-
 
 def _chat_body(**overrides) -> dict:
     return {
@@ -39,12 +37,10 @@ def _chat_body(**overrides) -> dict:
         "skip_moderation": overrides.get("skip_moderation", False),
     }
 
-
 def _fake_image_b64() -> str:
     """Возвращает валидный base64 из случайных байт."""
     raw = fake.binary(length=64)
     return base64.b64encode(raw).decode()
-
 
 def _mock_chatgpt(answer: str | None = None, n_in: int = 10, n_out: int = 20):
     """MagicMock для ChatGPT класса."""
@@ -65,9 +61,7 @@ def _mock_chatgpt(answer: str | None = None, n_in: int = 10, n_out: int = 20):
 
     return MagicMock(return_value=instance)
 
-
 # POST /chat/complete
-
 
 class TestChatComplete:
 
@@ -198,9 +192,7 @@ class TestChatComplete:
         resp = api_client.post("/chat/complete", json=body)
         assert resp.status_code == 422
 
-
 # POST /chat/stream
-
 
 class TestChatStream:
 

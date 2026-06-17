@@ -5,19 +5,16 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-
 def _make_session() -> AsyncMock:
     s = AsyncMock()
     s.commit = AsyncMock()
     s.execute = AsyncMock()
     return s
 
-
 def _scalar_result(value):
     r = MagicMock()
     r.scalar_one_or_none.return_value = value
     return r
-
 
 # truncate_title
 
@@ -25,11 +22,9 @@ def test_truncate_short_stays() -> None:
     from services.title import truncate_title
     assert truncate_title("Привет мир") == "Привет мир"
 
-
 def test_truncate_normalizes_whitespace() -> None:
     from services.title import truncate_title
     assert truncate_title("  привет   мир  ") == "привет мир"
-
 
 def test_truncate_word_boundary_with_ellipsis() -> None:
     from services.title import truncate_title
@@ -38,13 +33,11 @@ def test_truncate_word_boundary_with_ellipsis() -> None:
     assert out.endswith("…")
     assert not out[:-1].endswith(" ")
 
-
 def test_truncate_single_huge_word_hard_cut() -> None:
     from services.title import truncate_title
     out = truncate_title("a" * 100)
     assert len(out) == 40
     assert out.endswith("…")
-
 
 # summarize_title
 
@@ -65,7 +58,6 @@ async def test_summarize_title_clamps_and_strips(monkeypatch) -> None:
     assert not out.startswith('"')
     assert (n_in, n_out) == (12, 7)
 
-
 # set_initial_title / update_dialog_title
 
 @pytest.mark.asyncio
@@ -81,7 +73,6 @@ async def test_set_initial_title_sets_when_none() -> None:
     assert dialog.title == "Что такое Docker"
     session.commit.assert_awaited_once()
 
-
 @pytest.mark.asyncio
 async def test_set_initial_title_noop_when_already_titled() -> None:
     from db.repositories.dialogs import set_initial_title
@@ -94,7 +85,6 @@ async def test_set_initial_title_noop_when_already_titled() -> None:
     assert out is None
     session.commit.assert_not_awaited()
 
-
 @pytest.mark.asyncio
 async def test_set_initial_title_noop_when_dialog_missing() -> None:
     from db.repositories.dialogs import set_initial_title
@@ -104,7 +94,6 @@ async def test_set_initial_title_noop_when_dialog_missing() -> None:
     out = await set_initial_title(session, "did", "текст")
     assert out is None
 
-
 @pytest.mark.asyncio
 async def test_update_dialog_title_commits() -> None:
     from db.repositories.dialogs import update_dialog_title
@@ -112,7 +101,6 @@ async def test_update_dialog_title_commits() -> None:
     await update_dialog_title(session, "did", "Новый заголовок")
     session.execute.assert_awaited_once()
     session.commit.assert_awaited_once()
-
 
 # handle_first_message_title (оркестратор)
 
@@ -127,7 +115,6 @@ async def test_handle_schedules_refine_on_first_message(monkeypatch) -> None:
     await asyncio.sleep(0)
     refine.assert_awaited_once()
 
-
 @pytest.mark.asyncio
 async def test_handle_noop_when_already_titled(monkeypatch) -> None:
     from services import title
@@ -138,7 +125,6 @@ async def test_handle_noop_when_already_titled(monkeypatch) -> None:
     await title.handle_first_message_title(MagicMock(), "did", "текст")
     await asyncio.sleep(0)
     refine.assert_not_awaited()
-
 
 @pytest.mark.asyncio
 async def test_set_initial_title_empty_text_returns_none() -> None:
@@ -152,14 +138,12 @@ async def test_set_initial_title_empty_text_returns_none() -> None:
     assert out is None
     session.commit.assert_not_awaited()
 
-
 class _FakeSessionCM:
     async def __aenter__(self):
         return AsyncMock()
 
     async def __aexit__(self, *a):
         return False
-
 
 @pytest.mark.asyncio
 async def test_refine_title_updates_and_broadcasts(monkeypatch) -> None:
@@ -173,7 +157,6 @@ async def test_refine_title_updates_and_broadcasts(monkeypatch) -> None:
     await title._refine_title("did", None, "текст", "ответ", on_ref)
     upd.assert_awaited_once()
     on_ref.assert_awaited_once_with("Готовый заголовок")
-
 
 @pytest.mark.asyncio
 async def test_refine_title_records_tokens(monkeypatch) -> None:
@@ -189,7 +172,6 @@ async def test_refine_title_records_tokens(monkeypatch) -> None:
     assert tokens.await_args is not None
     assert tokens.await_args.args[1:] == (42, "gpt-5.4-nano", 5, 3)
 
-
 @pytest.mark.asyncio
 async def test_refine_title_skips_when_empty(monkeypatch) -> None:
     from services import title
@@ -199,7 +181,6 @@ async def test_refine_title_skips_when_empty(monkeypatch) -> None:
 
     await title._refine_title("did", None, "текст", None, None)
     upd.assert_not_awaited()
-
 
 @pytest.mark.asyncio
 async def test_refine_title_swallows_errors(monkeypatch) -> None:

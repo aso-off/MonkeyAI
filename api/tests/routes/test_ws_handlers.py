@@ -24,17 +24,14 @@ from faker import Faker
 fake = Faker()
 Faker.seed(10)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000_000, max=999_999_999)
-
 
 def _make_ws() -> AsyncMock:
     ws = AsyncMock()
     ws.send_text = AsyncMock()
     ws.receive_text = AsyncMock()
     return ws
-
 
 def _mock_session_cm():
     """Returns an async context manager that yields an AsyncMock session."""
@@ -46,9 +43,7 @@ def _mock_session_cm():
 
     return _cm, session
 
-
 # _auth_handshake — edge cases
-
 
 class TestAuthHandshakeEdgeCases:
 
@@ -114,9 +109,7 @@ class TestAuthHandshakeEdgeCases:
         payload = json.loads(ws.send_text.call_args[0][0])
         assert payload["type"] == "auth_error"
 
-
 # _heartbeat
-
 
 class TestHeartbeat:
 
@@ -129,9 +122,7 @@ class TestHeartbeat:
             await ws_mod._heartbeat(ws)
         # Не упало — вернулось без исключения
 
-
 # _generation_keepalive
-
 
 class TestGenerationKeepalive:
 
@@ -152,9 +143,7 @@ class TestGenerationKeepalive:
         finally:
             ws_mod._WS_POOL.pop(uid, None)
 
-
 # _handle_chat
-
 
 class TestHandleChat:
 
@@ -422,9 +411,7 @@ class TestHandleChat:
         assert parts == {"text", "image_url"}
         assert uid not in ws_mod._USER_GENERATING
 
-
 # _handle_image
-
 
 class TestHandleImage:
 
@@ -616,9 +603,7 @@ class TestHandleImage:
         assert uid not in ws_mod._USER_GENERATING
         mock_incr.assert_awaited_once_with(session, uid, 1)
 
-
 # _message_loop
-
 
 class TestMessageLoop:
 
@@ -714,7 +699,6 @@ class TestMessageLoop:
         sent = mock_send.call_args[0][1]
         assert sent["type"] == "error"
         assert "unknown type" in sent["error"]
-
 
 # Helpers
 

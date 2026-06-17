@@ -13,9 +13,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-
 # GET /users/{user_id}
-
 
 class TestGetUser:
     @pytest.mark.api
@@ -58,9 +56,7 @@ class TestGetUser:
                 resp = api_client.get(f"/users/{user.id}")
             assert resp.status_code == 200
 
-
 # POST /users
-
 
 class TestCreateUser:
     @pytest.mark.api
@@ -117,9 +113,7 @@ class TestCreateUser:
                 })
             assert resp.status_code == 201
 
-
 # PATCH /users/{user_id}
-
 
 class TestUpdateUser:
     @pytest.mark.api
@@ -177,9 +171,7 @@ class TestUpdateUser:
         assert resp.status_code == 200
         mock_add.assert_awaited_once_with(user.id)
 
-
 # GET /users/stats
-
 
 class TestUsersStats:
     @pytest.mark.api
@@ -214,9 +206,7 @@ class TestUsersStats:
         assert resp.json()["all_users_count"] == total
         assert resp.json()["active_users_count"] == active
 
-
 # GET /health (базовая проверка роутера)
-
 
 class TestHealthRoute:
     @pytest.mark.api

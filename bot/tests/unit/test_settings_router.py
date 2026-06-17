@@ -13,9 +13,7 @@ from faker import Faker
 fake = Faker()
 Faker.seed(4)
 
-
 # _settings_keyboard
-
 
 class TestSettingsKeyboard:
 
@@ -48,9 +46,7 @@ class TestSettingsKeyboard:
             kb = _settings_keyboard(lang)
             assert kb is not None
 
-
 # cmd_settings
-
 
 class TestCmdSettings:
 
@@ -77,9 +73,7 @@ class TestCmdSettings:
             await cmd_settings(msg, language=lang)
             msg.answer.assert_awaited_once()
 
-
 # cb_profile_settings
-
 
 class TestCbProfileSettings:
 

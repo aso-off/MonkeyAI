@@ -1,6 +1,5 @@
 """Minimal health smoke test for BOT (no Telegram/Redis/Postgres)."""
 
-
 def test_bot_health_route_declared() -> None:
     from pathlib import Path
 

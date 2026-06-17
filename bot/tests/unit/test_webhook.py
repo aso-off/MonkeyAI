@@ -34,9 +34,7 @@ _BOT_SRC = Path(__file__).resolve().parents[2] / "src"
 _ROUTER_FILE = _BOT_SRC / "webhook" / "router.py"
 _APP_FILE = _BOT_SRC / "webhook" / "app.py"
 
-
 # Helpers
-
 
 def _fake_update_data() -> dict:
     uid = fake.random_int(min=100_000, max=999_999_999)
@@ -55,7 +53,6 @@ def _fake_update_data() -> dict:
             "text": fake.sentence(),
         },
     }
-
 
 def _make_fake_bot_module():
     """Создаём fake src.core.bot module с mock bot/dp."""
@@ -80,9 +77,7 @@ def _make_fake_bot_module():
     fake_bot_mod = types.SimpleNamespace(bot=mock_bot, dp=mock_dp, fsm_redis=lambda: mock_redis)
     return fake_bot_mod, mock_bot, mock_dp, mock_redis
 
-
 # webhook/router.py
-
 
 @pytest.fixture(scope="module")
 def webhook_router_module():
@@ -110,7 +105,6 @@ def webhook_router_module():
     module._mock_bot = mock_bot
     module._mock_dp = mock_dp
     return module
-
 
 class TestWebhookRouter:
 
@@ -205,9 +199,7 @@ class TestWebhookRouter:
                 )
             assert resp.status_code == 200
 
-
 # webhook/app.py — create_app()
-
 
 @pytest.fixture(scope="module")
 def webhook_app_module():
@@ -252,7 +244,6 @@ def webhook_app_module():
     module._mock_dp = mock_dp
     module._mock_redis = mock_redis
     return module
-
 
 class TestCreateApp:
 
@@ -309,7 +300,6 @@ class TestCreateApp:
         app = webhook_app_module.create_app()
         routes = [r.path for r in app.routes]
         assert any("/webhook" in p for p in routes)
-
 
 class TestLifespan:
 

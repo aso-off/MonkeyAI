@@ -17,10 +17,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_db_user(is_admin: bool = False):
     u = MagicMock()
@@ -28,9 +26,7 @@ def _fake_db_user(is_admin: bool = False):
     u.is_admin = is_admin
     return u
 
-
 # _admin_panel_keyboard
-
 
 class TestAdminPanelKeyboard:
 
@@ -64,9 +60,7 @@ class TestAdminPanelKeyboard:
         for btn in buttons:
             assert btn.callback_data is not None or btn.web_app is not None
 
-
 # cmd_admin
-
 
 class TestCmdAdmin:
 
@@ -137,9 +131,7 @@ class TestCmdAdmin:
                 await cmd_admin(msg, language="ru", db_user=db_user)
             msg.answer.assert_awaited_once()
 
-
 # cb_admin_panel
-
 
 class TestCbAdminPanel:
 
