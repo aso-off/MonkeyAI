@@ -30,6 +30,10 @@ user_tasks: dict[int, asyncio.Task] = {}
 # распределённый лок «занят»
 _BUSY_LOCK_PREFIX = "chat:busy:"
 
+# id последнего ответа — для редактирования при /retry
+_LAST_ANSWER_PREFIX = "chat:last_answer:"
+_LAST_ANSWER_TTL = 172800  # 48ч — лимит редактирования Telegram
+
 _PARSE_MODE_MAP = {"html": "HTML", "markdown": "Markdown", "markdown_v2": "MarkdownV2"}
 
 _bot_username: str | None = None
@@ -57,9 +61,25 @@ def _redis() -> "RedisAsync":
     return fsm_redis()
 
 
+async def _store_answer_id(user_id: int, message_id: int) -> None:
+    await _redis().set(f"{_LAST_ANSWER_PREFIX}{user_id}", str(message_id), ex=_LAST_ANSWER_TTL)
+
+
+async def _pop_answer_id(user_id: int) -> int | None:
+    val = await _redis().get(f"{_LAST_ANSWER_PREFIX}{user_id}")
+    if val is None:
+        return None
+    if isinstance(val, bytes):
+        val = val.decode()
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return None
+
+
 async def _is_busy(user_id: int, message: Message, language: str) -> bool:
     if await _redis().exists(f"{_BUSY_LOCK_PREFIX}{user_id}"):
-        await message.reply(t("wait_for_previous", language), parse_mode="HTML")
+        await _reply(message, t("wait_for_previous", language))
         return True
     return False
 
@@ -101,6 +121,10 @@ def _mode_welcome(chat_mode: str, lang: str) -> str:
 
 def _reply_to(message: Message) -> ReplyParameters:
     return ReplyParameters(message_id=message.message_id, allow_sending_without_reply=True)
+
+
+async def _reply(message: Message, text: str, parse_mode: str | None = "HTML") -> None:
+    await message.answer(text, parse_mode=parse_mode, reply_parameters=_reply_to(message))
 
 
 async def _send_legacy(message: Message, final_raw: str, parse_mode: str) -> None:
@@ -190,7 +214,8 @@ async def cmd_retry(message: Message, language: str, bot: Bot, db_user=None) -> 
                     except Exception:
                         logger.warning("Failed to decode retry image for user %d", user_id)
 
-    await _run_handle(message, bot, language, user_id, text, image_buffer)
+    edit_message_id = await _pop_answer_id(user_id)
+    await _run_handle(message, bot, language, user_id, text, image_buffer, edit_message_id=edit_message_id)
 
 
 async def generate_image(
@@ -216,24 +241,27 @@ async def generate_image(
         body = e.response.text
         if status in (400, 422) and ("content_policy_violation" in body or "moderation_blocked" in body):
             await monkey.send(bot, message.chat.id, "sad")
-            await message.reply(t("image_generation_rejected", language), parse_mode="HTML")
+            await _reply(message, t("image_generation_rejected", language))
         elif status == 429:
             await monkey.send(bot, message.chat.id, "sad")
-            await message.reply(t("rate_limit_error", language), parse_mode="HTML")
+            await _reply(message, t("rate_limit_error", language))
         else:
             await monkey.send(bot, message.chat.id, "error")
-            await message.reply(t("image_generation_error", language).format(e), parse_mode="HTML")
+            await _reply(message, t("image_generation_error", language).format(e))
         logger.error("Image generation HTTP %d for user %d: %s", status, user_id, body)
         return
     except Exception as e:
         await monkey.send(bot, message.chat.id, "error")
-        await message.reply(t("image_generation_error", language).format(e), parse_mode="HTML")
+        await _reply(message, t("image_generation_error", language).format(e))
         logger.error("Image generation failed for user %d: %s", user_id, e)
         return
 
     for img_buf in image_buffers:
         await bot.send_chat_action(message.chat.id, "upload_photo")
-        await message.reply_photo(BufferedInputFile(img_buf.read(), filename="image.png"))
+        await message.answer_photo(
+            BufferedInputFile(img_buf.read(), filename="image.png"),
+            reply_parameters=_reply_to(message),
+        )
 
     # чтобы работал /retry; ImgBB-URL — для галереи
     saved_url = next((u for u in imgbb_urls if u), "[generated_image]")
@@ -253,13 +281,14 @@ async def _handle_text_or_vision(
     user_id: int,
     text: str,
     image_buffer: BytesIO | None = None,
-) -> None:
+    edit_message_id: int | None = None,
+) -> int | None:
     user, ensure_result = await asyncio.gather(
         api.get_user(user_id),
         api.ensure_dialog(user_id),
     )
     if user is None:
-        return
+        return None
 
     chat_mode = user.current_chat_mode
     if chat_mode not in settings.chat_modes:
@@ -274,19 +303,19 @@ async def _handle_text_or_vision(
     await bot.send_chat_action(message.chat.id, "typing")
 
     if not text.strip():
-        await message.reply(t("empty_message", language), parse_mode="HTML")
-        return
+        await _reply(message, t("empty_message", language))
+        return None
 
     raw_pm = settings.chat_modes.get(chat_mode, {}).get("parse_mode", "html")
     parse_mode = _PARSE_MODE_MAP.get(raw_pm, "HTML")
     use_rich = settings.enable_rich_messages and message.chat.type == ChatType.PRIVATE
+    draft_enabled = use_rich and edit_message_id is None
 
     image_b64: str | None = None
     if image_buffer is not None:
         image_buffer.seek(0)
         image_b64 = base64.b64encode(image_buffer.read()).decode()
 
-    n_first_removed = 0
     answer = ""
     is_flagged = False
 
@@ -297,7 +326,7 @@ async def _handle_text_or_vision(
             last_think = 0.0
             reasoning = ""
             show_thinking = (
-                use_rich
+                draft_enabled
                 and settings.enable_thinking_block
                 and rich.is_reasoning_model(current_model, settings.models)
             )
@@ -316,10 +345,9 @@ async def _handle_text_or_vision(
                 answer = chunk.text
                 if chunk.reasoning:
                     reasoning = chunk.reasoning
-                n_first_removed = chunk.n_first_removed
 
-                # rich-черновик только в ЛС
-                if not use_rich or chunk.status != "not_finished":
+                # rich-черновик только в ЛС и не при редактировании
+                if not draft_enabled or chunk.status != "not_finished":
                     continue
 
                 now = time.monotonic()
@@ -358,32 +386,45 @@ async def _handle_text_or_vision(
             )
             is_flagged = result.is_flagged
             answer = result.answer
-            n_first_removed = result.n_first_removed
 
         if is_flagged:
             await monkey.send(bot, message.chat.id, "sad")
-            await message.reply(t("content_moderation_failed", language), parse_mode="HTML")
-            return
+            await _reply(message, t("content_moderation_failed", language))
+            return None
 
         if not answer.strip():
             await monkey.send(bot, message.chat.id, "error")
-            await message.reply(t("error_response", language), parse_mode="HTML")
-            return
+            await _reply(message, t("error_response", language))
+            return None
 
         limit = settings.rich_message_max_length if use_rich else settings.message_max_length
         final_raw = answer[:limit].strip()
 
+        sent_id: int | None = None
         # финал заменяет черновик
         if use_rich:
-            try:
-                await message.answer_rich(
-                    rich_message=rich.build_message(final_raw, settings.rich_message_max_length),
-                    reply_parameters=_reply_to(message),
-                    message_effect_id=settings.message_effect_id or None,
-                )
-            except Exception as exc:
-                logger.warning("answer_rich failed (user %d), fallback to legacy: %s", user_id, exc)
-                await _send_legacy(message, final_raw[: settings.message_max_length], parse_mode)
+            rich_msg = rich.build_message(final_raw, settings.rich_message_max_length)
+            if edit_message_id is not None:
+                try:
+                    await bot.edit_message_text(
+                        chat_id=message.chat.id,
+                        message_id=edit_message_id,
+                        rich_message=rich_msg,
+                    )
+                    sent_id = edit_message_id
+                except Exception as exc:
+                    logger.warning("edit rich failed (user %d), sending new: %s", user_id, exc)
+            if sent_id is None:
+                try:
+                    sent = await message.answer_rich(
+                        rich_message=rich_msg,
+                        reply_parameters=_reply_to(message),
+                        message_effect_id=settings.message_effect_id or None,
+                    )
+                    sent_id = sent.message_id
+                except Exception as exc:
+                    logger.warning("answer_rich failed (user %d), fallback to legacy: %s", user_id, exc)
+                    await _send_legacy(message, final_raw[: settings.message_max_length], parse_mode)
         else:
             await _send_legacy(message, final_raw, parse_mode)
 
@@ -393,19 +434,12 @@ async def _handle_text_or_vision(
 
     except Exception as exc:
         await monkey.send(bot, message.chat.id, "error")
-        await message.reply(t("error_message", language).format(exc), parse_mode="HTML")
+        await _reply(message, t("error_message", language).format(exc))
         logger.error("Message handle error for user %d: %s", user_id, exc, exc_info=True)
-        return
-
-    if n_first_removed == 1:
-        await message.reply(t("context_message_removed_one", language), parse_mode="HTML")
-    elif n_first_removed > 1:
-        await message.reply(
-            t("context_messages_removed_many", language).format(n_first_removed),
-            parse_mode="HTML",
-        )
+        return None
 
     await monkey.delete_processing(bot, message.chat.id)
+    return sent_id
 
 
 async def _run_handle(
@@ -415,29 +449,33 @@ async def _run_handle(
     user_id: int,
     text: str,
     image_buffer: BytesIO | None = None,
+    edit_message_id: int | None = None,
 ) -> None:
     """Acquire the distributed busy lock, store task ref, run core handler."""
     lock_key = f"{_BUSY_LOCK_PREFIX}{user_id}"
     # TTL — страховка от зависания
     acquired = await _redis().set(lock_key, "1", nx=True, ex=settings.busy_lock_ttl_seconds)
     if not acquired:
-        await message.reply(t("wait_for_previous", language), parse_mode="HTML")
+        await _reply(message, t("wait_for_previous", language))
         return
 
     task = asyncio.current_task()
     if task is not None:
         user_tasks[user_id] = task
     try:
-        await _handle_text_or_vision(
+        sent_id = await _handle_text_or_vision(
             message,
             bot,
             language,
             user_id,
             text,
             image_buffer,
+            edit_message_id=edit_message_id,
         )
+        if sent_id is not None:
+            await _store_answer_id(user_id, sent_id)
     except asyncio.CancelledError:
-        await message.reply(t("operation_cancelled", language), parse_mode="HTML")
+        await _reply(message, t("operation_cancelled", language))
     finally:
         user_tasks.pop(user_id, None)
         await _redis().delete(lock_key)
@@ -524,12 +562,12 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
     except Exception as exc:
         logger.error("Voice transcription failed for user %d: %s", user_id, exc, exc_info=True)
         await monkey.send(bot, message.chat.id, "error")
-        await message.reply(t("voice_recognition_failed", language), parse_mode="HTML")
+        await _reply(message, t("voice_recognition_failed", language))
         return
 
     if not transcribed:
         await monkey.send(bot, message.chat.id, "error")
-        await message.reply(t("voice_recognition_failed", language), parse_mode="HTML")
+        await _reply(message, t("voice_recognition_failed", language))
         return
 
     await _run_handle(message, bot, language, user_id, transcribed)
@@ -539,11 +577,13 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
     F.document | F.video | F.audio | F.sticker | F.animation,
     StateFilter("*"),
 )
-async def msg_unsupported(message: Message, language: str) -> None:
-    await message.reply(t("unsupported_media", language))
+async def msg_unsupported(message: Message, language: str, bot: Bot) -> None:
+    if not await _is_bot_mentioned(message, bot):
+        return
+    await _reply(message, t("unsupported_media", language))
 
 
 @router.edited_message(F.text | F.photo, StateFilter("*"))
 async def msg_edited(message: Message, language: str) -> None:
     if message.chat.type == ChatType.PRIVATE:
-        await message.reply(t("edited_message_unsupported", language), parse_mode="HTML")
+        await _reply(message, t("edited_message_unsupported", language))
