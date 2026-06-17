@@ -18,9 +18,7 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 # Helpers
-
 
 def _make_engine_mock():
     mock_conn = mock.AsyncMock()
@@ -32,7 +30,6 @@ def _make_engine_mock():
     mock_engine.connect = mock.MagicMock(return_value=mock_connect_ctx)
     return mock_engine, mock_conn
 
-
 def _make_session_mock():
     mock_session = mock.AsyncMock()
     mock_ctx = mock.MagicMock()
@@ -41,9 +38,7 @@ def _make_session_mock():
     mock_factory = mock.MagicMock(return_value=mock_ctx)
     return mock_factory, mock_session, mock_ctx
 
-
 # get_session
-
 
 class TestGetSession:
 
@@ -94,9 +89,7 @@ class TestGetSession:
 
         mock_factory.assert_called_once()
 
-
 # init_db
-
 
 class TestInitDb:
 
@@ -132,9 +125,7 @@ class TestInitDb:
         upgrade.assert_called_once()
         assert upgrade.call_args.args[1] == "head"
 
-
 # Base & module-level
-
 
 class TestBaseAndEngine:
 

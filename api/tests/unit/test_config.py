@@ -35,9 +35,7 @@ _BASE_YAML: dict[str, str] = {
     "models.yml": "available_text_models:\n- gpt-4o\n",
 }
 
-
 # Helpers
-
 
 def _open_mock(yaml_map: dict):
     """builtins.open, который для .yml возвращает StringIO, иначе — реальный open."""
@@ -55,7 +53,6 @@ def _open_mock(yaml_map: dict):
 
     return _impl
 
-
 def _load_config_module(env: dict, yaml_map: dict | None = None):
     if yaml_map is None:
         yaml_map = _BASE_YAML
@@ -69,7 +66,6 @@ def _load_config_module(env: dict, yaml_map: dict | None = None):
             spec.loader.exec_module(module)
     return module
 
-
 def _base_env() -> dict:
     return {
         "OPENAI_API_KEY": f"sk-{fake.sha256()[:32]}",
@@ -79,9 +75,7 @@ def _base_env() -> dict:
         "TELEGRAM_TOKEN": f"{fake.random_int(10**8, 10**9 - 1)}:{fake.sha256()[:35]}",
     }
 
-
 # Fixtures
-
 
 @pytest.fixture(scope="module")
 def cfg():
@@ -96,9 +90,7 @@ def cfg():
     module = _load_config_module(env, yaml_map)
     return module, env, admin_id, allowed_id
 
-
 # _load_yaml
-
 
 class TestLoadYaml:
 
@@ -133,9 +125,7 @@ class TestLoadYaml:
             result = module._load_yaml(Path("nested.yml"))
         assert result["section"][key] == val
 
-
 # parse_admin_ids validator
-
 
 class TestParseAdminIds:
 
@@ -173,9 +163,7 @@ class TestParseAdminIds:
             result = module.Settings.parse_admin_ids(str(uid))
             assert result == [uid]
 
-
 # Свойства database_url / redis_url
-
 
 class TestSettingsProperties:
 
@@ -213,9 +201,7 @@ class TestSettingsProperties:
         url = module.settings.database_url
         assert "localhost" in url or "postgres" in url
 
-
 # Значения из YAML (load_yaml_configs)
-
 
 class TestSettingsYamlValues:
 
@@ -269,9 +255,7 @@ class TestSettingsYamlValues:
         result = module.Settings.parse_admin_ids(str(uid))
         assert uid in result
 
-
 # get_settings lru_cache
-
 
 class TestGetSettings:
 

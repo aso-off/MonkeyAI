@@ -26,7 +26,6 @@ _verify_init_data = _sec_mod._verify_init_data
 
 _BOT_TOKEN = "1234567890:AABBCCDDEEFFaabbccddeeff00112233445"
 
-
 def _make_init_data(
     bot_token: str = _BOT_TOKEN,
     user_id: int = 123456789,
@@ -47,9 +46,7 @@ def _make_init_data(
     hash_ = hmac.new(secret, data_check.encode(), hashlib.sha256).hexdigest()
     return urlencode({**params, "hash": hash_})
 
-
 # Тесты
-
 
 class TestVerifyInitDataValid:
     @pytest.mark.unit
@@ -83,7 +80,6 @@ class TestVerifyInitDataValid:
     def test_custom_max_age_accepts_fresh_data(self) -> None:
         assert isinstance(_verify_init_data(_make_init_data(), _BOT_TOKEN, max_age_seconds=86400), dict)
 
-
 class TestVerifyInitDataMissingFields:
     @pytest.mark.unit
     @pytest.mark.security
@@ -107,7 +103,6 @@ class TestVerifyInitDataMissingFields:
         hash_ = hmac.new(secret, data_check.encode(), hashlib.sha256).hexdigest()
         with pytest.raises(ValueError, match="auth_date missing"):
             _verify_init_data(urlencode({**params, "hash": hash_}), _BOT_TOKEN)
-
 
 class TestVerifyInitDataExpiry:
     @pytest.mark.unit
@@ -134,7 +129,6 @@ class TestVerifyInitDataExpiry:
     def test_custom_max_age_accepts(self) -> None:
         init_data = _make_init_data(auth_date=int(time.time()) - 600)
         assert isinstance(_verify_init_data(init_data, _BOT_TOKEN, max_age_seconds=3600), dict)
-
 
 class TestVerifyInitDataWrongHash:
     @pytest.mark.unit
@@ -163,7 +157,6 @@ class TestVerifyInitDataWrongHash:
         random_data = f"user=%7B%22id%22%3A{fake.random_int()}%7D&auth_date={int(time.time())}&hash={'x'*64}"
         with pytest.raises(ValueError):
             _verify_init_data(random_data, _BOT_TOKEN)
-
 
 class TestVerifyInitDataHmacCorrectness:
     @pytest.mark.unit

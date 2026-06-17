@@ -28,7 +28,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 fake = Faker()
 Faker.seed(42)
 
-
 def _tg_user(**overrides) -> dict:
     return {
         "id": overrides.get("id", fake.random_int(min=100_000, max=999_999_999)),
@@ -37,10 +36,8 @@ def _tg_user(**overrides) -> dict:
         "language_code": "ru",
     }
 
-
 def _make_init_data(tg: dict) -> dict:
     return {"user": json.dumps(tg)}
-
 
 @pytest.fixture
 def webapp_client(api_app, mock_redis, fake):
@@ -63,9 +60,7 @@ def webapp_client(api_app, mock_redis, fake):
         yield client, tg
     api_app.dependency_overrides.clear()
 
-
 # _require_user
-
 
 class TestRequireUser:
 
@@ -122,9 +117,7 @@ class TestRequireUser:
                 await _require_user(session, fake.random_int(min=100_000, max=999_999_999))
         assert exc_info.value.status_code == 404
 
-
 # _require_whitelisted
-
 
 class TestRequireWhitelisted:
 
@@ -172,9 +165,7 @@ class TestRequireWhitelisted:
                 await _require_whitelisted(session, fake.random_int(min=100_000, max=999_999_999))
         assert exc_info.value.status_code == 403
 
-
 # GET /webapp/me — дополнительные ветки
-
 
 class TestGetMeExtended:
 
@@ -210,9 +201,7 @@ class TestGetMeExtended:
             resp = client.get("/webapp/me")
         assert resp.status_code == 200
 
-
 # PATCH /webapp/me — дополнительные ветки
-
 
 class TestUpdateMeExtended:
 
@@ -243,9 +232,7 @@ class TestUpdateMeExtended:
         write_prefs_mock.assert_awaited_once()
         db_write_mock.assert_awaited_once()
 
-
 # POST /webapp/chat
-
 
 class TestWebappChatExtended:
 
@@ -361,9 +348,7 @@ class TestWebappChatExtended:
         assert resp.status_code == 200
         mock_gpt.send_vision_message.assert_awaited_once()
 
-
 # POST /webapp/reactions
-
 
 class TestWebappReactions:
 
@@ -393,9 +378,7 @@ class TestWebappReactions:
         })
         assert resp.status_code == 400
 
-
 # Dialog CRUD / search / images
-
 
 def _fake_dialog_row(title: str = "Заголовок"):
     d = MagicMock()
@@ -404,7 +387,6 @@ def _fake_dialog_row(title: str = "Заголовок"):
     d.last_activity = datetime.now(timezone.utc)
     d.start_time = datetime.now(timezone.utc)
     return d
-
 
 class TestDialogCrud:
 
@@ -497,9 +479,7 @@ class TestDialogCrud:
         assert resp.status_code == 200
         assert resp.json()["images"][0]["id"] == 1
 
-
 # GET /webapp/dialogs/messages
-
 
 class TestGetMessagesExtended:
 

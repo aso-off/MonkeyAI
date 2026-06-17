@@ -18,10 +18,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_message(uid: int | None = None) -> MagicMock:
     msg = MagicMock()
@@ -31,7 +29,6 @@ def _fake_message(uid: int | None = None) -> MagicMock:
     msg.chat.id = msg.from_user.id
     msg.answer = AsyncMock(return_value=MagicMock(edit_text=AsyncMock()))
     return msg
-
 
 def _fake_callback(uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -44,12 +41,10 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.message.reply_markup = MagicMock()
     return cb
 
-
 def _fake_redis(start_time: str | None = None) -> AsyncMock:
     r = AsyncMock()
     r.get = AsyncMock(return_value=start_time)
     return r
-
 
 def _fake_settings(**overrides):
     s = MagicMock()
@@ -58,9 +53,7 @@ def _fake_settings(**overrides):
     s.bot_creation_date = overrides.get("bot_creation_date", "2025-02-01")
     return s
 
-
 # _status_keyboard
-
 
 class TestStatusKeyboard:
 
@@ -70,9 +63,7 @@ class TestStatusKeyboard:
         assert len(kb.inline_keyboard) == 1
         assert kb.inline_keyboard[0][0].callback_data == "admin_panel"
 
-
 # _build_status_text
-
 
 class TestBuildStatusText:
 
@@ -184,9 +175,7 @@ class TestBuildStatusText:
             text = await _build_status_text("ru")
         assert isinstance(text, str)
 
-
 # cmd_status
-
 
 class TestCmdStatus:
 
@@ -218,9 +207,7 @@ class TestCmdStatus:
         msg.answer.assert_awaited_once()
         sent_msg.edit_text.assert_awaited_once()
 
-
 # cb_admin_status
-
 
 class TestCbAdminStatus:
 

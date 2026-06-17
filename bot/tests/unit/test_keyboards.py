@@ -11,7 +11,6 @@ import types
 import pytest
 from aiogram.types import InlineKeyboardMarkup
 
-
 # start.py keyboards
 
 class TestPrivateKeyboard:
@@ -76,7 +75,6 @@ class TestPrivateKeyboard:
         kb_user = _private_keyboard(is_admin=False, lang="ru")
         assert len(kb_admin.inline_keyboard) > len(kb_user.inline_keyboard)
 
-
 class TestGroupKeyboard:
     """Тесты _group_keyboard из routers/start.py."""
 
@@ -104,9 +102,7 @@ class TestGroupKeyboard:
         all_data = [btn.callback_data for row in _group_keyboard("ru").inline_keyboard for btn in row if btn.callback_data]
         assert "admin_panel" not in all_data
 
-
 # admin/admin.py keyboard
-
 
 class TestAdminPanelKeyboard:
     @pytest.mark.unit
@@ -129,9 +125,7 @@ class TestAdminPanelKeyboard:
         kb = _admin_panel_keyboard(lang)
         assert len(kb.inline_keyboard) > 0
 
-
 # admin/whitelist.py keyboards
-
 
 class TestWhitelistKeyboard:
     @pytest.fixture(autouse=True)
@@ -168,7 +162,6 @@ class TestWhitelistKeyboard:
         from src.bot.routers.admin.whitelist import _whitelist_keyboard
         all_data = {btn.callback_data for row in _whitelist_keyboard("ru", True).inline_keyboard for btn in row if btn.callback_data}
         assert "admin_panel" in all_data
-
 
 class TestManageUsersKeyboard:
     @pytest.fixture(autouse=True)
@@ -209,7 +202,6 @@ class TestManageUsersKeyboard:
         all_data = {btn.callback_data for row in _manage_users_keyboard("ru").inline_keyboard for btn in row if btn.callback_data}
         assert "admin_whitelist" in all_data
 
-
 class TestCancelKeyboard:
     @pytest.fixture(autouse=True)
     def patch_whitelist_settings(self, mocker):
@@ -226,9 +218,7 @@ class TestCancelKeyboard:
         assert len(all_buttons) == 1
         assert all_buttons[0].callback_data == "cancel_user_operation"
 
-
 # profile/profile.py keyboard
-
 
 class TestProfileKeyboard:
     @pytest.mark.unit
@@ -256,9 +246,7 @@ class TestProfileKeyboard:
         all_data = {btn.callback_data for row in _profile_keyboard("ru").inline_keyboard for btn in row if btn.callback_data}
         assert "back_to_start" in all_data
 
-
 # profile/profile.py — _build_profile_text
-
 
 class TestBuildProfileText:
     @pytest.fixture(autouse=True)

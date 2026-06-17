@@ -64,7 +64,6 @@ def _make_fake_settings() -> types.SimpleNamespace:
         retention_batch_size=500,
     )
 
-
 # Module-level stubs (выполняются при импорте conftest, до коллекции тестов)
 
 _stub_logger: Any = types.ModuleType("core.logger")
@@ -74,7 +73,6 @@ sys.modules.setdefault("core.logger", _stub_logger)
 _stub_config: Any = types.ModuleType("core.config")
 _stub_config.settings = _make_fake_settings()
 sys.modules.setdefault("core.config", _stub_config)
-
 
 class _SyncFakeRedis:
     async def ping(self): return True
@@ -90,7 +88,6 @@ class _SyncFakeRedis:
     def pipeline(self): return self
     async def execute(self): return []
 
-
 _stub_redis_instance = _SyncFakeRedis()
 _stub_redis: Any = types.ModuleType("core.redis")
 _stub_redis.init_redis = lambda: None
@@ -102,15 +99,12 @@ sys.modules.setdefault("core.redis", _stub_redis)
 # core.security - нужен routes.health и другим роутерам при импорте
 _stub_security: Any = types.ModuleType("core.security")
 
-
 async def _noop_verify_service_token() -> None:
     """Noop: без параметров — FastAPI не пытается распарсить *args из запроса."""
     return None
 
-
 async def _noop_verify_webapp_init_data() -> dict:
     return {}
-
 
 _stub_security.verify_service_token = _noop_verify_service_token
 _stub_security.verify_webapp_init_data = _noop_verify_webapp_init_data
@@ -121,18 +115,15 @@ sys.modules.setdefault("core.security", _stub_security)
 
 Faker.seed(42)
 
-
 @pytest.fixture(scope="session")
 def fake() -> Faker:
     """Faker с ru_RU + en_US локалями. Session-scoped — создаётся один раз."""
     return Faker(["ru_RU", "en_US"])
 
-
 @pytest.fixture
 def fake_settings() -> types.SimpleNamespace:
     """Свежий экземпляр fake settings для каждого теста."""
     return _make_fake_settings()
-
 
 @pytest.fixture
 def mock_redis() -> AsyncMock:
@@ -160,7 +151,6 @@ def mock_redis() -> AsyncMock:
     r.pipeline = MagicMock(return_value=pipe)
 
     return r
-
 
 @pytest.fixture
 def mock_openai_client() -> MagicMock:

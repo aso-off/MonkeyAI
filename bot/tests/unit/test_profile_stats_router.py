@@ -16,10 +16,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_callback(uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -30,7 +28,6 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.message = MagicMock(spec=Message)
     cb.message.edit_text = AsyncMock()
     return cb
-
 
 def _fake_profile(message_count: int | None = None) -> MagicMock:
     profile = MagicMock()
@@ -44,9 +41,7 @@ def _fake_profile(message_count: int | None = None) -> MagicMock:
     )
     return profile
 
-
 # _stats_keyboard
-
 
 class TestStatsKeyboard:
 
@@ -62,9 +57,7 @@ class TestStatsKeyboard:
             kb = _stats_keyboard(lang)
             assert kb.inline_keyboard[0][0].callback_data == "profile"
 
-
 # cb_profile_stats
-
 
 class TestCbProfileStats:
 

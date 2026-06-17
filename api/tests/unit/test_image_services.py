@@ -19,9 +19,7 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 # Helpers
-
 
 def _tiny_png_b64() -> str:
     """Реальный 4×4 белый PNG в base64 для тестирования PIL."""
@@ -30,13 +28,11 @@ def _tiny_png_b64() -> str:
     Image.new("RGB", (4, 4), color=(255, 255, 255)).save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode()
 
-
 def _tiny_png_bytes() -> bytes:
     from PIL import Image
     buf = io.BytesIO()
     Image.new("RGB", (4, 4), color=(255, 255, 255)).save(buf, format="PNG")
     return buf.getvalue()
-
 
 def _make_image_response(b64: str | None = None, url: str | None = None):
     """MagicMock для openai images.generate response."""
@@ -47,9 +43,7 @@ def _make_image_response(b64: str | None = None, url: str | None = None):
     resp.data = [item]
     return resp
 
-
 # services/image_generation.py
-
 
 class TestGenerateImageB64:
 
@@ -122,7 +116,6 @@ class TestGenerateImageB64:
                 )
             assert result.startswith("data:image/png;base64,")
 
-
 class TestGenerateImageUrl:
 
     @pytest.mark.asyncio
@@ -152,7 +145,6 @@ class TestGenerateImageUrl:
             result = await generate_image_url(prompt=fake.sentence())
 
         assert result == f"data:image/png;base64,{b64}"
-
 
 class TestGenerateImages:
 
@@ -235,9 +227,7 @@ class TestGenerateImages:
 
         assert len(results) == 1
 
-
 # services/image_processing.py
-
 
 class TestProcessGeneratedImage:
 
@@ -286,7 +276,6 @@ class TestProcessGeneratedImage:
         for _ in range(3):
             result = process_generated_image(b64)
             assert result["data"]
-
 
 class TestUploadToImgbb:
 

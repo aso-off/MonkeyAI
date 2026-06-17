@@ -21,9 +21,7 @@ from openai import BadRequestError
 fake = Faker()
 Faker.seed(42)
 
-
 # Helpers
-
 
 def _fake_image_buffers(n: int = 1) -> list[BytesIO]:
     bufs = []
@@ -34,13 +32,10 @@ def _fake_image_buffers(n: int = 1) -> list[BytesIO]:
         bufs.append(b)
     return bufs
 
-
 def _fake_audio_content(size_bytes: int = 1024) -> bytes:
     return fake.binary(length=size_bytes)
 
-
 # POST /media/images/generate
-
 
 class TestImagesGenerate:
 
@@ -194,9 +189,7 @@ class TestImagesGenerate:
         )
         assert resp.status_code == 422
 
-
 # POST /media/audio/transcribe
-
 
 class TestAudioTranscribe:
 

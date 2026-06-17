@@ -6,11 +6,9 @@ import pytest
 
 from src.utils.stickers import MonkeyStickers
 
-
 @pytest.fixture
 def stickers() -> MonkeyStickers:
     return MonkeyStickers()
-
 
 @pytest.fixture
 def mock_bot() -> MagicMock:
@@ -20,9 +18,7 @@ def mock_bot() -> MagicMock:
     bot.delete_message = AsyncMock(return_value=True)
     return bot
 
-
 # get_random
-
 
 class TestGetRandom:
     @pytest.mark.unit
@@ -64,9 +60,7 @@ class TestGetRandom:
         for cat in stickers.PROCESSING_CATEGORIES:
             assert cat in stickers.STICKERS
 
-
 # send
-
 
 class TestSend:
     @pytest.mark.unit
@@ -133,9 +127,7 @@ class TestSend:
 
         assert stickers._processing.get(10) == msg_id
 
-
 # delete_processing
-
 
 class TestDeleteProcessing:
     @pytest.mark.unit
@@ -172,9 +164,7 @@ class TestDeleteProcessing:
         await stickers.delete_processing(mock_bot, chat_id=chat_id)
         assert chat_id not in stickers._processing
 
-
 # Синглтон monkey
-
 
 class TestMonkeySingleton:
     @pytest.mark.unit

@@ -17,10 +17,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_message(uid: int | None = None) -> MagicMock:
     msg = MagicMock()
@@ -28,7 +26,6 @@ def _fake_message(uid: int | None = None) -> MagicMock:
     msg.from_user.id = uid or _uid()
     msg.answer = AsyncMock()
     return msg
-
 
 def _fake_callback(uid: int | None = None) -> MagicMock:
     cb = MagicMock()
@@ -40,9 +37,7 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     cb.message.edit_text = AsyncMock()
     return cb
 
-
 # _ping_result_keyboard
-
 
 class TestPingResultKeyboard:
 
@@ -58,9 +53,7 @@ class TestPingResultKeyboard:
             kb = _ping_result_keyboard(lang)
             assert kb.inline_keyboard[0][0].callback_data == "profile_settings"
 
-
 # _measure_ping_ms
-
 
 class TestMeasurePingMs:
 
@@ -96,9 +89,7 @@ class TestMeasurePingMs:
             await _measure_ping_ms()
         assert mock_bot.get_me.await_count == 3
 
-
 # cmd_ping
-
 
 class TestCmdPing:
 
@@ -124,9 +115,7 @@ class TestCmdPing:
                 await cmd_ping(msg, language="en")
             msg.answer.assert_awaited_once()
 
-
 # cb_ping
-
 
 class TestCbPing:
 

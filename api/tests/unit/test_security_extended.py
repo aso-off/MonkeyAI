@@ -28,9 +28,7 @@ Faker.seed(42)
 
 _SECURITY_FILE = Path(__file__).resolve().parents[2] / "src" / "core" / "security.py"
 
-
 # Helpers
-
 
 def _load_real_security() -> Any:
     """Загружаем реальный security.py через importlib, минуя stub из conftest."""
@@ -41,7 +39,6 @@ def _load_real_security() -> Any:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
 
 def _make_init_data(bot_token: str, user_id: int, max_age_seconds: int = 3600) -> str:
     """Генерируем валидный initData с корректным HMAC."""
@@ -57,9 +54,7 @@ def _make_init_data(bot_token: str, user_id: int, max_age_seconds: int = 3600) -
     params["hash"] = hash_value
     return "&".join(f"{k}={quote(str(v))}" for k, v in params.items())
 
-
 # verify_service_token
-
 
 class TestVerifyServiceToken:
 
@@ -111,9 +106,7 @@ class TestVerifyServiceToken:
             await mod.verify_service_token(None)
         assert exc_info.value.status_code == 401
 
-
 # _verify_init_data
-
 
 class TestVerifyInitData:
 
@@ -180,9 +173,7 @@ class TestVerifyInitData:
         user = json.loads(result["user"])
         assert user["id"] == uid
 
-
 # verify_webapp_init_data
-
 
 class TestVerifyWebappInitData:
 

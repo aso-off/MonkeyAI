@@ -23,9 +23,7 @@ _TEST_MODELS = {
 }
 _MODEL_OPTIONS = {m: info["options"] for m, info in _TEST_MODELS["info"].items()}
 
-
 # Фикстуры
-
 
 @pytest.fixture
 def mock_openai(mocker):
@@ -34,7 +32,6 @@ def mock_openai(mocker):
     client.chat.completions.create = AsyncMock()
     mocker.patch("services.openai.make_client", return_value=client)
     return client
-
 
 @pytest.fixture
 def mock_settings(mocker):
@@ -51,14 +48,11 @@ def mock_settings(mocker):
     mocker.patch("services.openai.settings", settings)
     return settings
 
-
 @pytest.fixture
 def gpt(mock_openai, mock_settings) -> ChatGPT:
     return ChatGPT(model="gpt-4o")
 
-
 # __init__
-
 
 class TestChatGPTInit:
     @pytest.mark.unit
@@ -77,9 +71,7 @@ class TestChatGPTInit:
         gpt = ChatGPT()
         assert gpt.model == "gpt-5.4-nano"
 
-
 # _options
-
 
 class TestOptions:
     @pytest.mark.unit
@@ -104,9 +96,7 @@ class TestOptions:
         opts1["extra"] = "value"
         assert "extra" not in opts2
 
-
 # _validate_mode
-
 
 class TestValidateMode:
     @pytest.mark.unit
@@ -139,9 +129,7 @@ class TestValidateMode:
         with pytest.raises(ValueError):
             gpt._validate_mode("system_prompt")
 
-
 # _build_messages
-
 
 class TestBuildMessages:
     @pytest.mark.unit
@@ -222,9 +210,7 @@ class TestBuildMessages:
         roles = [m["role"] for m in msgs[1:]]
         assert roles == ["user", "assistant", "user"]
 
-
 # _encode_image
-
 
 class TestEncodeImage:
     @pytest.mark.unit
@@ -252,9 +238,7 @@ class TestEncodeImage:
         decoded = base64.b64decode(encoded)
         assert decoded == data
 
-
 # send_message (интеграционный, полный мок)
-
 
 class TestSendMessage:
     @pytest.mark.unit

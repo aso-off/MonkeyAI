@@ -33,13 +33,10 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
 
-
 # helpers
-
 
 def _fake_settings(**overrides):
     s = MagicMock()
@@ -66,7 +63,6 @@ def _fake_settings(**overrides):
         setattr(s, k, v)
     return s
 
-
 def _fake_message(uid: int | None = None, chat_type: str = "private", text: str | None = None) -> MagicMock:
     from aiogram.enums import ChatType
     msg = MagicMock()
@@ -87,7 +83,6 @@ def _fake_message(uid: int | None = None, chat_type: str = "private", text: str 
     msg.reply = AsyncMock()
     return msg
 
-
 def _fake_bot() -> MagicMock:
     bot = MagicMock()
     bot.get_me = AsyncMock(return_value=MagicMock(username="testbot", id=999))
@@ -99,14 +94,12 @@ def _fake_bot() -> MagicMock:
     bot.download_file = AsyncMock()
     return bot
 
-
 def _fake_redis() -> AsyncMock:
     r = AsyncMock()
     r.exists = AsyncMock(return_value=0)
     r.set = AsyncMock(return_value=True)
     r.delete = AsyncMock(return_value=1)
     return r
-
 
 def _fake_db_user(mode: str = "assistant", model: str = "gpt-4o") -> MagicMock:
     u = MagicMock()
@@ -115,13 +108,11 @@ def _fake_db_user(mode: str = "assistant", model: str = "gpt-4o") -> MagicMock:
     u.current_model = model
     return u
 
-
 def _fake_ensure(messages: list | None = None) -> MagicMock:
     e = MagicMock()
     e.dialog_id = fake.uuid4()
     e.messages = messages or []
     return e
-
 
 def _fake_chat_result(answer: str = "response", flagged: bool = False, n_removed: int = 0) -> MagicMock:
     r = MagicMock()
@@ -130,11 +121,9 @@ def _fake_chat_result(answer: str = "response", flagged: bool = False, n_removed
     r.n_first_removed = n_removed
     return r
 
-
 async def _mock_stream(*chunks):
     for chunk in chunks:
         yield chunk
-
 
 def _stream_chunk(
     text: str = "hello", flagged: bool = False, status: str = "finished", reasoning: str = ""
@@ -148,9 +137,7 @@ def _stream_chunk(
     c.reasoning = reasoning
     return c
 
-
 # set_bot_meta / _get_bot_meta
-
 
 class TestSetBotMeta:
 
@@ -165,7 +152,6 @@ class TestSetBotMeta:
         chat_mod.set_bot_meta(None, None)
         assert chat_mod._bot_username is None
         assert chat_mod._bot_id is None
-
 
 class TestGetBotMeta:
 
@@ -192,9 +178,7 @@ class TestGetBotMeta:
         assert bot_id == 111
         bot.get_me.assert_not_awaited()
 
-
 # _is_busy
-
 
 class TestIsBusy:
 
@@ -221,9 +205,7 @@ class TestIsBusy:
         assert result is True
         msg.answer.assert_awaited_once()
 
-
 # _is_bot_mentioned
-
 
 class TestIsBotMentioned:
 
@@ -291,9 +273,7 @@ class TestIsBotMentioned:
         result = await _is_bot_mentioned(msg, bot)
         assert result is True
 
-
 # _last_user_text_from_dialog_entry
-
 
 class TestLastUserTextFromDialogEntry:
 
@@ -326,9 +306,7 @@ class TestLastUserTextFromDialogEntry:
         from src.bot.routers.chat import _last_user_text_from_dialog_entry
         assert _last_user_text_from_dialog_entry([]) == ""
 
-
 # _mode_welcome
-
 
 class TestModeWelcome:
 
@@ -358,9 +336,7 @@ class TestModeWelcome:
             mock_s.chat_modes = {}
             assert _mode_welcome("nonexistent", "ru") == ""
 
-
 # cmd_new
-
 
 class TestCmdNew:
 
@@ -414,9 +390,7 @@ class TestCmdNew:
             await cmd_new(msg, language="en")
         assert msg.answer.await_count == 2
 
-
 # cmd_cancel
-
 
 class TestCmdCancel:
 
@@ -457,9 +431,7 @@ class TestCmdCancel:
             await cmd_cancel(msg, language="ru")
         msg.answer.assert_awaited_once()
 
-
 # cmd_retry
-
 
 class TestCmdRetry:
 
@@ -575,9 +547,7 @@ class TestCmdRetry:
         _, _, _, _, text, image_buffer = mock_run.call_args[0]
         assert image_buffer is not None
 
-
 # generate_image
-
 
 class TestGenerateImage:
 
@@ -690,9 +660,7 @@ class TestGenerateImage:
             await generate_image(msg, bot, "ru", _uid(), fake.sentence())
         msg.answer.assert_awaited()
 
-
 # _handle_text_or_vision
-
 
 class TestHandleTextOrVision:
 
@@ -909,12 +877,9 @@ class TestHandleTextOrVision:
         call_kwargs = mock_api.chat_complete.call_args[1]
         assert call_kwargs.get("chat_mode") == "assistant"
 
-
 # rich messages
 
-
 _REASONING_MODELS = {"info": {"gpt-5.4-mini": {"options": {"reasoning_effort": "medium"}}}}
-
 
 class TestRichMessages:
 
@@ -1126,9 +1091,7 @@ class TestRichMessages:
         msg.answer_rich.assert_awaited_once()
         assert sent_id == 777
 
-
 # _run_handle
-
 
 class TestRunHandle:
 
@@ -1181,9 +1144,7 @@ class TestRunHandle:
         msg.answer.assert_awaited()
         redis.delete.assert_awaited_once()
 
-
 # msg_text
-
 
 class TestMsgText:
 
@@ -1237,9 +1198,7 @@ class TestMsgText:
             await msg_text(msg, language="ru", bot=bot)
         assert captured_text and "@testbot" not in captured_text[0]
 
-
 # msg_photo
-
 
 class TestMsgPhoto:
 
@@ -1302,9 +1261,7 @@ class TestMsgPhoto:
             await msg_photo(msg, language="ru", bot=bot)
         assert captured_text and captured_text[0] == "describe image"
 
-
 # msg_voice
-
 
 class TestMsgVoice:
 
@@ -1382,9 +1339,7 @@ class TestMsgVoice:
         mock_run.assert_not_awaited()
         msg.answer.assert_awaited()
 
-
 # msg_unsupported / msg_edited
-
 
 class TestMsgUnsupportedAndEdited:
 

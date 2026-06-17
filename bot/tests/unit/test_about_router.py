@@ -17,7 +17,6 @@ from faker import Faker
 fake = Faker()
 Faker.seed(3)
 
-
 @pytest.fixture(autouse=True)
 def patch_settings():
     ns = types.SimpleNamespace(
@@ -28,9 +27,7 @@ def patch_settings():
     with patch("src.bot.routers.about.router.settings", ns):
         yield ns
 
-
 # _about_text
-
 
 class TestAboutText:
 
@@ -57,9 +54,7 @@ class TestAboutText:
             text = _about_text(lang)
             assert isinstance(text, str) and len(text) > 0
 
-
 # _about_keyboard
-
 
 class TestAboutKeyboard:
 
@@ -75,9 +70,7 @@ class TestAboutKeyboard:
             kb = _about_keyboard(lang)
             assert kb is not None
 
-
 # cmd_about
-
 
 class TestCmdAbout:
 
@@ -107,9 +100,7 @@ class TestCmdAbout:
             await cmd_about(msg, language=lang)
             msg.answer.assert_awaited_once()
 
-
 # cb_about
-
 
 class TestCbAbout:
 

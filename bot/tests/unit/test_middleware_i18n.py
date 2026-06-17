@@ -18,10 +18,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _tg_user(lang: str = "ru") -> MagicMock:
     u = MagicMock()
@@ -29,13 +27,11 @@ def _tg_user(lang: str = "ru") -> MagicMock:
     u.language_code = lang
     return u
 
-
 def _db_user(lang: str) -> MagicMock:
     u = MagicMock()
     u.id = _uid()
     u.language = lang
     return u
-
 
 class TestI18nMiddleware:
 

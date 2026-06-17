@@ -30,9 +30,7 @@ Faker.seed(42)
 _BOT_SRC = Path(__file__).resolve().parents[2] / "src"
 _BOT_FILE = _BOT_SRC / "core" / "bot.py"
 
-
 # Fixture загрузки
-
 
 @pytest.fixture(scope="module")
 def bot_module():
@@ -73,9 +71,7 @@ def bot_module():
 
     yield module
 
-
 # Module-level объекты
-
 
 class TestModuleLevelObjects:
 
@@ -91,9 +87,7 @@ class TestModuleLevelObjects:
     def test_dp_is_not_none(self, bot_module) -> None:
         assert bot_module.dp is not None
 
-
 # create_bot
-
 
 class TestCreateBot:
 
@@ -125,9 +119,7 @@ class TestCreateBot:
         if "default" in call_kwargs:
             assert call_kwargs["default"].parse_mode == ParseMode.HTML
 
-
 # create_dispatcher
-
 
 class TestCreateDispatcher:
 
@@ -149,9 +141,7 @@ class TestCreateDispatcher:
                 bot_module.create_dispatcher()
         assert any("redis" in u for u in redis_urls)
 
-
 # setup_routers
-
 
 class TestSetupRouters:
 
@@ -167,9 +157,7 @@ class TestSetupRouters:
         # Должно быть много роутеров
         assert len(call_args[0]) >= 5
 
-
 # setup_middleware
-
 
 class TestSetupMiddleware:
 
@@ -188,9 +176,7 @@ class TestSetupMiddleware:
         bot_module.setup_middleware(mock_dp)
         mock_dp.message.middleware.assert_called_once()
 
-
 # error_handler
-
 
 class TestErrorHandler:
 

@@ -18,7 +18,6 @@ from src.utils.admin import require_admin
 # Stub-модуль конфига из conftest — через него требует_admin получает settings
 _STUB_CONFIG: Any = sys.modules["src.core.config"]
 
-
 # Helpers
 
 def _make_msg(user_id: int) -> MagicMock:
@@ -28,14 +27,12 @@ def _make_msg(user_id: int) -> MagicMock:
     msg.answer = AsyncMock()
     return msg
 
-
 def _make_cb(user_id: int) -> MagicMock:
     cb = MagicMock(spec=CallbackQuery)
     cb.from_user = MagicMock()
     cb.from_user.id = user_id
     cb.answer = AsyncMock()
     return cb
-
 
 @pytest.fixture
 def stub_settings(request):
@@ -49,9 +46,7 @@ def stub_settings(request):
     yield _STUB_CONFIG.settings
     _STUB_CONFIG.settings = original
 
-
 # С db_user
-
 
 class TestRequireAdminWithDbUser:
     @pytest.mark.unit
@@ -127,9 +122,7 @@ class TestRequireAdminWithDbUser:
         await require_admin(cb, lang, db_user=db_user)
         cb.answer.assert_awaited_once()
 
-
 # Без db_user (API-запрос)
-
 
 class TestRequireAdminWithoutDbUser:
     @pytest.mark.unit

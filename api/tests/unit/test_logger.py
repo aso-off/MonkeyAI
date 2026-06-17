@@ -22,9 +22,7 @@ Faker.seed(42)
 _API_SRC = Path(__file__).resolve().parents[2] / "src"
 _LOGGER_FILE = _API_SRC / "core" / "logger.py"
 
-
 # Фикстура загрузки
-
 
 @pytest.fixture(scope="module")
 def logger_module():
@@ -68,9 +66,7 @@ def logger_module():
         except Exception:
             pass
 
-
 # _setup()
-
 
 class TestSetup:
 
@@ -115,9 +111,7 @@ class TestSetup:
     def test_excepthook_replaced(self, logger_module) -> None:
         assert sys.excepthook is logger_module._handle_unhandled
 
-
 # _NoHealthFilter
-
 
 class TestNoHealthFilter:
 
@@ -170,9 +164,7 @@ class TestNoHealthFilter:
             msg = fake.sentence()
             assert f.filter(self._make_record(msg)) is True
 
-
 # _handle_unhandled
-
 
 class TestHandleUnhandled:
 

@@ -13,9 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # GET /users/stats
-
 
 class TestUsersStats:
 
@@ -66,9 +64,7 @@ class TestUsersStats:
             resp = api_client.get("/users/stats")
         assert resp.json()["all_users_count"] == total
 
-
 # GET /users/{user_id}/full
-
 
 class TestGetUserFull:
 
@@ -133,9 +129,7 @@ class TestGetUserFull:
             resp = api_client.get(f"/users/{user.id}/full")
         assert resp.status_code == 200
 
-
 # PATCH /users/{id} — whitelist branches
-
 
 class TestUpdateUserWhitelist:
 
@@ -166,9 +160,7 @@ class TestUpdateUserWhitelist:
         assert resp.status_code == 200
         sync_mock.assert_awaited_once()
 
-
 # Helper: _redis_sync_webapp_prefs
-
 
 class TestRedisSyncWebappPrefs:
 
@@ -209,9 +201,7 @@ class TestRedisSyncWebappPrefs:
             await _redis_sync_webapp_prefs(99, {"language": "ru"})
         # не упало
 
-
 # Helper: _redis_write_user / _redis_read_user
-
 
 class TestRedisUserHelpers:
 

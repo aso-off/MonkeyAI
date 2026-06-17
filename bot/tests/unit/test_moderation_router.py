@@ -17,17 +17,14 @@ from faker import Faker
 fake = Faker()
 Faker.seed(2)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000_000, max=999_999_999)
-
 
 def _fake_db_user(is_admin: bool = True) -> MagicMock:
     u = MagicMock()
     u.id = _uid()
     u.is_admin = is_admin
     return u
-
 
 @pytest.fixture(autouse=True)
 def patch_settings():
@@ -38,9 +35,7 @@ def patch_settings():
     with patch("src.bot.routers.admin.moderation.settings", ns):
         yield ns
 
-
 # _moderation_keyboard / _moderation_text
-
 
 class TestModerationBuilders:
 
@@ -84,9 +79,7 @@ class TestModerationBuilders:
         text_off = _moderation_text("ru")
         assert text_on != text_off
 
-
 # cb_admin_moderation
-
 
 class TestCbAdminModeration:
 
@@ -120,9 +113,7 @@ class TestCbAdminModeration:
                 await cb_admin_moderation(cb, language=lang, db_user=_fake_db_user())
             cb.message.edit_text.assert_awaited_once()
 
-
 # cb_toggle_moderation
-
 
 class TestCbToggleModeration:
 

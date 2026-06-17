@@ -16,10 +16,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _make_mw(rate_ms: int = 1000, redis_password=None, admin_ids: list | None = None):
     """Создаёт ThrottlingMiddleware с замокированным Redis."""
@@ -44,9 +42,7 @@ def _make_mw(rate_ms: int = 1000, redis_password=None, admin_ids: list | None = 
     mw._redis = mock_redis
     return mw
 
-
 # __init__
-
 
 class TestThrottlingMiddlewareInit:
 
@@ -94,9 +90,7 @@ class TestThrottlingMiddlewareInit:
             mw2 = ThrottlingMiddleware(rate_ms=custom_rate)
         assert mw2.rate_ms == custom_rate
 
-
 # __call__
-
 
 class TestThrottlingMiddlewareCall:
 

@@ -15,7 +15,6 @@ from unittest.mock import patch
 
 import pytest
 
-
 # Патч настроек для всего модуля
 
 @pytest.fixture(autouse=True)
@@ -30,9 +29,7 @@ def patch_whitelist_module_settings():
     ):
         yield
 
-
 # Валидация User ID
-
 
 class TestUserIdValidation:
     """Тестируем логику валидации ID из msg_user_id_input."""
@@ -70,9 +67,7 @@ class TestUserIdValidation:
                 valid_ids.append(uid_int)
         assert len(valid_ids) > 15
 
-
 # Read/Write YAML helpers
-
 
 class TestReadUserIds:
     @pytest.mark.unit
@@ -108,7 +103,6 @@ class TestReadUserIds:
         assert result.get("admin_user_ids", []) == []
         assert result.get("allowed_user_ids", []) == []
 
-
 class TestWriteUserIds:
     @pytest.mark.unit
     def test_write_creates_valid_yaml(self, mocker, tmp_path) -> None:
@@ -138,9 +132,7 @@ class TestWriteUserIds:
             assert result["admin_user_ids"] == original["admin_user_ids"]
             assert result["allowed_user_ids"] == original["allowed_user_ids"]
 
-
 # Логика добавления/удаления
-
 
 class TestAddUserLogic:
     """Тестируем логику: add_user действие."""
@@ -170,7 +162,6 @@ class TestAddUserLogic:
         # После добавления уникальных — нет дубликатов
         assert len(allowed) == len(set(allowed))
 
-
 class TestRemoveUserLogic:
     @pytest.mark.unit
     def test_remove_existing_user(self, fake) -> None:
@@ -197,7 +188,6 @@ class TestRemoveUserLogic:
         allowed: list[int] = []
         not_in_list = uid not in allowed
         assert not_in_list is True
-
 
 class TestAdminManagementLogic:
     @pytest.mark.unit
@@ -259,9 +249,7 @@ class TestAdminManagementLogic:
         assert len(admins) == 0
         assert len(allowed) == 10  # в whitelist остались
 
-
 # Суперадмин проверки
-
 
 class TestSuperadminRestrictions:
     @pytest.mark.unit

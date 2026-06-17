@@ -13,7 +13,6 @@ from src.utils.formatting import (
     truncate,
 )
 
-
 class TestFormatUptime:
     @pytest.mark.unit
     @pytest.mark.parametrize("seconds,lang,expected", [
@@ -57,7 +56,6 @@ class TestFormatUptime:
     def test_boundary_seconds(self, seconds: int) -> None:
         assert isinstance(format_uptime(seconds, "ru"), str)
 
-
 class TestFormatDate:
     @pytest.mark.unit
     def test_none_returns_dash(self) -> None:
@@ -94,7 +92,6 @@ class TestFormatDate:
         result = format_date(fake.date_time(), "en")
         assert result.count("/") == 2 and len(result) == 10
 
-
 class TestEscapeHtml:
     @pytest.mark.unit
     @pytest.mark.parametrize("raw,expected", [
@@ -119,7 +116,6 @@ class TestEscapeHtml:
         result = escape_html("a & b")
         assert result == "a &amp; b"
         assert "amp;amp" not in result
-
 
 class TestTruncate:
     @pytest.mark.unit
@@ -158,7 +154,6 @@ class TestTruncate:
     def test_result_never_exceeds_max_length(self, max_len: int) -> None:
         assert len(truncate("x" * (max_len * 2), max_len)) == max_len
 
-
 class TestFormatFloat:
     @pytest.mark.unit
     @pytest.mark.parametrize("value,decimals,expected", [
@@ -182,7 +177,6 @@ class TestFormatFloat:
     def test_faker_correct_decimal_places(self, fake) -> None:
         result = format_float(fake.pyfloat(min_value=0, max_value=9999), 3)
         assert len(result.split(".")[1]) == 3
-
 
 class TestConvertToMarkdownV2:
     @pytest.mark.unit

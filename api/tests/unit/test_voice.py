@@ -6,14 +6,12 @@ import pytest
 
 from services.voice import transcribe_audio
 
-
 @pytest.fixture
 def mock_client(mocker):
     client = MagicMock()
     client.audio.transcriptions.create = AsyncMock()
     mocker.patch("services.voice.make_client", return_value=client)
     return client
-
 
 class TestTranscribeAudio:
     @pytest.mark.unit

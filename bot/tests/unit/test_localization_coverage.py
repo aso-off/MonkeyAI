@@ -57,9 +57,7 @@ _INCOMPLETE_LOCALES: dict[str, dict[str, Any]] = {
     "en": {"key_a": "A", "key_b": "B"},  # missing key_c
 }
 
-
 # Структурные тесты (mock locales)
-
 
 class TestLocaleCoverage:
     @pytest.mark.unit
@@ -156,9 +154,7 @@ class TestLocaleCoverage:
             result = t(key, "ru")
             assert result.startswith("[MISSING KEY:")
 
-
 # Реальные файлы (пропускаем если не найдены)
-
 
 @pytest.mark.skipif(not _LOCALES_EXIST, reason=f"Locale files not found at {_LOCALES_DIR}")
 class TestRealLocaleFiles:

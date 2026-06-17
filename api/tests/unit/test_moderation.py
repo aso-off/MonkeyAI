@@ -12,13 +12,11 @@ import pytest
 
 from services.moderation import MODERATION_CATEGORIES, moderate_content
 
-
 # Helpers
 
 def _attr_name(category: str) -> str:
     """Преобразует имя категории в имя атрибута (как в модуле)."""
     return category.replace("/", "_").replace("-", "_")
-
 
 def _make_moderation_response(
     flagged: bool = False,
@@ -42,7 +40,6 @@ def _make_moderation_response(
     response.results = [result]
     return response
 
-
 @pytest.fixture
 def settings_enabled():
     with patch("services.moderation.settings", types.SimpleNamespace(
@@ -50,7 +47,6 @@ def settings_enabled():
         moderation_thresholds={},
     )):
         yield
-
 
 @pytest.fixture
 def settings_disabled():
@@ -60,7 +56,6 @@ def settings_disabled():
     )):
         yield
 
-
 @pytest.fixture
 def mock_client():
     client = MagicMock()
@@ -68,9 +63,7 @@ def mock_client():
     with patch("services.moderation.make_client", return_value=client):
         yield client
 
-
 # Модерация отключена
-
 
 class TestModerationDisabled:
     @pytest.mark.unit
@@ -85,9 +78,7 @@ class TestModerationDisabled:
         await moderate_content(text=fake.sentence())
         mock_client.moderations.create.assert_not_awaited()
 
-
 # Пустой ввод
-
 
 class TestEmptyInput:
     @pytest.mark.unit
@@ -107,9 +98,7 @@ class TestEmptyInput:
         flagged, cats, scores = await moderate_content(text="")
         assert flagged is False
 
-
 # Чистый контент
-
 
 class TestCleanContent:
     @pytest.mark.unit
@@ -143,9 +132,7 @@ class TestCleanContent:
         call_kwargs = mock_client.moderations.create.call_args[1]
         assert call_kwargs["model"] == "omni-moderation-latest"
 
-
 # Флагированный контент
-
 
 class TestFlaggedContent:
     @pytest.mark.unit
@@ -213,9 +200,7 @@ class TestFlaggedContent:
         assert flagged is True
         assert "harassment" in cats and "violence" in cats
 
-
 # Изображение
-
 
 class TestImageInput:
     @pytest.mark.unit
@@ -244,9 +229,7 @@ class TestImageInput:
         types_in_input = [item["type"] for item in call_kwargs["input"]]
         assert "text" in types_in_input and "image_url" in types_in_input
 
-
 # Обработка ошибок
-
 
 class TestErrorHandling:
     @pytest.mark.unit
