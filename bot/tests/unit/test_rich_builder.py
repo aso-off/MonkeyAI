@@ -81,13 +81,17 @@ def test_build_draft_returns_markdown_field():
 
 def test_thinking_draft_placeholder():
     msg = thinking_draft("Думаю…")
-    assert msg.html == "<tg-thinking>Думаю…</tg-thinking>"
+    assert msg.html.startswith("<tg-thinking>")
+    assert msg.html.endswith("</tg-thinking>")
+    assert 'tg-emoji emoji-id="5818740758257077530"' in msg.html
+    assert "Думаю…" in msg.html
     assert msg.markdown is None
 
 
 def test_thinking_draft_with_reasoning_escaped():
     msg = thinking_draft("Думаю…", reasoning="a < b & c")
-    assert msg.html == "<tg-thinking>a &lt; b &amp; c</tg-thinking>"
+    assert "a &lt; b &amp; c" in msg.html
+    assert msg.html.endswith("</tg-thinking>")
 
 
 def test_thinking_draft_strips_markdown_from_reasoning():
@@ -101,7 +105,8 @@ def test_thinking_draft_strips_markdown_from_reasoning():
 
 def test_thinking_draft_empty_reasoning_falls_back_to_label():
     msg = thinking_draft("Thinking…", reasoning="   ")
-    assert msg.html == "<tg-thinking>Thinking…</tg-thinking>"
+    assert "Thinking…" in msg.html
+    assert msg.html.startswith("<tg-thinking>")
 
 
 def test_is_reasoning_model_true():
