@@ -65,7 +65,7 @@ async def _store_answer_id(user_id: int, message_id: int) -> None:
     await _redis().set(f"{_LAST_ANSWER_PREFIX}{user_id}", str(message_id), ex=_LAST_ANSWER_TTL)
 
 
-async def _pop_answer_id(user_id: int) -> int | None:
+async def _get_answer_id(user_id: int) -> int | None:
     val = await _redis().get(f"{_LAST_ANSWER_PREFIX}{user_id}")
     if val is None:
         return None
@@ -231,7 +231,7 @@ async def cmd_retry(message: Message, language: str, bot: Bot, db_user=None) -> 
                     except Exception:
                         logger.warning("Failed to decode retry image for user %d", user_id)
 
-    edit_message_id = await _pop_answer_id(user_id)
+    edit_message_id = await _get_answer_id(user_id)
     await _run_handle(message, bot, language, user_id, text, image_buffer, edit_message_id=edit_message_id)
 
 
@@ -348,6 +348,18 @@ async def _handle_text_or_vision(
                 and rich.is_reasoning_model(current_model, settings.models)
             )
 
+            # индикатор сразу — у reasoning есть латентность, а сводка может и не прийти
+            if show_thinking:
+                try:
+                    await bot.send_rich_message_draft(
+                        chat_id=message.chat.id,
+                        draft_id=draft_id,
+                        rich_message=rich.thinking_draft(t("thinking", language)),
+                    )
+                except Exception as exc:
+                    logger.debug("thinking draft error (user %d): %s", user_id, exc)
+                last_think = time.monotonic()
+
             async for chunk in api.chat_stream(
                 user_id=user_id,
                 dialog_id=dialog_id,
@@ -369,8 +381,7 @@ async def _handle_text_or_vision(
 
                 now = time.monotonic()
                 if not answer.strip():
-                    # до первого токена ответа — мышление (только reasoning-модели)
-                    if show_thinking and now - last_think >= settings.draft_throttle_seconds:
+                    if show_thinking and reasoning and now - last_think >= settings.draft_throttle_seconds:
                         try:
                             await bot.send_rich_message_draft(
                                 chat_id=message.chat.id,
