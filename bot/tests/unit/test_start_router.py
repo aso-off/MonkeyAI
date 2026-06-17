@@ -19,10 +19,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_db_user(is_admin: bool = False, is_whitelisted: bool = True):
     u = MagicMock()
@@ -34,9 +32,7 @@ def _fake_db_user(is_admin: bool = False, is_whitelisted: bool = True):
     u.current_model = "gpt-4o"
     return u
 
-
 # Keyboard builders
-
 
 class TestPrivateKeyboard:
 
@@ -76,7 +72,6 @@ class TestPrivateKeyboard:
                 kb = _private_keyboard(is_admin=False, lang=lang)
             assert kb is not None
 
-
 class TestGroupKeyboard:
 
     def test_builds_group_keyboard(self) -> None:
@@ -91,9 +86,7 @@ class TestGroupKeyboard:
             kb = _group_keyboard(lang=lang)
             assert kb is not None
 
-
 # cmd_start
-
 
 class TestCmdStart:
 
@@ -187,9 +180,7 @@ class TestCmdStart:
             all_buttons = [b for row in markup.inline_keyboard for b in row]
             assert any("admin_panel" in (b.callback_data or "") for b in all_buttons)
 
-
 # cmd_menu
-
 
 class TestCmdMenu:
 
@@ -241,9 +232,7 @@ class TestCmdMenu:
 
         state.clear.assert_awaited_once()
 
-
 # cb_back_to_start
-
 
 class TestCbBackToStart:
 

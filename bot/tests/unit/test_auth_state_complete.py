@@ -19,13 +19,10 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
 
-
 # reload_sync
-
 
 class TestReloadSync:
 
@@ -98,9 +95,7 @@ class TestReloadSync:
                 auth_state.reload_sync()
             assert admin_id in auth_state._admin_ids
 
-
 # reload
-
 
 class TestReload:
 
@@ -111,9 +106,7 @@ class TestReload:
             await auth_state.reload()
         mock_thread.assert_awaited_once_with(auth_state.reload_sync)
 
-
 # is_admin / is_allowed
-
 
 class TestIsAdminIsAllowed:
 
@@ -173,9 +166,7 @@ class TestIsAdminIsAllowed:
             auth_state._allowed_ids = orig_allowed
             auth_state._admin_ids = orig_admin
 
-
 # is_allowed_cached
-
 
 class TestIsAllowedCached:
 

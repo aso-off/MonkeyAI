@@ -24,9 +24,7 @@ _REAL_LANGS = ["ru", "en", "de", "es", "fr", "pl", "pt", "tr"]
 fake = Faker()
 Faker.seed(42)
 
-
 # Fixtures
-
 
 @pytest.fixture(scope="module")
 def reference_keys() -> frozenset[str]:
@@ -35,7 +33,6 @@ def reference_keys() -> frozenset[str]:
     keys = frozenset((data.get("test_language") or {}).keys())
     assert keys, "test.yml пустой — нет эталонных ключей"
     return keys
-
 
 @pytest.fixture(scope="module")
 def all_locale_data() -> dict[str, dict]:
@@ -47,9 +44,7 @@ def all_locale_data() -> dict[str, dict]:
         result[lang] = data.get(lang) or {}
     return result
 
-
 # Тесты самого test.yml (эталон должен быть правильным)
-
 
 class TestReferenceFile:
 
@@ -90,9 +85,7 @@ class TestReferenceFile:
         section = data.get("test_language") or {}
         assert len(section) == len(set(section.keys())), "В test.yml есть дублирующиеся ключи"
 
-
 # Проверка всех языков против эталона
-
 
 class TestLocaleKeyCompleteness:
 
@@ -143,9 +136,7 @@ class TestLocaleKeyCompleteness:
             f"Язык '{lang}': {lang_key_count} ключей, эталон: {ref_count}"
         )
 
-
 # Проверка значений
-
 
 class TestLocaleValues:
 
@@ -197,9 +188,7 @@ class TestLocaleValues:
             f"(незаполненный файл?): {same_as_key[:5]}"
         )
 
-
 # Корректность структуры файлов
-
 
 class TestLocaleFileStructure:
 

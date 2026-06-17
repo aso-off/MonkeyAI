@@ -17,17 +17,14 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _fake_db_user(language: str = "ru") -> MagicMock:
     u = MagicMock()
     u.id = _uid()
     u.language = language
     return u
-
 
 def _fake_message(uid: int | None = None, tg_lang: str = "ru") -> MagicMock:
     msg = MagicMock()
@@ -36,7 +33,6 @@ def _fake_message(uid: int | None = None, tg_lang: str = "ru") -> MagicMock:
     msg.from_user.language_code = tg_lang
     msg.answer = AsyncMock()
     return msg
-
 
 def _fake_callback(data: str = "profile_language", uid: int | None = None, tg_lang: str = "en") -> MagicMock:
     cb = MagicMock()
@@ -49,9 +45,7 @@ def _fake_callback(data: str = "profile_language", uid: int | None = None, tg_la
     cb.message.edit_text = AsyncMock()
     return cb
 
-
 # _language_keyboard
-
 
 class TestLanguageKeyboard:
 
@@ -91,9 +85,7 @@ class TestLanguageKeyboard:
             for btn in row:
                 assert (btn.callback_data or "").startswith("set_lang|") or btn.callback_data == "profile_settings"
 
-
 # cmd_language
-
 
 class TestCmdLanguage:
 
@@ -112,9 +104,7 @@ class TestCmdLanguage:
         await cmd_language(msg, language="ru", db_user=None)
         msg.answer.assert_awaited_once()
 
-
 # cb_profile_language
-
 
 class TestCbProfileLanguage:
 
@@ -134,9 +124,7 @@ class TestCbProfileLanguage:
         await cb_profile_language(cb, language="ru", db_user=None)
         cb.message.edit_text.assert_awaited_once()
 
-
 # cb_set_language
-
 
 class TestCbSetLanguage:
 

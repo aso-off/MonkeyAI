@@ -19,16 +19,13 @@ Faker.seed(1)
 
 _ADMIN_ID = 123456789
 
-
 @pytest.fixture(autouse=True)
 def patch_settings():
     ns = types.SimpleNamespace(admin_ids=[_ADMIN_ID])
     with patch("src.bot.routers.help.settings", ns):
         yield ns
 
-
 # _help_text
-
 
 class TestHelpText:
 
@@ -59,9 +56,7 @@ class TestHelpText:
             user_text = _help_text(is_admin=False, lang=lang)
             assert len(admin_text) > len(user_text)
 
-
 # cmd_help
-
 
 class TestCmdHelp:
 
@@ -107,9 +102,7 @@ class TestCmdHelp:
         from src.bot.routers.help import _help_text
         assert msg.answer.call_args[0][0] == _help_text(is_admin=False, lang="ru")
 
-
 # cb_help
-
 
 class TestCbHelp:
 
@@ -147,9 +140,7 @@ class TestCbHelp:
         called_text = cb.message.edit_text.call_args[0][0]
         assert called_text == _help_text(is_admin=True, lang="en")
 
-
 # cmd_help_group_chat
-
 
 class TestCmdHelpGroupChat:
 

@@ -20,17 +20,14 @@ Faker.seed(0)
 _SUPERADMIN_ID = 999_000_001
 _REGULAR_ADMIN_ID = 999_000_002
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000_000, max=999_999_999)
-
 
 def _fake_db_user(is_admin: bool = True):
     u = MagicMock()
     u.id = _uid()
     u.is_admin = is_admin
     return u
-
 
 def _fake_state(action: str = "add_user"):
     s = AsyncMock()
@@ -40,7 +37,6 @@ def _fake_state(action: str = "add_user"):
     s.get_data = AsyncMock(return_value={"action": action})
     return s
 
-
 def _fake_message(text: str = "123456789"):
     msg = MagicMock()
     msg.from_user = MagicMock()
@@ -48,7 +44,6 @@ def _fake_message(text: str = "123456789"):
     msg.text = text
     msg.answer = AsyncMock()
     return msg
-
 
 @pytest.fixture(autouse=True)
 def patch_settings():
@@ -61,9 +56,7 @@ def patch_settings():
          patch("src.bot.routers.admin.whitelist._SUPERADMIN_ID", _SUPERADMIN_ID):
         yield ns
 
-
 # cb_user_action
-
 
 class TestCbUserAction:
 
@@ -143,9 +136,7 @@ class TestCbUserAction:
         state.update_data.assert_awaited_once()
         cb.message.edit_text.assert_awaited_once()
 
-
 # cb_cancel_user_operation
-
 
 class TestCbCancelUserOperation:
 
@@ -168,9 +159,7 @@ class TestCbCancelUserOperation:
             await cb_cancel_user_operation(cb, state=state, language=lang)
             state.clear.assert_awaited_once()
 
-
 # msg_user_id_input — невалидные ID
-
 
 class TestMsgUserIdInputValidation:
 
@@ -190,9 +179,7 @@ class TestMsgUserIdInputValidation:
         msg.answer.assert_awaited_once()
         state.clear.assert_not_awaited()
 
-
 # msg_user_id_input — add_user
-
 
 class TestMsgAddUser:
 
@@ -225,9 +212,7 @@ class TestMsgAddUser:
             await msg_user_id_input(msg, state=state, language="ru")
         msg.answer.assert_awaited_once()
 
-
 # msg_user_id_input — remove_user
-
 
 class TestMsgRemoveUser:
 
@@ -294,9 +279,7 @@ class TestMsgRemoveUser:
             await msg_user_id_input(msg, state=state, language="ru")
         msg.answer.assert_awaited_once()
 
-
 # msg_user_id_input — add_admin
-
 
 class TestMsgAddAdmin:
 
@@ -343,9 +326,7 @@ class TestMsgAddAdmin:
         msg.answer.assert_awaited_once()
         assert cfg["admin_user_ids"].count(uid) == 1
 
-
 # msg_user_id_input — remove_admin
-
 
 class TestMsgRemoveAdmin:
 

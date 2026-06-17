@@ -24,20 +24,15 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 # Helpers
-
 
 def _fake_image_b64() -> str:
     return f"data:image/png;base64,{base64.b64encode(fake.binary(length=32)).decode()}"
 
-
 def _fake_image_id() -> str:
     return fake.sha256()[:48]
 
-
 # GET /webapp/images/{image_id}
-
 
 class TestGetImage:
 
@@ -100,9 +95,7 @@ class TestGetImage:
                 ws_mod._IMAGE_STORE.pop(image_id, None)
                 ws_mod._IMAGE_TS.pop(image_id, None)
 
-
 # _store_image()
-
 
 class TestStoreImage:
 
@@ -168,9 +161,7 @@ class TestStoreImage:
         ws_mod._IMAGE_STORE.pop(image_id, None)
         ws_mod._IMAGE_TS.pop(image_id, None)
 
-
 # _spawn()
-
 
 class TestSpawn:
 
@@ -199,9 +190,7 @@ class TestSpawn:
         assert len(ws_mod._BG_TASKS) >= initial_count
         await asyncio.sleep(0.01)  # Ждём завершения
 
-
 # _send()
-
 
 class TestSend:
 
@@ -222,9 +211,7 @@ class TestSend:
         # Не должен поднять исключение
         await ws_mod._send(mock_ws, {"type": "test"})
 
-
 # WebSocket auth flow
-
 
 class TestWebSocketAuth:
 

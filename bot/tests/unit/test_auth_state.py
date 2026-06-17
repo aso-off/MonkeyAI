@@ -9,7 +9,6 @@ import pytest
 
 import src.core.auth_state as auth_state
 
-
 @pytest.fixture(autouse=True)
 def reset_auth_state():
     """Сбрасываем множества до и после каждого теста."""
@@ -19,9 +18,7 @@ def reset_auth_state():
     auth_state._admin_ids = set()
     auth_state._allowed_ids = set()
 
-
 # is_admin
-
 
 class TestIsAdmin:
     @pytest.mark.unit
@@ -64,9 +61,7 @@ class TestIsAdmin:
         for uid in non_admins:
             assert auth_state.is_admin(uid) is False
 
-
 # is_allowed
-
 
 class TestIsAllowed:
     @pytest.mark.unit
@@ -127,9 +122,7 @@ class TestIsAllowed:
         auth_state._allowed_ids.update(ids)
         assert all(auth_state.is_allowed(uid) for uid in ids)
 
-
 # reload_sync (unit, без файла)
-
 
 class TestReloadSync:
     @pytest.mark.unit

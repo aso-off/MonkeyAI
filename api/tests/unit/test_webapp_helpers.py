@@ -18,7 +18,6 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 class TestPrefsKey:
 
     def test_format_contains_user_id(self) -> None:
@@ -26,7 +25,6 @@ class TestPrefsKey:
         uid = fake.random_int(min=100_000, max=999_999_999)
         assert str(uid) in _prefs_key(uid)
         assert _prefs_key(uid).startswith("webapp:user_prefs:")
-
 
 class TestRedisWritePrefs:
 
@@ -50,7 +48,6 @@ class TestRedisWritePrefs:
                 await _redis_write_prefs(uid, {"language": lang})
             mock_r.hset.assert_awaited_once()
 
-
 class TestRedisReadPrefs:
 
     @pytest.mark.asyncio
@@ -73,7 +70,6 @@ class TestRedisReadPrefs:
         with patch("routes.webapp.get_redis", return_value=mock_r):
             result = await _redis_read_prefs(uid)
         assert result == {}
-
 
 class TestDbWritePrefs:
 
@@ -100,7 +96,6 @@ class TestDbWritePrefs:
             await _db_write_prefs(uid, {"theme": "dark"})
         # не упало
 
-
 class TestRedisInvalidateUserCache:
 
     @pytest.mark.asyncio
@@ -124,7 +119,6 @@ class TestRedisInvalidateUserCache:
         with patch("routes.webapp.get_redis", return_value=mock_r):
             await _redis_invalidate_user_cache(uid)
         # не упало
-
 
 class TestResolveMiniAppDialogId:
 

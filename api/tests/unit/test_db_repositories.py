@@ -16,17 +16,13 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 # Helpers
-
 
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
 
-
 def _did() -> str:
     return str(uuid.uuid4())
-
 
 def _make_session() -> AsyncMock:
     s = AsyncMock()
@@ -36,18 +32,15 @@ def _make_session() -> AsyncMock:
     s.execute = AsyncMock()
     return s
 
-
 def _scalar_result(value):
     r = MagicMock()
     r.scalar_one_or_none.return_value = value
     return r
 
-
 def _scalars_result(values: list):
     r = MagicMock()
     r.scalars.return_value.all.return_value = values
     return r
-
 
 def _fake_state():
     from db.models.user import UserState
@@ -61,7 +54,6 @@ def _fake_state():
     s.mini_app_chat_mode = "assistant"
     return s
 
-
 def _fake_stats():
     from db.models.user import UserStatistics
     st = MagicMock(spec=UserStatistics)
@@ -69,7 +61,6 @@ def _fake_stats():
     st.n_generated_images = 0
     st.n_transcribed_seconds = 0.0
     return st
-
 
 def _fake_user_obj(uid: int | None = None):
     from db.models.user import User
@@ -85,7 +76,6 @@ def _fake_user_obj(uid: int | None = None):
     u.state = _fake_state()
     u.statistics = _fake_stats()
     return u
-
 
 def _fake_dialog_obj(uid: int | None = None, did: str | None = None):
     from db.models.user import Dialog
@@ -133,7 +123,6 @@ class TestGetUser:
             assert result is not None
             assert result.id == uid
 
-
 class TestIsUserAdmin:
 
     @pytest.mark.asyncio
@@ -172,7 +161,6 @@ class TestIsUserAdmin:
 
         result = await is_user_admin(session, uid)
         assert result is False
-
 
 class TestGetOrCreateUser:
 
@@ -234,7 +222,6 @@ class TestGetOrCreateUser:
 
         assert created is False
 
-
 class TestUpdateUser:
 
     @pytest.mark.asyncio
@@ -259,7 +246,6 @@ class TestUpdateUser:
             await update_user(session, uid, language=lang)
             session.commit.assert_awaited_once()
 
-
 class TestUpdateLastInteraction:
 
     @pytest.mark.asyncio
@@ -282,7 +268,6 @@ class TestUpdateLastInteraction:
         await update_last_interaction(session, uid, commit=False)
 
         session.commit.assert_not_awaited()
-
 
 class TestIncrements:
 
@@ -310,7 +295,6 @@ class TestIncrements:
         session.execute.assert_awaited_once()
         session.commit.assert_awaited_once()
 
-
 class TestSetUserAdminAndWhitelisted:
 
     @pytest.mark.asyncio
@@ -326,7 +310,6 @@ class TestSetUserAdminAndWhitelisted:
         session = _make_session()
         await set_user_whitelisted(session, _uid(), False)
         session.execute.assert_awaited_once()
-
 
 class TestSyncAuthFromYaml:
 
@@ -362,11 +345,7 @@ class TestSyncAuthFromYaml:
         await sync_auth_from_yaml(session, admin_ids=[], allowed_ids=[])
         session.commit.assert_awaited_once()
 
-
-# ═══════════════════════════════════════════════════════════════════
 # db/repositories/dialogs.py (ключевые функции)
-# ═══════════════════════════════════════════════════════════════════
-
 
 class TestEnsureActiveDialog:
 
@@ -420,7 +399,6 @@ class TestEnsureActiveDialog:
         with pytest.raises(ValueError, match="not found"):
             await ensure_active_dialog(session, _uid())
 
-
 class TestStartNewDialog:
 
     @pytest.mark.asyncio
@@ -459,7 +437,6 @@ class TestStartNewDialog:
 
         await start_new_dialog(session, uid, commit=False)
         session.commit.assert_not_awaited()
-
 
 class TestGetDialogMessages:
 
@@ -506,7 +483,6 @@ class TestGetDialogMessages:
         result = await get_dialog_messages(session, uid, dialog_id=None)
         assert result == []
 
-
 class TestSetDialogMessages:
 
     @pytest.mark.asyncio
@@ -534,7 +510,6 @@ class TestSetDialogMessages:
 
         await set_dialog_messages(session, uid, [], dialog_id=None)
         assert session.execute.await_count == 2
-
 
 class TestUpdateNUsedTokens:
 
@@ -564,7 +539,6 @@ class TestUpdateNUsedTokens:
 
         await update_n_used_tokens(session, _uid(), "gpt-4o", 10, 5)
         session.commit.assert_not_awaited()
-
 
 class TestAppendDialogMessage:
 

@@ -33,9 +33,7 @@ Faker.seed(42)
 
 _MODELS = ["gpt-4o", "gpt-5.4-nano"]
 
-
 # Fixtures
-
 
 def _tg_user(**overrides) -> dict:
     return {
@@ -46,10 +44,8 @@ def _tg_user(**overrides) -> dict:
         "language_code": overrides.get("language_code", "ru"),
     }
 
-
 def _make_init_data(tg: dict) -> dict:
     return {"user": json.dumps(tg)}
-
 
 @pytest.fixture
 def webapp_client(api_app, mock_redis, fake):
@@ -84,15 +80,12 @@ def webapp_client(api_app, mock_redis, fake):
     webapp_mod.get_redis = original_get_redis
     api_app.dependency_overrides.clear()
 
-
 @pytest.fixture
 def _user_obj(fake, user_factory):
     """Готовый SimpleNamespace-пользователь для замены возврата из repo."""
     return user_factory()
 
-
 # GET /webapp/me
-
 
 class TestGetMe:
 
@@ -213,9 +206,7 @@ class TestGetMe:
 
         assert resp.status_code == 401
 
-
 # PATCH /webapp/me
-
 
 class TestUpdateMe:
 
@@ -298,9 +289,7 @@ class TestUpdateMe:
 
         assert resp.status_code in (404, 500)
 
-
 # POST /webapp/dialogs/new
-
 
 class TestWebappUploadImage:
 
@@ -335,9 +324,7 @@ class TestWebappUploadImage:
             resp = client.post("/webapp/upload-image", json={"image_b64": b64})
         assert resp.status_code == 502
 
-
 # POST /webapp/dialogs/new
-
 
 class TestWebappDialogsNew:
 
@@ -377,9 +364,7 @@ class TestWebappDialogsNew:
             assert resp.status_code == 200
             assert resp.json()["dialog_id"] == did
 
-
 # POST /webapp/dialogs/ensure
-
 
 class TestWebappDialogsEnsure:
 
@@ -396,9 +381,7 @@ class TestWebappDialogsEnsure:
         assert resp.status_code == 200
         assert resp.json()["dialog_id"] == did
 
-
 # POST /webapp/dialogs/bootstrap
-
 
 class TestWebappBootstrap:
 
@@ -454,9 +437,7 @@ class TestWebappBootstrap:
         assert resp.status_code == 200
         assert resp.json()["dialog_id"] is None
 
-
 # GET /webapp/dialogs/messages/page
-
 
 class TestWebappMessagesPage:
 
@@ -499,9 +480,7 @@ class TestWebappMessagesPage:
         assert resp.json()["has_more"] is True
         assert resp.json()["next_before_index"] == 10
 
-
 # GET /webapp/dialogs/messages
-
 
 class TestWebappGetMessages:
 
@@ -565,9 +544,7 @@ class TestWebappGetMessages:
 
         assert resp.status_code == 404
 
-
 # POST /webapp/chat
-
 
 class TestWebappChat:
 
@@ -641,9 +618,7 @@ class TestWebappChat:
                 })
             assert resp.status_code == 200
 
-
 # Helpers (покрываем через маршруты)
-
 
 class TestWebappHelpers:
 

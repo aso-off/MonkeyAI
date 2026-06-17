@@ -20,9 +20,7 @@ Faker.seed(42)
 _API_SRC = Path(__file__).resolve().parents[2] / "src"
 _REDIS_FILE = _API_SRC / "core" / "redis.py"
 
-
 # Фикстура загрузки
-
 
 @pytest.fixture(scope="module")
 def redis_module():
@@ -46,7 +44,6 @@ def redis_module():
 
     return module
 
-
 @pytest.fixture(autouse=True)
 def reset_redis_state(redis_module):
     """Сбрасываем _redis и _redis_binary перед каждым тестом."""
@@ -56,9 +53,7 @@ def reset_redis_state(redis_module):
     redis_module._redis = None
     redis_module._redis_binary = None
 
-
 # get_redis / get_redis_binary: ошибки без инициализации
-
 
 class TestGetRedisNotInitialized:
 
@@ -82,9 +77,7 @@ class TestGetRedisNotInitialized:
         except RuntimeError as exc:
             assert "Redis" in str(exc) or "pool" in str(exc).lower()
 
-
 # init_redis
-
 
 class TestInitRedis:
 
@@ -143,9 +136,7 @@ class TestInitRedis:
             await redis_module.init_redis()
         redis_module.logger.info.assert_called()
 
-
 # close_redis
-
 
 class TestCloseRedis:
 

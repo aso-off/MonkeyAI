@@ -21,13 +21,10 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _fake_image_b64() -> str:
     return f"data:image/png;base64,{base64.b64encode(fake.binary(length=32)).decode()}"
 
-
 # _store_image — eviction
-
 
 class TestStoreImageEviction:
 
@@ -53,9 +50,7 @@ class TestStoreImageEviction:
         ws_mod._IMAGE_STORE.pop(new_id, None)
         ws_mod._IMAGE_TS.pop(new_id, None)
 
-
 # get_image — Redis exception
-
 
 class TestGetImageRedisException:
 
@@ -71,9 +66,7 @@ class TestGetImageRedisException:
             resp = api_client.get(f"/webapp/images/{image_id}")
         assert resp.status_code == 404
 
-
 # _broadcast
-
 
 class TestBroadcast:
 
@@ -132,9 +125,7 @@ class TestBroadcast:
             ws_mod._WS_POOL.pop(uid, None)
         ws2.send_text.assert_awaited_once()
 
-
 # _auth_handshake
-
 
 class TestAuthHandshake:
 
@@ -204,9 +195,7 @@ class TestAuthHandshake:
         # Успешный handshake не отправляет ничего сам по себе
         ws.send_text.assert_not_awaited()
 
-
 # _spawn — exception callback
-
 
 class TestSpawnException:
 

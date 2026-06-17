@@ -21,24 +21,18 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 # Helpers
-
 
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
 
-
 def _did() -> str:
     return str(uuid.uuid4())
-
 
 def _fake_messages(n: int = 3) -> list:
     return [{"user": fake.sentence(), "bot": fake.sentence()} for _ in range(n)]
 
-
 # POST /{user_id}/new
-
 
 class TestNewDialog:
 
@@ -76,9 +70,7 @@ class TestNewDialog:
             assert resp.status_code == 200
             assert resp.json()["dialog_id"] == did
 
-
 # POST /{user_id}/ensure
-
 
 class TestEnsureDialog:
 
@@ -122,9 +114,7 @@ class TestEnsureDialog:
         assert resp.status_code == 200
         assert resp.json()["messages"] == []
 
-
 # GET /{user_id}/messages
-
 
 class TestGetMessages:
 
@@ -200,9 +190,7 @@ class TestGetMessages:
 
         assert resp.json()["messages"] == msgs
 
-
 # POST /{user_id}/pop-last
-
 
 class TestPopLastExchange:
 
@@ -241,9 +229,7 @@ class TestPopLastExchange:
         assert resp.status_code == 200
         mock_del.assert_awaited_once()
 
-
 # POST /{user_id}/exchange
-
 
 class TestAppendExchange:
 
@@ -281,9 +267,7 @@ class TestAppendExchange:
         assert resp.status_code == 200
         mock_ensure.assert_awaited_once()
 
-
 # GET /{user_id}/message-count
-
 
 class TestMessageCount:
 

@@ -21,17 +21,14 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000_000, max=999_999_999)
-
 
 def _fake_db_user(is_admin: bool = True):
     u = MagicMock()
     u.id = _uid()
     u.is_admin = is_admin
     return u
-
 
 def _fake_state():
     s = AsyncMock()
@@ -40,16 +37,13 @@ def _fake_state():
     s.get_data = AsyncMock(return_value={})
     return s
 
-
 def _mock_yaml_data(admin_ids=None, allowed_ids=None) -> dict:
     return {
         "admin_user_ids": admin_ids or [_uid()],
         "allowed_user_ids": allowed_ids or [_uid()],
     }
 
-
 # Keyboard / text builders
-
 
 class TestKeyboardBuilders:
 
@@ -87,9 +81,7 @@ class TestKeyboardBuilders:
             assert _manage_users_keyboard(lang) is not None
             assert _cancel_keyboard(lang) is not None
 
-
 # _whitelist_text
-
 
 class TestWhitelistText:
 
@@ -120,9 +112,7 @@ class TestWhitelistText:
 
         assert isinstance(text, str)
 
-
 # _read_user_ids / _write_user_ids
-
 
 class TestReadWriteUserIds:
 
@@ -156,9 +146,7 @@ class TestReadWriteUserIds:
 
         mock_path.write_text.assert_called_once()
 
-
 # cb_admin_whitelist
-
 
 class TestCbAdminWhitelist:
 
@@ -193,9 +181,7 @@ class TestCbAdminWhitelist:
         cb.answer.assert_not_awaited()
         cb.message.edit_text.assert_not_awaited()
 
-
 # cb_set_access_mode
-
 
 class TestCbSetAccessMode:
 
@@ -231,9 +217,7 @@ class TestCbSetAccessMode:
 
         cb.message.edit_text.assert_awaited_once()
 
-
 # cb_manage_users
-
 
 class TestCbManageUsers:
 
@@ -263,9 +247,7 @@ class TestCbManageUsers:
 
         cb.message.edit_text.assert_not_awaited()
 
-
 # _load_user_ids / _save_user_ids
-
 
 class TestLoadSaveUserIds:
 

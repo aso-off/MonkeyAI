@@ -95,7 +95,6 @@ def _make_fake_settings() -> types.SimpleNamespace:
         redis_url="redis://localhost:6379/0",
     )
 
-
 # stub src.core.config до любого импорта bot-модулей
 
 _fake_settings_singleton = _make_fake_settings()
@@ -118,12 +117,10 @@ sys.modules.setdefault("src.core.logger", _stub_logger)
 
 Faker.seed(42)
 
-
 @pytest.fixture(scope="session")
 def fake() -> Faker:
     """Faker с ru_RU + en_US локалями. Session-scoped — создаётся один раз."""
     return Faker(["ru_RU", "en_US"])
-
 
 @pytest.fixture
 def fake_settings() -> types.SimpleNamespace:
@@ -132,7 +129,6 @@ def fake_settings() -> types.SimpleNamespace:
     _stub_config.settings = s
     _stub_config.get_settings = lambda: s
     return s
-
 
 @pytest.fixture
 def fake_message(fake: Faker):
@@ -195,7 +191,6 @@ def fake_message(fake: Faker):
 
     return _factory
 
-
 @pytest.fixture
 def fake_callback(fake: Faker):
     """
@@ -248,7 +243,6 @@ def fake_callback(fake: Faker):
         return cb
 
     return _factory
-
 
 @pytest.fixture
 def mock_api_client(mocker):

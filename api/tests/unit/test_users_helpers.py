@@ -16,7 +16,6 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 class TestRedisWriteStats:
 
     @pytest.mark.asyncio
@@ -35,7 +34,6 @@ class TestRedisWriteStats:
         with patch("routes.users.get_redis", return_value=mock_r):
             await _redis_write_stats({"all_users_count": 0})
         # не упало
-
 
 class TestRedisReadStats:
 
@@ -79,7 +77,6 @@ class TestRedisReadStats:
                 result = await _redis_read_stats()
             assert result is not None
             assert result["all_users_count"] == count
-
 
 class TestDbUpdateUser:
 

@@ -25,9 +25,7 @@ Faker.seed(42)
 
 _VALID_MODES = ["assistant", "code_assistant"]
 
-
 # Helpers
-
 
 def _make_gpt(model: str = "gpt-4o"):
     """Создаём ChatGPT с мок-клиентом; не вызывает реальный AsyncOpenAI."""
@@ -37,10 +35,8 @@ def _make_gpt(model: str = "gpt-4o"):
         gpt = ChatGPT(model=model)
     return gpt
 
-
 def _fake_message() -> str:
     return fake.sentence()
-
 
 def _fake_dialog(n: int = 2) -> list:
     out = []
@@ -49,10 +45,8 @@ def _fake_dialog(n: int = 2) -> list:
         out.append({"role": "assistant", "content": fake.sentence()})
     return out
 
-
 def _fake_answer() -> str:
     return fake.paragraph()
-
 
 def _fake_completion(answer: str, n_in: int = 50, n_out: int = 20):
     """MagicMock для asyncopenai response."""
@@ -62,7 +56,6 @@ def _fake_completion(answer: str, n_in: int = 50, n_out: int = 20):
     r.usage.prompt_tokens = n_in
     r.usage.completion_tokens = n_out
     return r
-
 
 class FakeAsyncStream:
     """Имитирует async-итерируемый stream от OpenAI."""
@@ -77,7 +70,6 @@ class FakeAsyncStream:
             return next(self._iter)
         except StopIteration:
             raise StopAsyncIteration
-
 
 def _fake_responses_events(answer: str, reasoning: str = "", n_in: int = 50, n_out: int = 20):
     """Имитирует поток событий Responses API."""
@@ -99,7 +91,6 @@ def _fake_responses_events(answer: str, reasoning: str = "", n_in: int = 50, n_o
     events.append(comp)
     return events
 
-
 def _bad_request_error():
     err = BadRequestError.__new__(BadRequestError)
     err.message = "context_length_exceeded"
@@ -109,9 +100,7 @@ def _bad_request_error():
     err.status_code = 400
     return err
 
-
 # make_client
-
 
 class TestMakeClient:
 
@@ -176,9 +165,7 @@ class TestMakeClient:
         finally:
             oai_mod._openai_client = original
 
-
 # _encode_image
-
 
 class TestEncodeImage:
 
@@ -213,9 +200,7 @@ class TestEncodeImage:
             result = _encode_image(buf)
             assert base64.b64decode(result) == raw
 
-
 # send_message
-
 
 class TestSendMessage:
 
@@ -286,9 +271,7 @@ class TestSendMessage:
             result, _, _ = await gpt.send_message(fake.sentence(), chat_mode="assistant")
             assert isinstance(result, str)
 
-
 # send_message_stream
-
 
 class TestSendMessageStream:
 
@@ -366,9 +349,7 @@ class TestSendMessageStream:
         # Последний текст должен содержать весь ответ
         assert texts[-1].strip() != ""
 
-
 # send_vision_message
-
 
 class TestSendVisionMessage:
 
@@ -418,9 +399,7 @@ class TestSendVisionMessage:
                 _fake_message(), dialog_messages=[], chat_mode="assistant", image_buffer=img
             )
 
-
 # send_vision_message_stream
-
 
 class TestSendVisionMessageStream:
 

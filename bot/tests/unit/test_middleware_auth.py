@@ -15,10 +15,8 @@ from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
-
 def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
-
 
 def _tg_user(uid: int | None = None) -> MagicMock:
     u = MagicMock()
@@ -29,9 +27,7 @@ def _tg_user(uid: int | None = None) -> MagicMock:
     u.language_code = fake.random_element(["ru", "en", "de"])
     return u
 
-
 # _chat_id_for_user
-
 
 class TestChatIdForUser:
 
@@ -73,9 +69,7 @@ class TestChatIdForUser:
             uid = _uid()
             assert _chat_id_for_user(MagicMock(), uid) == uid
 
-
 # AuthMiddleware
-
 
 class TestAuthMiddleware:
 

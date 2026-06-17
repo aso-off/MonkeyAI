@@ -12,13 +12,11 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-
 def _install_ci_stubs() -> None:
     """Avoid /app/logs setup during import on GitHub Actions runners."""
     fake_logger: Any = types.ModuleType("core.logger")
     fake_logger.logger = logging.getLogger("api_test")
     sys.modules["core.logger"] = fake_logger
-
 
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
@@ -66,7 +64,6 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
 
     app.router.lifespan_context = _noop_lifespan
     return TestClient(app)
-
 
 def test_health_returns_ok(client: TestClient) -> None:
     response = client.get("/health")
