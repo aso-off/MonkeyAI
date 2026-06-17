@@ -22,7 +22,7 @@ fake = Faker()
 Faker.seed(42)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _uid() -> int:
@@ -37,7 +37,7 @@ def _fake_messages(n: int = 3) -> list:
     return [{"user": fake.sentence(), "bot": fake.sentence()} for _ in range(n)]
 
 
-# ── POST /{user_id}/new ───────────────────────────────────────────────────────
+# POST /{user_id}/new
 
 
 class TestNewDialog:
@@ -77,7 +77,7 @@ class TestNewDialog:
             assert resp.json()["dialog_id"] == did
 
 
-# ── POST /{user_id}/ensure ────────────────────────────────────────────────────
+# POST /{user_id}/ensure
 
 
 class TestEnsureDialog:
@@ -123,7 +123,7 @@ class TestEnsureDialog:
         assert resp.json()["messages"] == []
 
 
-# ── GET /{user_id}/messages ───────────────────────────────────────────────────
+# GET /{user_id}/messages
 
 
 class TestGetMessages:
@@ -201,7 +201,7 @@ class TestGetMessages:
         assert resp.json()["messages"] == msgs
 
 
-# ── POST /{user_id}/pop-last ──────────────────────────────────────────────────
+# POST /{user_id}/pop-last
 
 
 class TestPopLastExchange:
@@ -242,7 +242,7 @@ class TestPopLastExchange:
         mock_del.assert_awaited_once()
 
 
-# ── POST /{user_id}/exchange ──────────────────────────────────────────────────
+# POST /{user_id}/exchange
 
 
 class TestAppendExchange:
@@ -282,7 +282,7 @@ class TestAppendExchange:
         mock_ensure.assert_awaited_once()
 
 
-# ── GET /{user_id}/message-count ──────────────────────────────────────────────
+# GET /{user_id}/message-count
 
 
 class TestMessageCount:

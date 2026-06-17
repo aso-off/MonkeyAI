@@ -59,7 +59,7 @@ def _fake_settings(**overrides):
     return s
 
 
-# ── _status_keyboard ──────────────────────────────────────────────────────────
+# _status_keyboard
 
 
 class TestStatusKeyboard:
@@ -71,7 +71,7 @@ class TestStatusKeyboard:
         assert kb.inline_keyboard[0][0].callback_data == "admin_panel"
 
 
-# ── _build_status_text ────────────────────────────────────────────────────────
+# _build_status_text
 
 
 class TestBuildStatusText:
@@ -185,7 +185,7 @@ class TestBuildStatusText:
         assert isinstance(text, str)
 
 
-# ── cmd_status ────────────────────────────────────────────────────────────────
+# cmd_status
 
 
 class TestCmdStatus:
@@ -219,7 +219,7 @@ class TestCmdStatus:
         sent_msg.edit_text.assert_awaited_once()
 
 
-# ── cb_admin_status ───────────────────────────────────────────────────────────
+# cb_admin_status
 
 
 class TestCbAdminStatus:

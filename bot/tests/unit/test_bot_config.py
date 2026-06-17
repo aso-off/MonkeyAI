@@ -52,7 +52,7 @@ _BASE_YAML_MAP: dict[str, str] = {
 }
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _open_mock(yaml_map: dict):
@@ -120,7 +120,7 @@ def _load_bot_config(env: dict, yaml_map: dict | None = None, with_ssh: bool = F
     return module
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture(scope="module")
@@ -147,7 +147,7 @@ def bot_cfg_ssh():
     return _load_bot_config(env, with_ssh=False)
 
 
-# ── parse_admin_ids ───────────────────────────────────────────────────────────
+# parse_admin_ids
 
 
 class TestParseAdminIds:
@@ -178,7 +178,7 @@ class TestParseAdminIds:
         assert module.Settings.parse_admin_ids(f"  {uid}  ") == [uid]
 
 
-# ── Properties ────────────────────────────────────────────────────────────────
+# Properties
 
 
 class TestBotSettingsProperties:
@@ -220,7 +220,7 @@ class TestBotSettingsProperties:
         assert env["WEBHOOK_HOST"] in url
 
 
-# ── YAML-значения (load_yaml_configs) ─────────────────────────────────────────
+# YAML-значения (load_yaml_configs)
 
 
 class TestBotYamlValues:
@@ -282,7 +282,7 @@ class TestBotYamlValues:
             assert val > 0, f"{attr} должен быть > 0"
 
 
-# ── SSH branch ────────────────────────────────────────────────────────────────
+# SSH branch
 
 
 class TestSshBranch:
@@ -300,7 +300,7 @@ class TestSshBranch:
             assert module.settings.ssh_connection == {}
 
 
-# ── get_settings lru_cache ────────────────────────────────────────────────────
+# get_settings lru_cache
 
 
 class TestBotGetSettings:

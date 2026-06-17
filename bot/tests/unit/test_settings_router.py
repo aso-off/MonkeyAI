@@ -14,7 +14,7 @@ fake = Faker()
 Faker.seed(4)
 
 
-# ── _settings_keyboard ────────────────────────────────────────────────────────
+# _settings_keyboard
 
 
 class TestSettingsKeyboard:
@@ -49,7 +49,7 @@ class TestSettingsKeyboard:
             assert kb is not None
 
 
-# ── cmd_settings ──────────────────────────────────────────────────────────────
+# cmd_settings
 
 
 class TestCmdSettings:
@@ -78,7 +78,7 @@ class TestCmdSettings:
             msg.answer.assert_awaited_once()
 
 
-# ── cb_profile_settings ───────────────────────────────────────────────────────
+# cb_profile_settings
 
 
 class TestCbProfileSettings:

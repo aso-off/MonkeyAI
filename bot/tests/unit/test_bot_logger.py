@@ -26,7 +26,7 @@ _BOT_SRC = Path(__file__).resolve().parents[2] / "src"
 _LOGGER_FILE = _BOT_SRC / "core" / "logger.py"
 
 
-# ── Фикстура загрузки ──────────────────────────────────────────────────────────
+# Фикстура загрузки
 
 
 @pytest.fixture(scope="module")
@@ -67,7 +67,7 @@ def bot_logger_module():
             pass
 
 
-# ── _setup() ─────────────────────────────────────────────────────────────────
+# _setup()
 
 
 class TestBotSetup:
@@ -104,7 +104,7 @@ class TestBotSetup:
         assert logging.getLogger().level == logging.WARNING
 
 
-# ── _NoiseFilter ──────────────────────────────────────────────────────────────
+# _NoiseFilter
 
 
 class TestNoiseFilter:
@@ -145,7 +145,7 @@ class TestNoiseFilter:
         assert f.filter(self._record("POST /webhook/health 200")) is False
 
 
-# ── _handle_unhandled ─────────────────────────────────────────────────────────
+# _handle_unhandled
 
 
 class TestBotHandleUnhandled:
@@ -174,7 +174,7 @@ class TestBotHandleUnhandled:
         assert "Unhandled exception" in call_msg
 
 
-# ── Async log functions ───────────────────────────────────────────────────────
+# Async log functions
 
 
 class TestAsyncLogFunctions:

@@ -69,7 +69,7 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     return cb
 
 
-# ── _do_restart ───────────────────────────────────────────────────────────────
+# _do_restart
 
 
 class TestDoRestart:
@@ -114,7 +114,7 @@ class TestDoRestart:
         redis.delete.assert_awaited_with("restart_in_progress")
 
 
-# ── cmd_restart ───────────────────────────────────────────────────────────────
+# cmd_restart
 
 
 class TestCmdRestart:
@@ -202,7 +202,7 @@ class TestCmdRestart:
         mock_restart.assert_not_awaited()
 
 
-# ── cb_admin_restart ──────────────────────────────────────────────────────────
+# cb_admin_restart
 
 
 class TestCbAdminRestart:

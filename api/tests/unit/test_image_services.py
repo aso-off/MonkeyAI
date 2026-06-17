@@ -20,7 +20,7 @@ fake = Faker()
 Faker.seed(42)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _tiny_png_b64() -> str:
@@ -48,7 +48,7 @@ def _make_image_response(b64: str | None = None, url: str | None = None):
     return resp
 
 
-# ── services/image_generation.py ──────────────────────────────────────────────
+# services/image_generation.py
 
 
 class TestGenerateImageB64:
@@ -236,7 +236,7 @@ class TestGenerateImages:
         assert len(results) == 1
 
 
-# ── services/image_processing.py ──────────────────────────────────────────────
+# services/image_processing.py
 
 
 class TestProcessGeneratedImage:

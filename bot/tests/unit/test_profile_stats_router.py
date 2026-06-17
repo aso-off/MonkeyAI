@@ -45,7 +45,7 @@ def _fake_profile(message_count: int | None = None) -> MagicMock:
     return profile
 
 
-# ── _stats_keyboard ───────────────────────────────────────────────────────────
+# _stats_keyboard
 
 
 class TestStatsKeyboard:
@@ -63,7 +63,7 @@ class TestStatsKeyboard:
             assert kb.inline_keyboard[0][0].callback_data == "profile"
 
 
-# ── cb_profile_stats ──────────────────────────────────────────────────────────
+# cb_profile_stats
 
 
 class TestCbProfileStats:

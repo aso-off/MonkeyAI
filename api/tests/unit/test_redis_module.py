@@ -21,7 +21,7 @@ _API_SRC = Path(__file__).resolve().parents[2] / "src"
 _REDIS_FILE = _API_SRC / "core" / "redis.py"
 
 
-# ── Фикстура загрузки ──────────────────────────────────────────────────────────
+# Фикстура загрузки
 
 
 @pytest.fixture(scope="module")
@@ -57,7 +57,7 @@ def reset_redis_state(redis_module):
     redis_module._redis_binary = None
 
 
-# ── get_redis / get_redis_binary: ошибки без инициализации ────────────────────
+# get_redis / get_redis_binary: ошибки без инициализации
 
 
 class TestGetRedisNotInitialized:
@@ -83,7 +83,7 @@ class TestGetRedisNotInitialized:
             assert "Redis" in str(exc) or "pool" in str(exc).lower()
 
 
-# ── init_redis ────────────────────────────────────────────────────────────────
+# init_redis
 
 
 class TestInitRedis:
@@ -144,7 +144,7 @@ class TestInitRedis:
         redis_module.logger.info.assert_called()
 
 
-# ── close_redis ───────────────────────────────────────────────────────────────
+# close_redis
 
 
 class TestCloseRedis:

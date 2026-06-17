@@ -29,7 +29,7 @@ def patch_settings():
         yield ns
 
 
-# ── _about_text ───────────────────────────────────────────────────────────────
+# _about_text
 
 
 class TestAboutText:
@@ -58,7 +58,7 @@ class TestAboutText:
             assert isinstance(text, str) and len(text) > 0
 
 
-# ── _about_keyboard ───────────────────────────────────────────────────────────
+# _about_keyboard
 
 
 class TestAboutKeyboard:
@@ -76,7 +76,7 @@ class TestAboutKeyboard:
             assert kb is not None
 
 
-# ── cmd_about ─────────────────────────────────────────────────────────────────
+# cmd_about
 
 
 class TestCmdAbout:
@@ -108,7 +108,7 @@ class TestCmdAbout:
             msg.answer.assert_awaited_once()
 
 
-# ── cb_about ──────────────────────────────────────────────────────────────────
+# cb_about
 
 
 class TestCbAbout:

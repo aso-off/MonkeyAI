@@ -48,7 +48,7 @@ def _mock_yaml_data(admin_ids=None, allowed_ids=None) -> dict:
     }
 
 
-# ── Keyboard / text builders ──────────────────────────────────────────────────
+# Keyboard / text builders
 
 
 class TestKeyboardBuilders:
@@ -88,7 +88,7 @@ class TestKeyboardBuilders:
             assert _cancel_keyboard(lang) is not None
 
 
-# ── _whitelist_text ───────────────────────────────────────────────────────────
+# _whitelist_text
 
 
 class TestWhitelistText:
@@ -121,7 +121,7 @@ class TestWhitelistText:
         assert isinstance(text, str)
 
 
-# ── _read_user_ids / _write_user_ids ──────────────────────────────────────────
+# _read_user_ids / _write_user_ids
 
 
 class TestReadWriteUserIds:
@@ -157,7 +157,7 @@ class TestReadWriteUserIds:
         mock_path.write_text.assert_called_once()
 
 
-# ── cb_admin_whitelist ────────────────────────────────────────────────────────
+# cb_admin_whitelist
 
 
 class TestCbAdminWhitelist:
@@ -194,7 +194,7 @@ class TestCbAdminWhitelist:
         cb.message.edit_text.assert_not_awaited()
 
 
-# ── cb_set_access_mode ────────────────────────────────────────────────────────
+# cb_set_access_mode
 
 
 class TestCbSetAccessMode:
@@ -232,7 +232,7 @@ class TestCbSetAccessMode:
         cb.message.edit_text.assert_awaited_once()
 
 
-# ── cb_manage_users ───────────────────────────────────────────────────────────
+# cb_manage_users
 
 
 class TestCbManageUsers:
@@ -264,7 +264,7 @@ class TestCbManageUsers:
         cb.message.edit_text.assert_not_awaited()
 
 
-# ── _load_user_ids / _save_user_ids ───────────────────────────────────────────
+# _load_user_ids / _save_user_ids
 
 
 class TestLoadSaveUserIds:

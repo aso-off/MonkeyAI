@@ -24,7 +24,7 @@ _TEST_MODELS = {
 _MODEL_OPTIONS = {m: info["options"] for m, info in _TEST_MODELS["info"].items()}
 
 
-# ── Фикстуры ─────────────────────────────────────────────────────────────────
+# Фикстуры
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def gpt(mock_openai, mock_settings) -> ChatGPT:
     return ChatGPT(model="gpt-4o")
 
 
-# ── __init__ ──────────────────────────────────────────────────────────────────
+# __init__
 
 
 class TestChatGPTInit:
@@ -78,7 +78,7 @@ class TestChatGPTInit:
         assert gpt.model == "gpt-5.4-nano"
 
 
-# ── _options ──────────────────────────────────────────────────────────────────
+# _options
 
 
 class TestOptions:
@@ -105,7 +105,7 @@ class TestOptions:
         assert "extra" not in opts2
 
 
-# ── _validate_mode ────────────────────────────────────────────────────────────
+# _validate_mode
 
 
 class TestValidateMode:
@@ -140,7 +140,7 @@ class TestValidateMode:
             gpt._validate_mode("system_prompt")
 
 
-# ── _build_messages ───────────────────────────────────────────────────────────
+# _build_messages
 
 
 class TestBuildMessages:
@@ -223,7 +223,7 @@ class TestBuildMessages:
         assert roles == ["user", "assistant", "user"]
 
 
-# ── _encode_image ─────────────────────────────────────────────────────────────
+# _encode_image
 
 
 class TestEncodeImage:
@@ -253,7 +253,7 @@ class TestEncodeImage:
         assert decoded == data
 
 
-# ── send_message (интеграционный, полный мок) ─────────────────────────────────
+# send_message (интеграционный, полный мок)
 
 
 class TestSendMessage:

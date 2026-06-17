@@ -64,7 +64,7 @@ def _fake_callback(data: str = "profile_model", uid: int | None = None) -> Magic
     return cb
 
 
-# ── _model_keyboard ───────────────────────────────────────────────────────────
+# _model_keyboard
 
 
 class TestModelKeyboard:
@@ -111,7 +111,7 @@ class TestModelKeyboard:
         assert not any("unknown" in l.lower() for l in labels)
 
 
-# ── _model_text ───────────────────────────────────────────────────────────────
+# _model_text
 
 
 class TestModelText:
@@ -139,7 +139,7 @@ class TestModelText:
         assert "🟢" not in text
 
 
-# ── cmd_model ─────────────────────────────────────────────────────────────────
+# cmd_model
 
 
 class TestCmdModel:
@@ -180,7 +180,7 @@ class TestCmdModel:
         msg.answer.assert_awaited_once()
 
 
-# ── cb_profile_model ──────────────────────────────────────────────────────────
+# cb_profile_model
 
 
 class TestCbProfileModel:
@@ -221,7 +221,7 @@ class TestCbProfileModel:
         mock_api.update_user.assert_awaited_once()
 
 
-# ── cb_set_model ──────────────────────────────────────────────────────────────
+# cb_set_model
 
 
 class TestCbSetModel:

@@ -27,7 +27,7 @@ def patch_settings():
         yield ns
 
 
-# ── _help_text ────────────────────────────────────────────────────────────────
+# _help_text
 
 
 class TestHelpText:
@@ -60,7 +60,7 @@ class TestHelpText:
             assert len(admin_text) > len(user_text)
 
 
-# ── cmd_help ──────────────────────────────────────────────────────────────────
+# cmd_help
 
 
 class TestCmdHelp:
@@ -108,7 +108,7 @@ class TestCmdHelp:
         assert msg.answer.call_args[0][0] == _help_text(is_admin=False, lang="ru")
 
 
-# ── cb_help ───────────────────────────────────────────────────────────────────
+# cb_help
 
 
 class TestCbHelp:
@@ -148,7 +148,7 @@ class TestCbHelp:
         assert called_text == _help_text(is_admin=True, lang="en")
 
 
-# ── cmd_help_group_chat ───────────────────────────────────────────────────────
+# cmd_help_group_chat
 
 
 class TestCmdHelpGroupChat:

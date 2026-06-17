@@ -20,7 +20,7 @@ def reset_auth_state():
     auth_state._allowed_ids = set()
 
 
-# ── is_admin ──────────────────────────────────────────────────────────────────
+# is_admin
 
 
 class TestIsAdmin:
@@ -65,7 +65,7 @@ class TestIsAdmin:
             assert auth_state.is_admin(uid) is False
 
 
-# ── is_allowed ────────────────────────────────────────────────────────────────
+# is_allowed
 
 
 class TestIsAllowed:
@@ -128,7 +128,7 @@ class TestIsAllowed:
         assert all(auth_state.is_allowed(uid) for uid in ids)
 
 
-# ── reload_sync (unit, без файла) ─────────────────────────────────────────────
+# reload_sync (unit, без файла)
 
 
 class TestReloadSync:

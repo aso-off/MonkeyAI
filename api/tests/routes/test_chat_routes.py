@@ -24,7 +24,7 @@ Faker.seed(42)
 _MODELS = ["gpt-4o", "gpt-5.4-nano", "gpt-5.4-mini"]
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _chat_body(**overrides) -> dict:
@@ -66,7 +66,7 @@ def _mock_chatgpt(answer: str | None = None, n_in: int = 10, n_out: int = 20):
     return MagicMock(return_value=instance)
 
 
-# ── POST /chat/complete ───────────────────────────────────────────────────────
+# POST /chat/complete
 
 
 class TestChatComplete:
@@ -199,7 +199,7 @@ class TestChatComplete:
         assert resp.status_code == 422
 
 
-# ── POST /chat/stream ─────────────────────────────────────────────────────────
+# POST /chat/stream
 
 
 class TestChatStream:

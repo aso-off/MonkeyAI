@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 import pytest
 
-# ── Загрузка реального модуля ─────────────────────────────────────────────────
+# Загрузка реального модуля
 
 _SECURITY_PATH = Path(__file__).resolve().parents[2] / "src" / "core" / "security.py"
 _sec_spec = importlib.util.spec_from_file_location("_real_core_security", _SECURITY_PATH)
@@ -22,7 +22,7 @@ _sec_spec.loader.exec_module(_sec_mod)
 
 _verify_init_data = _sec_mod._verify_init_data
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 _BOT_TOKEN = "1234567890:AABBCCDDEEFFaabbccddeeff00112233445"
 
@@ -48,7 +48,7 @@ def _make_init_data(
     return urlencode({**params, "hash": hash_})
 
 
-# ── Тесты ─────────────────────────────────────────────────────────────────────
+# Тесты
 
 
 class TestVerifyInitDataValid:

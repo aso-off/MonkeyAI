@@ -17,7 +17,7 @@ fake = Faker()
 Faker.seed(42)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _uid() -> int:
@@ -97,11 +97,7 @@ def _fake_dialog_obj(uid: int | None = None, did: str | None = None):
     d.messages = []
     return d
 
-
-# ═══════════════════════════════════════════════════════════════════
 # db/repositories/users.py
-# ═══════════════════════════════════════════════════════════════════
-
 
 class TestGetUser:
 

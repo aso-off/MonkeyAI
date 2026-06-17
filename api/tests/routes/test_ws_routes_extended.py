@@ -26,7 +26,7 @@ def _fake_image_b64() -> str:
     return f"data:image/png;base64,{base64.b64encode(fake.binary(length=32)).decode()}"
 
 
-# ── _store_image — eviction ───────────────────────────────────────────────────
+# _store_image — eviction
 
 
 class TestStoreImageEviction:
@@ -54,7 +54,7 @@ class TestStoreImageEviction:
         ws_mod._IMAGE_TS.pop(new_id, None)
 
 
-# ── get_image — Redis exception ───────────────────────────────────────────────
+# get_image — Redis exception
 
 
 class TestGetImageRedisException:
@@ -72,7 +72,7 @@ class TestGetImageRedisException:
         assert resp.status_code == 404
 
 
-# ── _broadcast ────────────────────────────────────────────────────────────────
+# _broadcast
 
 
 class TestBroadcast:
@@ -133,7 +133,7 @@ class TestBroadcast:
         ws2.send_text.assert_awaited_once()
 
 
-# ── _auth_handshake ───────────────────────────────────────────────────────────
+# _auth_handshake
 
 
 class TestAuthHandshake:
@@ -205,7 +205,7 @@ class TestAuthHandshake:
         ws.send_text.assert_not_awaited()
 
 
-# ── _spawn — exception callback ───────────────────────────────────────────────
+# _spawn — exception callback
 
 
 class TestSpawnException:

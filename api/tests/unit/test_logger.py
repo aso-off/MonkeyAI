@@ -23,7 +23,7 @@ _API_SRC = Path(__file__).resolve().parents[2] / "src"
 _LOGGER_FILE = _API_SRC / "core" / "logger.py"
 
 
-# ── Фикстура загрузки ──────────────────────────────────────────────────────────
+# Фикстура загрузки
 
 
 @pytest.fixture(scope="module")
@@ -69,7 +69,7 @@ def logger_module():
             pass
 
 
-# ── _setup() ─────────────────────────────────────────────────────────────────
+# _setup()
 
 
 class TestSetup:
@@ -116,7 +116,7 @@ class TestSetup:
         assert sys.excepthook is logger_module._handle_unhandled
 
 
-# ── _NoHealthFilter ───────────────────────────────────────────────────────────
+# _NoHealthFilter
 
 
 class TestNoHealthFilter:
@@ -171,7 +171,7 @@ class TestNoHealthFilter:
             assert f.filter(self._make_record(msg)) is True
 
 
-# ── _handle_unhandled ─────────────────────────────────────────────────────────
+# _handle_unhandled
 
 
 class TestHandleUnhandled:

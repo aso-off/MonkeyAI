@@ -104,4 +104,3 @@ class TestDbUpdateUser:
         mock_session.__aexit__ = AsyncMock(return_value=False)
         with patch("routes.users.Session", return_value=mock_session):
             await _db_update_user(uid, language="de")
-        # не упало

@@ -12,7 +12,7 @@ import pytest
 from aiogram.types import InlineKeyboardMarkup
 
 
-# ── start.py keyboards ────────────────────────────────────────────────────────
+# start.py keyboards
 
 class TestPrivateKeyboard:
     """Тесты _private_keyboard из routers/start.py."""
@@ -105,7 +105,7 @@ class TestGroupKeyboard:
         assert "admin_panel" not in all_data
 
 
-# ── admin/admin.py keyboard ───────────────────────────────────────────────────
+# admin/admin.py keyboard
 
 
 class TestAdminPanelKeyboard:
@@ -130,7 +130,7 @@ class TestAdminPanelKeyboard:
         assert len(kb.inline_keyboard) > 0
 
 
-# ── admin/whitelist.py keyboards ──────────────────────────────────────────────
+# admin/whitelist.py keyboards
 
 
 class TestWhitelistKeyboard:
@@ -227,7 +227,7 @@ class TestCancelKeyboard:
         assert all_buttons[0].callback_data == "cancel_user_operation"
 
 
-# ── profile/profile.py keyboard ───────────────────────────────────────────────
+# profile/profile.py keyboard
 
 
 class TestProfileKeyboard:
@@ -257,7 +257,7 @@ class TestProfileKeyboard:
         assert "back_to_start" in all_data
 
 
-# ── profile/profile.py — _build_profile_text ──────────────────────────────────
+# profile/profile.py — _build_profile_text
 
 
 class TestBuildProfileText:

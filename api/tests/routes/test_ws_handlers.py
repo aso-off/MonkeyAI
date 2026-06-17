@@ -47,7 +47,7 @@ def _mock_session_cm():
     return _cm, session
 
 
-# ── _auth_handshake — edge cases ──────────────────────────────────────────────
+# _auth_handshake — edge cases
 
 
 class TestAuthHandshakeEdgeCases:
@@ -115,7 +115,7 @@ class TestAuthHandshakeEdgeCases:
         assert payload["type"] == "auth_error"
 
 
-# ── _heartbeat ────────────────────────────────────────────────────────────────
+# _heartbeat
 
 
 class TestHeartbeat:
@@ -130,7 +130,7 @@ class TestHeartbeat:
         # Не упало — вернулось без исключения
 
 
-# ── _generation_keepalive ─────────────────────────────────────────────────────
+# _generation_keepalive
 
 
 class TestGenerationKeepalive:
@@ -153,7 +153,7 @@ class TestGenerationKeepalive:
             ws_mod._WS_POOL.pop(uid, None)
 
 
-# ── _handle_chat ──────────────────────────────────────────────────────────────
+# _handle_chat
 
 
 class TestHandleChat:
@@ -423,7 +423,7 @@ class TestHandleChat:
         assert uid not in ws_mod._USER_GENERATING
 
 
-# ── _handle_image ─────────────────────────────────────────────────────────────
+# _handle_image
 
 
 class TestHandleImage:
@@ -617,7 +617,7 @@ class TestHandleImage:
         mock_incr.assert_awaited_once_with(session, uid, 1)
 
 
-# ── _message_loop ─────────────────────────────────────────────────────────────
+# _message_loop
 
 
 class TestMessageLoop:
@@ -716,7 +716,7 @@ class TestMessageLoop:
         assert "unknown type" in sent["error"]
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 async def _aiter(items):
     """Async generator из списка."""

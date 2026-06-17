@@ -38,7 +38,7 @@ def _uid() -> int:
     return fake.random_int(min=100_000, max=999_999_999)
 
 
-# ── helpers ───────────────────────────────────────────────────────────────────
+# helpers
 
 
 def _fake_settings(**overrides):
@@ -149,7 +149,7 @@ def _stream_chunk(
     return c
 
 
-# ── set_bot_meta / _get_bot_meta ──────────────────────────────────────────────
+# set_bot_meta / _get_bot_meta
 
 
 class TestSetBotMeta:
@@ -193,7 +193,7 @@ class TestGetBotMeta:
         bot.get_me.assert_not_awaited()
 
 
-# ── _is_busy ──────────────────────────────────────────────────────────────────
+# _is_busy
 
 
 class TestIsBusy:
@@ -222,7 +222,7 @@ class TestIsBusy:
         msg.answer.assert_awaited_once()
 
 
-# ── _is_bot_mentioned ─────────────────────────────────────────────────────────
+# _is_bot_mentioned
 
 
 class TestIsBotMentioned:
@@ -292,7 +292,7 @@ class TestIsBotMentioned:
         assert result is True
 
 
-# ── _last_user_text_from_dialog_entry ─────────────────────────────────────────
+# _last_user_text_from_dialog_entry
 
 
 class TestLastUserTextFromDialogEntry:
@@ -327,7 +327,7 @@ class TestLastUserTextFromDialogEntry:
         assert _last_user_text_from_dialog_entry([]) == ""
 
 
-# ── _mode_welcome ─────────────────────────────────────────────────────────────
+# _mode_welcome
 
 
 class TestModeWelcome:
@@ -359,7 +359,7 @@ class TestModeWelcome:
             assert _mode_welcome("nonexistent", "ru") == ""
 
 
-# ── cmd_new ───────────────────────────────────────────────────────────────────
+# cmd_new
 
 
 class TestCmdNew:
@@ -415,7 +415,7 @@ class TestCmdNew:
         assert msg.answer.await_count == 2
 
 
-# ── cmd_cancel ────────────────────────────────────────────────────────────────
+# cmd_cancel
 
 
 class TestCmdCancel:
@@ -458,7 +458,7 @@ class TestCmdCancel:
         msg.answer.assert_awaited_once()
 
 
-# ── cmd_retry ─────────────────────────────────────────────────────────────────
+# cmd_retry
 
 
 class TestCmdRetry:
@@ -576,7 +576,7 @@ class TestCmdRetry:
         assert image_buffer is not None
 
 
-# ── generate_image ─────────────────────────────────────────────────────────────
+# generate_image
 
 
 class TestGenerateImage:
@@ -691,7 +691,7 @@ class TestGenerateImage:
         msg.answer.assert_awaited()
 
 
-# ── _handle_text_or_vision ────────────────────────────────────────────────────
+# _handle_text_or_vision
 
 
 class TestHandleTextOrVision:
@@ -910,7 +910,7 @@ class TestHandleTextOrVision:
         assert call_kwargs.get("chat_mode") == "assistant"
 
 
-# ── rich messages (Bot API 10.1) ──────────────────────────────────────────────
+# rich messages
 
 
 _REASONING_MODELS = {"info": {"gpt-5.4-mini": {"options": {"reasoning_effort": "medium"}}}}
@@ -1127,7 +1127,7 @@ class TestRichMessages:
         assert sent_id == 777
 
 
-# ── _run_handle ───────────────────────────────────────────────────────────────
+# _run_handle
 
 
 class TestRunHandle:
@@ -1182,7 +1182,7 @@ class TestRunHandle:
         redis.delete.assert_awaited_once()
 
 
-# ── msg_text ──────────────────────────────────────────────────────────────────
+# msg_text
 
 
 class TestMsgText:
@@ -1238,7 +1238,7 @@ class TestMsgText:
         assert captured_text and "@testbot" not in captured_text[0]
 
 
-# ── msg_photo ─────────────────────────────────────────────────────────────────
+# msg_photo
 
 
 class TestMsgPhoto:
@@ -1303,7 +1303,7 @@ class TestMsgPhoto:
         assert captured_text and captured_text[0] == "describe image"
 
 
-# ── msg_voice ─────────────────────────────────────────────────────────────────
+# msg_voice
 
 
 class TestMsgVoice:
@@ -1383,7 +1383,7 @@ class TestMsgVoice:
         msg.answer.assert_awaited()
 
 
-# ── msg_unsupported / msg_edited ──────────────────────────────────────────────
+# msg_unsupported / msg_edited
 
 
 class TestMsgUnsupportedAndEdited:

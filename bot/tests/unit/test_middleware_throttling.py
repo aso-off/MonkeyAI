@@ -45,7 +45,7 @@ def _make_mw(rate_ms: int = 1000, redis_password=None, admin_ids: list | None = 
     return mw
 
 
-# ── __init__ ──────────────────────────────────────────────────────────────────
+# __init__
 
 
 class TestThrottlingMiddlewareInit:
@@ -95,7 +95,7 @@ class TestThrottlingMiddlewareInit:
         assert mw2.rate_ms == custom_rate
 
 
-# ── __call__ ──────────────────────────────────────────────────────────────────
+# __call__
 
 
 class TestThrottlingMiddlewareCall:

@@ -41,7 +41,7 @@ def _fake_callback(uid: int | None = None) -> MagicMock:
     return cb
 
 
-# ── _ping_result_keyboard ─────────────────────────────────────────────────────
+# _ping_result_keyboard
 
 
 class TestPingResultKeyboard:
@@ -59,7 +59,7 @@ class TestPingResultKeyboard:
             assert kb.inline_keyboard[0][0].callback_data == "profile_settings"
 
 
-# ── _measure_ping_ms ──────────────────────────────────────────────────────────
+# _measure_ping_ms
 
 
 class TestMeasurePingMs:
@@ -97,7 +97,7 @@ class TestMeasurePingMs:
         assert mock_bot.get_me.await_count == 3
 
 
-# ── cmd_ping ──────────────────────────────────────────────────────────────────
+# cmd_ping
 
 
 class TestCmdPing:
@@ -125,7 +125,7 @@ class TestCmdPing:
             msg.answer.assert_awaited_once()
 
 
-# ── cb_ping ───────────────────────────────────────────────────────────────────
+# cb_ping
 
 
 class TestCbPing:
