@@ -83,7 +83,7 @@ def _fake_message(uid: int | None = None, chat_type: str = "private", text: str 
     msg.voice = None
     msg.reply_to_message = None
     msg.answer = AsyncMock()
-    msg.answer_rich = AsyncMock()
+    msg.answer_rich = AsyncMock(return_value=MagicMock(message_id=777))
     msg.reply = AsyncMock()
     return msg
 
@@ -94,6 +94,7 @@ def _fake_bot() -> MagicMock:
     bot.send_chat_action = AsyncMock()
     bot.send_rich_message_draft = AsyncMock()
     bot.send_rich_message = AsyncMock()
+    bot.edit_message_text = AsyncMock()
     bot.get_file = AsyncMock(return_value=MagicMock(file_path="test/path"))
     bot.download_file = AsyncMock()
     return bot
@@ -218,7 +219,7 @@ class TestIsBusy:
              patch("src.bot.routers.chat.t", return_value="wait"):
             result = await _is_busy(_uid(), msg, "ru")
         assert result is True
-        msg.reply.assert_awaited_once()
+        msg.answer.assert_awaited_once()
 
 
 # ── _is_bot_mentioned ─────────────────────────────────────────────────────────
@@ -565,6 +566,7 @@ class TestCmdRetry:
         with patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
              patch("src.bot.routers.chat.api") as mock_api, \
              patch("src.bot.routers.chat._run_handle", AsyncMock()) as mock_run, \
+             patch("src.bot.routers.chat._pop_answer_id", AsyncMock(return_value=None)), \
              patch("src.bot.routers.chat.t", return_value=""):
             mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure([]))
             mock_api.pop_last_exchange = AsyncMock(return_value=removed)
@@ -585,7 +587,7 @@ class TestGenerateImage:
         msg = _fake_message()
         bot = _fake_bot()
         buf = BytesIO(b"image_data")
-        msg.reply_photo = AsyncMock()
+        msg.answer_photo = AsyncMock()
         with patch("src.bot.routers.chat.api") as mock_api, \
              patch("src.bot.routers.chat.settings") as mock_s, \
              patch("src.bot.routers.chat.monkey") as mock_monkey:
@@ -598,7 +600,7 @@ class TestGenerateImage:
             mock_monkey.send = AsyncMock()
             bot.send_chat_action = AsyncMock()
             await generate_image(msg, bot, "ru", _uid(), fake.sentence())
-        msg.reply_photo.assert_awaited_once()
+        msg.answer_photo.assert_awaited_once()
         mock_monkey.send.assert_awaited()
 
     @pytest.mark.asyncio
@@ -623,7 +625,7 @@ class TestGenerateImage:
             mock_monkey.send = AsyncMock()
             await generate_image(msg, bot, "ru", _uid(), fake.sentence())
         mock_monkey.send.assert_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_http_429_rate_limit_sends_sad(self) -> None:
@@ -646,7 +648,7 @@ class TestGenerateImage:
             )
             mock_monkey.send = AsyncMock()
             await generate_image(msg, bot, "ru", _uid(), fake.sentence())
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_http_500_other_error_sends_error(self) -> None:
@@ -669,7 +671,7 @@ class TestGenerateImage:
             )
             mock_monkey.send = AsyncMock()
             await generate_image(msg, bot, "ru", _uid(), fake.sentence())
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_generic_exception_sends_error(self) -> None:
@@ -686,7 +688,7 @@ class TestGenerateImage:
             mock_api.generate_images = AsyncMock(side_effect=RuntimeError(fake.sentence()))
             mock_monkey.send = AsyncMock()
             await generate_image(msg, bot, "ru", _uid(), fake.sentence())
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
 
 # ── _handle_text_or_vision ────────────────────────────────────────────────────
@@ -732,7 +734,7 @@ class TestHandleTextOrVision:
             mock_api.get_user = AsyncMock(return_value=db_user)
             mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure())
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "   ")
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_non_streaming_sends_answer(self) -> None:
@@ -768,7 +770,7 @@ class TestHandleTextOrVision:
             mock_monkey.send = AsyncMock()
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hello")
         mock_monkey.send.assert_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_non_streaming_context_removed_one(self) -> None:
@@ -786,8 +788,7 @@ class TestHandleTextOrVision:
             mock_api.chat_complete = AsyncMock(return_value=result)
             mock_monkey.delete_processing = AsyncMock()
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hello")
-        msg.answer.assert_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_non_streaming_context_removed_many(self) -> None:
@@ -805,8 +806,7 @@ class TestHandleTextOrVision:
             mock_api.chat_complete = AsyncMock(return_value=result)
             mock_monkey.delete_processing = AsyncMock()
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hello")
-        msg.answer.assert_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_non_streaming_markdownv2_mode(self) -> None:
@@ -844,7 +844,7 @@ class TestHandleTextOrVision:
             mock_monkey.send = AsyncMock()
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hello")
         mock_monkey.send.assert_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_streaming_normal_chunk(self) -> None:
@@ -1078,6 +1078,54 @@ class TestRichMessages:
         msg.answer_rich.assert_awaited_once()
         msg.answer.assert_awaited_once()
 
+    @pytest.mark.asyncio
+    async def test_retry_edits_previous_answer_in_place(self) -> None:
+        from src.bot.routers.chat import _handle_text_or_vision
+        msg = _fake_message(chat_type="private")
+        bot = _fake_bot()
+        db_user = _fake_db_user(model="gpt-4o")
+        s = _fake_settings(enable_message_streaming=True, enable_rich_messages=True)
+
+        async def mock_stream(*args, **kwargs):
+            yield _stream_chunk(text="updated", status="finished")
+
+        with patch("src.bot.routers.chat.api") as mock_api, \
+             patch("src.bot.routers.chat.settings", s), \
+             patch("src.bot.routers.chat.monkey") as mock_monkey:
+            mock_api.get_user = AsyncMock(return_value=db_user)
+            mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure())
+            mock_api.chat_stream = mock_stream
+            mock_monkey.delete_processing = AsyncMock()
+            sent_id = await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hi", edit_message_id=555)
+        bot.edit_message_text.assert_awaited_once()
+        assert bot.edit_message_text.await_args.kwargs["message_id"] == 555
+        msg.answer_rich.assert_not_awaited()
+        bot.send_rich_message_draft.assert_not_awaited()
+        assert sent_id == 555
+
+    @pytest.mark.asyncio
+    async def test_retry_edit_failure_falls_back_to_new(self) -> None:
+        from src.bot.routers.chat import _handle_text_or_vision
+        msg = _fake_message(chat_type="private")
+        bot = _fake_bot()
+        bot.edit_message_text = AsyncMock(side_effect=RuntimeError("message too old"))
+        db_user = _fake_db_user(model="gpt-4o")
+        s = _fake_settings(enable_message_streaming=True, enable_rich_messages=True)
+
+        async def mock_stream(*args, **kwargs):
+            yield _stream_chunk(text="updated", status="finished")
+
+        with patch("src.bot.routers.chat.api") as mock_api, \
+             patch("src.bot.routers.chat.settings", s), \
+             patch("src.bot.routers.chat.monkey") as mock_monkey:
+            mock_api.get_user = AsyncMock(return_value=db_user)
+            mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure())
+            mock_api.chat_stream = mock_stream
+            mock_monkey.delete_processing = AsyncMock()
+            sent_id = await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hi", edit_message_id=555)
+        msg.answer_rich.assert_awaited_once()
+        assert sent_id == 777
+
 
 # ── _run_handle ───────────────────────────────────────────────────────────────
 
@@ -1098,7 +1146,7 @@ class TestRunHandle:
             mock_s.busy_lock_ttl_seconds = 300
             await _run_handle(msg, bot, "ru", msg.from_user.id, "hello")
         mock_handle.assert_not_awaited()
-        msg.reply.assert_awaited_once()
+        msg.answer.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_lock_acquired_runs_handler(self) -> None:
@@ -1130,7 +1178,7 @@ class TestRunHandle:
              patch("src.bot.routers.chat._handle_text_or_vision", AsyncMock(side_effect=asyncio.CancelledError())):
             mock_s.busy_lock_ttl_seconds = 300
             await _run_handle(msg, bot, "ru", msg.from_user.id, "hello")
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
         redis.delete.assert_awaited_once()
 
 
@@ -1314,7 +1362,7 @@ class TestMsgVoice:
             mock_monkey.send = AsyncMock()
             await msg_voice(msg, language="ru", bot=bot)
         mock_run.assert_not_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_empty_transcription_sends_error(self) -> None:
@@ -1332,7 +1380,7 @@ class TestMsgVoice:
             mock_monkey.send = AsyncMock()
             await msg_voice(msg, language="ru", bot=bot)
         mock_run.assert_not_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
 
 # ── msg_unsupported / msg_edited ──────────────────────────────────────────────
@@ -1344,9 +1392,20 @@ class TestMsgUnsupportedAndEdited:
     async def test_unsupported_sends_error_message(self) -> None:
         from src.bot.routers.chat import msg_unsupported
         msg = _fake_message()
-        with patch("src.bot.routers.chat.t", return_value="unsupported"):
-            await msg_unsupported(msg, language="ru")
-        msg.reply.assert_awaited_once()
+        bot = _fake_bot()
+        with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
+             patch("src.bot.routers.chat.t", return_value="unsupported"):
+            await msg_unsupported(msg, language="ru", bot=bot)
+        msg.answer.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_unsupported_ignored_when_not_mentioned(self) -> None:
+        from src.bot.routers.chat import msg_unsupported
+        msg = _fake_message(chat_type="group")
+        bot = _fake_bot()
+        with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=False)):
+            await msg_unsupported(msg, language="ru", bot=bot)
+        msg.answer.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_edited_in_private_sends_notice(self) -> None:
@@ -1354,7 +1413,7 @@ class TestMsgUnsupportedAndEdited:
         msg = _fake_message(chat_type="private")
         with patch("src.bot.routers.chat.t", return_value="editing unsupported"):
             await msg_edited(msg, language="ru")
-        msg.reply.assert_awaited_once()
+        msg.answer.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_edited_in_group_does_nothing(self) -> None:
