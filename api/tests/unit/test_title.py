@@ -19,7 +19,7 @@ def _scalar_result(value):
     return r
 
 
-# ── truncate_title ────────────────────────────────────────────────────────────
+# truncate_title
 
 def test_truncate_short_stays() -> None:
     from services.title import truncate_title
@@ -46,7 +46,7 @@ def test_truncate_single_huge_word_hard_cut() -> None:
     assert out.endswith("…")
 
 
-# ── summarize_title ───────────────────────────────────────────────────────────
+# summarize_title
 
 @pytest.mark.asyncio
 async def test_summarize_title_clamps_and_strips(monkeypatch) -> None:
@@ -66,7 +66,7 @@ async def test_summarize_title_clamps_and_strips(monkeypatch) -> None:
     assert (n_in, n_out) == (12, 7)
 
 
-# ── set_initial_title / update_dialog_title ───────────────────────────────────
+# set_initial_title / update_dialog_title
 
 @pytest.mark.asyncio
 async def test_set_initial_title_sets_when_none() -> None:
@@ -114,7 +114,7 @@ async def test_update_dialog_title_commits() -> None:
     session.commit.assert_awaited_once()
 
 
-# ── handle_first_message_title (оркестратор) ──────────────────────────────────
+# handle_first_message_title (оркестратор)
 
 @pytest.mark.asyncio
 async def test_handle_schedules_refine_on_first_message(monkeypatch) -> None:

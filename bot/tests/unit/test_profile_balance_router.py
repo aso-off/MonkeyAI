@@ -66,7 +66,7 @@ _MODELS_SETTINGS = {
 }
 
 
-# ── _balance_keyboard ─────────────────────────────────────────────────────────
+# _balance_keyboard
 
 
 class TestBalanceKeyboard:
@@ -79,7 +79,7 @@ class TestBalanceKeyboard:
         assert kb.inline_keyboard[0][0].callback_data == "profile"
 
 
-# ── _build_balance_text ───────────────────────────────────────────────────────
+# _build_balance_text
 
 
 class TestBuildBalanceText:
@@ -164,7 +164,7 @@ class TestBuildBalanceText:
             assert isinstance(result, str)
 
 
-# ── cmd_balance ───────────────────────────────────────────────────────────────
+# cmd_balance
 
 
 class TestCmdBalance:
@@ -195,7 +195,7 @@ class TestCmdBalance:
         msg.answer.assert_awaited_once()
 
 
-# ── cb_show_balance ───────────────────────────────────────────────────────────
+# cb_show_balance
 
 
 class TestCbShowBalance:

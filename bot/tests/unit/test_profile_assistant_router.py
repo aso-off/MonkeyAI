@@ -56,7 +56,7 @@ _BASE_CHAT_MODES = {
 }
 
 
-# ── _assistant_keyboard ───────────────────────────────────────────────────────
+# _assistant_keyboard
 
 
 class TestAssistantKeyboard:
@@ -119,7 +119,7 @@ class TestAssistantKeyboard:
         assert back_btn is not None
 
 
-# ── _assistant_text ───────────────────────────────────────────────────────────
+# _assistant_text
 
 
 class TestAssistantText:
@@ -158,7 +158,7 @@ class TestAssistantText:
         assert isinstance(text, str)
 
 
-# ── cmd_mode ──────────────────────────────────────────────────────────────────
+# cmd_mode
 
 
 class TestCmdMode:
@@ -185,7 +185,7 @@ class TestCmdMode:
         msg.answer.assert_awaited_once()
 
 
-# ── cb_profile_assistant ──────────────────────────────────────────────────────
+# cb_profile_assistant
 
 
 class TestCbProfileAssistant:
@@ -228,7 +228,7 @@ class TestCbProfileAssistant:
         # Не должно поднимать исключение
 
 
-# ── cb_set_chat_mode ──────────────────────────────────────────────────────────
+# cb_set_chat_mode
 
 
 class TestCbSetChatMode:

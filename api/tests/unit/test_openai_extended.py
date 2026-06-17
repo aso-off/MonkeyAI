@@ -26,7 +26,7 @@ Faker.seed(42)
 _VALID_MODES = ["assistant", "code_assistant"]
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _make_gpt(model: str = "gpt-4o"):
@@ -110,7 +110,7 @@ def _bad_request_error():
     return err
 
 
-# ── make_client ───────────────────────────────────────────────────────────────
+# make_client
 
 
 class TestMakeClient:
@@ -177,7 +177,7 @@ class TestMakeClient:
             oai_mod._openai_client = original
 
 
-# ── _encode_image ─────────────────────────────────────────────────────────────
+# _encode_image
 
 
 class TestEncodeImage:
@@ -214,7 +214,7 @@ class TestEncodeImage:
             assert base64.b64decode(result) == raw
 
 
-# ── send_message ──────────────────────────────────────────────────────────────
+# send_message
 
 
 class TestSendMessage:
@@ -287,7 +287,7 @@ class TestSendMessage:
             assert isinstance(result, str)
 
 
-# ── send_message_stream ───────────────────────────────────────────────────────
+# send_message_stream
 
 
 class TestSendMessageStream:
@@ -367,7 +367,7 @@ class TestSendMessageStream:
         assert texts[-1].strip() != ""
 
 
-# ── send_vision_message ───────────────────────────────────────────────────────
+# send_vision_message
 
 
 class TestSendVisionMessage:
@@ -419,7 +419,7 @@ class TestSendVisionMessage:
             )
 
 
-# ── send_vision_message_stream ────────────────────────────────────────────────
+# send_vision_message_stream
 
 
 class TestSendVisionMessageStream:

@@ -62,7 +62,7 @@ def patch_settings():
         yield ns
 
 
-# ── cb_user_action ────────────────────────────────────────────────────────────
+# cb_user_action
 
 
 class TestCbUserAction:
@@ -144,7 +144,7 @@ class TestCbUserAction:
         cb.message.edit_text.assert_awaited_once()
 
 
-# ── cb_cancel_user_operation ──────────────────────────────────────────────────
+# cb_cancel_user_operation
 
 
 class TestCbCancelUserOperation:
@@ -169,7 +169,7 @@ class TestCbCancelUserOperation:
             state.clear.assert_awaited_once()
 
 
-# ── msg_user_id_input — невалидные ID ─────────────────────────────────────────
+# msg_user_id_input — невалидные ID
 
 
 class TestMsgUserIdInputValidation:
@@ -191,7 +191,7 @@ class TestMsgUserIdInputValidation:
         state.clear.assert_not_awaited()
 
 
-# ── msg_user_id_input — add_user ──────────────────────────────────────────────
+# msg_user_id_input — add_user
 
 
 class TestMsgAddUser:
@@ -226,7 +226,7 @@ class TestMsgAddUser:
         msg.answer.assert_awaited_once()
 
 
-# ── msg_user_id_input — remove_user ──────────────────────────────────────────
+# msg_user_id_input — remove_user
 
 
 class TestMsgRemoveUser:
@@ -295,7 +295,7 @@ class TestMsgRemoveUser:
         msg.answer.assert_awaited_once()
 
 
-# ── msg_user_id_input — add_admin ─────────────────────────────────────────────
+# msg_user_id_input — add_admin
 
 
 class TestMsgAddAdmin:
@@ -344,7 +344,7 @@ class TestMsgAddAdmin:
         assert cfg["admin_user_ids"].count(uid) == 1
 
 
-# ── msg_user_id_input — remove_admin ─────────────────────────────────────────
+# msg_user_id_input — remove_admin
 
 
 class TestMsgRemoveAdmin:

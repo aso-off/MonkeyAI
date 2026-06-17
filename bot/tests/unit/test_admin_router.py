@@ -29,7 +29,7 @@ def _fake_db_user(is_admin: bool = False):
     return u
 
 
-# ── _admin_panel_keyboard ─────────────────────────────────────────────────────
+# _admin_panel_keyboard
 
 
 class TestAdminPanelKeyboard:
@@ -65,7 +65,7 @@ class TestAdminPanelKeyboard:
             assert btn.callback_data is not None or btn.web_app is not None
 
 
-# ── cmd_admin ─────────────────────────────────────────────────────────────────
+# cmd_admin
 
 
 class TestCmdAdmin:
@@ -138,7 +138,7 @@ class TestCmdAdmin:
             msg.answer.assert_awaited_once()
 
 
-# ── cb_admin_panel ────────────────────────────────────────────────────────────
+# cb_admin_panel
 
 
 class TestCbAdminPanel:

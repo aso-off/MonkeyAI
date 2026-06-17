@@ -64,7 +64,7 @@ def webapp_client(api_app, mock_redis, fake):
     api_app.dependency_overrides.clear()
 
 
-# ── _require_user ─────────────────────────────────────────────────────────────
+# _require_user
 
 
 class TestRequireUser:
@@ -123,7 +123,7 @@ class TestRequireUser:
         assert exc_info.value.status_code == 404
 
 
-# ── _require_whitelisted ──────────────────────────────────────────────────────
+# _require_whitelisted
 
 
 class TestRequireWhitelisted:
@@ -173,7 +173,7 @@ class TestRequireWhitelisted:
         assert exc_info.value.status_code == 403
 
 
-# ── GET /webapp/me — дополнительные ветки ────────────────────────────────────
+# GET /webapp/me — дополнительные ветки
 
 
 class TestGetMeExtended:
@@ -211,7 +211,7 @@ class TestGetMeExtended:
         assert resp.status_code == 200
 
 
-# ── PATCH /webapp/me — дополнительные ветки ──────────────────────────────────
+# PATCH /webapp/me — дополнительные ветки
 
 
 class TestUpdateMeExtended:
@@ -244,7 +244,7 @@ class TestUpdateMeExtended:
         db_write_mock.assert_awaited_once()
 
 
-# ── POST /webapp/chat ─────────────────────────────────────────────────────────
+# POST /webapp/chat
 
 
 class TestWebappChatExtended:
@@ -362,7 +362,7 @@ class TestWebappChatExtended:
         mock_gpt.send_vision_message.assert_awaited_once()
 
 
-# ── POST /webapp/reactions ────────────────────────────────────────────────────
+# POST /webapp/reactions
 
 
 class TestWebappReactions:
@@ -394,7 +394,7 @@ class TestWebappReactions:
         assert resp.status_code == 400
 
 
-# ── Dialog CRUD / search / images ─────────────────────────────────────────────
+# Dialog CRUD / search / images
 
 
 def _fake_dialog_row(title: str = "Заголовок"):
@@ -498,7 +498,7 @@ class TestDialogCrud:
         assert resp.json()["images"][0]["id"] == 1
 
 
-# ── GET /webapp/dialogs/messages ──────────────────────────────────────────────
+# GET /webapp/dialogs/messages
 
 
 class TestGetMessagesExtended:

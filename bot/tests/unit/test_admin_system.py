@@ -53,7 +53,7 @@ def _fake_redis(cached: bytes | None = None) -> AsyncMock:
     return r
 
 
-# ── _back_keyboard ────────────────────────────────────────────────────────────
+# _back_keyboard
 
 
 class TestBackKeyboard:
@@ -65,7 +65,7 @@ class TestBackKeyboard:
         assert kb.inline_keyboard[0][0].callback_data == "admin_panel"
 
 
-# ── _get_cached_text ──────────────────────────────────────────────────────────
+# _get_cached_text
 
 
 class TestGetCachedText:
@@ -110,7 +110,7 @@ class TestGetCachedText:
         assert result is None
 
 
-# ── cmd_system ────────────────────────────────────────────────────────────────
+# cmd_system
 
 
 class TestCmdSystem:
@@ -156,7 +156,7 @@ class TestCmdSystem:
         assert msg.answer.call_args[0][0] == system_text
 
 
-# ── cb_admin_system ───────────────────────────────────────────────────────────
+# cb_admin_system
 
 
 class TestCbAdminSystem:

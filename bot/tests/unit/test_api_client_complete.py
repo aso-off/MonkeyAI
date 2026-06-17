@@ -21,7 +21,7 @@ fake = Faker()
 Faker.seed(42)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _uid() -> int:
@@ -67,7 +67,7 @@ def _patch_request(return_value):
     return patch("src.services.api_client._request", new=AsyncMock(return_value=return_value))
 
 
-# ── get_client / close_client ─────────────────────────────────────────────────
+# get_client / close_client
 
 
 class TestGetClient:
@@ -142,7 +142,7 @@ class TestCloseClient:
             ac._client = original
 
 
-# ── _decode ───────────────────────────────────────────────────────────────────
+# _decode
 
 
 class TestDecode:
@@ -170,7 +170,7 @@ class TestDecode:
         assert result.usage.total_tokens == n_in + n_out
 
 
-# ── Users ─────────────────────────────────────────────────────────────────────
+# Users
 
 
 class TestGetOrCreateUser:
@@ -236,7 +236,7 @@ class TestUpdateUser:
         assert result.language == "en"
 
 
-# ── Dialogs ───────────────────────────────────────────────────────────────────
+# Dialogs
 
 
 class TestStartNewDialog:
@@ -315,7 +315,7 @@ class TestAppendExchange:
         assert mock_req.await_args.kwargs["json"]["user"] == "промпт"
 
 
-# ── Chat ──────────────────────────────────────────────────────────────────────
+# Chat
 
 
 class TestChatComplete:
@@ -404,7 +404,7 @@ class TestChatStream:
         assert chunks[0].status == "finished"
 
 
-# ── Media ─────────────────────────────────────────────────────────────────────
+# Media
 
 
 class TestGenerateImages:
@@ -451,7 +451,7 @@ class TestTranscribeAudio:
         assert abs(result_dur - dur) < 0.01
 
 
-# ── User helpers ──────────────────────────────────────────────────────────────
+# User helpers
 
 
 class TestIsUserAdmin:
@@ -626,7 +626,7 @@ class TestGetUserFull:
         assert result is None
 
 
-# ── _b64_to_buf ───────────────────────────────────────────────────────────────
+# _b64_to_buf
 
 
 class TestB64ToBuf:

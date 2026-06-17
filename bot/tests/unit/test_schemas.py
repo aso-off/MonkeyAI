@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from src.schemas.user import UserCreate, UserRead, UserUpdate
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -34,7 +34,7 @@ def _valid_user_read_data(fake, **overrides) -> dict:
     }
 
 
-# ── UserCreate ────────────────────────────────────────────────────────────────
+# UserCreate
 
 
 class TestUserCreate:
@@ -99,7 +99,7 @@ class TestUserCreate:
         assert data["first_name"] == "Test"
 
 
-# ── UserRead ──────────────────────────────────────────────────────────────────
+# UserRead
 
 
 class TestUserRead:
@@ -168,7 +168,7 @@ class TestUserRead:
             assert user.n_generated_images >= 0
 
 
-# ── UserUpdate ────────────────────────────────────────────────────────────────
+# UserUpdate
 
 
 class TestUserUpdate:

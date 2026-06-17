@@ -19,7 +19,7 @@ fake = Faker()
 Faker.seed(42)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _make_engine_mock():
@@ -42,7 +42,7 @@ def _make_session_mock():
     return mock_factory, mock_session, mock_ctx
 
 
-# ── get_session ───────────────────────────────────────────────────────────────
+# get_session
 
 
 class TestGetSession:
@@ -95,7 +95,7 @@ class TestGetSession:
         mock_factory.assert_called_once()
 
 
-# ── init_db ───────────────────────────────────────────────────────────────────
+# init_db
 
 
 class TestInitDb:
@@ -133,7 +133,7 @@ class TestInitDb:
         assert upgrade.call_args.args[1] == "head"
 
 
-# ── Base & module-level ───────────────────────────────────────────────────────
+# Base & module-level
 
 
 class TestBaseAndEngine:

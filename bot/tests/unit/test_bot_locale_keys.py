@@ -25,7 +25,7 @@ fake = Faker()
 Faker.seed(42)
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture(scope="module")
@@ -48,7 +48,7 @@ def all_locale_data() -> dict[str, dict]:
     return result
 
 
-# ── Тесты самого test.yml (эталон должен быть правильным) ─────────────────────
+# Тесты самого test.yml (эталон должен быть правильным)
 
 
 class TestReferenceFile:
@@ -91,7 +91,7 @@ class TestReferenceFile:
         assert len(section) == len(set(section.keys())), "В test.yml есть дублирующиеся ключи"
 
 
-# ── Проверка всех языков против эталона ──────────────────────────────────────
+# Проверка всех языков против эталона
 
 
 class TestLocaleKeyCompleteness:
@@ -144,7 +144,7 @@ class TestLocaleKeyCompleteness:
         )
 
 
-# ── Проверка значений ─────────────────────────────────────────────────────────
+# Проверка значений
 
 
 class TestLocaleValues:
@@ -198,7 +198,7 @@ class TestLocaleValues:
         )
 
 
-# ── Корректность структуры файлов ─────────────────────────────────────────────
+# Корректность структуры файлов
 
 
 class TestLocaleFileStructure:

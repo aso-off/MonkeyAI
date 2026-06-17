@@ -35,7 +35,7 @@ def _fake_db_user(is_admin: bool = False, is_whitelisted: bool = True):
     return u
 
 
-# ── Keyboard builders ─────────────────────────────────────────────────────────
+# Keyboard builders
 
 
 class TestPrivateKeyboard:
@@ -92,7 +92,7 @@ class TestGroupKeyboard:
             assert kb is not None
 
 
-# ── cmd_start ─────────────────────────────────────────────────────────────────
+# cmd_start
 
 
 class TestCmdStart:
@@ -188,7 +188,7 @@ class TestCmdStart:
             assert any("admin_panel" in (b.callback_data or "") for b in all_buttons)
 
 
-# ── cmd_menu ──────────────────────────────────────────────────────────────────
+# cmd_menu
 
 
 class TestCmdMenu:
@@ -242,7 +242,7 @@ class TestCmdMenu:
         state.clear.assert_awaited_once()
 
 
-# ── cb_back_to_start ──────────────────────────────────────────────────────────
+# cb_back_to_start
 
 
 class TestCbBackToStart:

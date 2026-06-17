@@ -16,7 +16,7 @@ def redis(mock_redis):
         yield mock_redis
 
 
-# ── is_allowed ────────────────────────────────────────────────────────────────
+# is_allowed
 
 
 class TestIsAllowed:
@@ -67,7 +67,7 @@ class TestIsAllowed:
         assert await is_allowed(42) is expected
 
 
-# ── add ───────────────────────────────────────────────────────────────────────
+# add
 
 
 class TestAdd:
@@ -88,7 +88,7 @@ class TestAdd:
         redis.srem.assert_not_awaited()
 
 
-# ── remove ────────────────────────────────────────────────────────────────────
+# remove
 
 
 class TestRemove:
@@ -109,7 +109,7 @@ class TestRemove:
         redis.srem.assert_awaited_once_with(ALLOWED_KEY, uid)
 
 
-# ── rebuild ───────────────────────────────────────────────────────────────────
+# rebuild
 
 
 class TestRebuild:

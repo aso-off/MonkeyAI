@@ -15,12 +15,12 @@ import pytest
 
 from src.utils.localization import t
 
-# ── Путь к реальным locale файлам ──────────────────────────────────────────────
+# Путь к реальным locale файлам
 
 _LOCALES_DIR = Path(__file__).resolve().parents[2] / "src" / "locales"
 _LOCALES_EXIST = _LOCALES_DIR.is_dir() and any(_LOCALES_DIR.glob("*.yml"))
 
-# ── Mock-локали для структурных тестов ────────────────────────────────────────
+# Mock-локали для структурных тестов
 
 _COMPLETE_LOCALES: dict[str, dict[str, Any]] = {
     "ru": {
@@ -58,7 +58,7 @@ _INCOMPLETE_LOCALES: dict[str, dict[str, Any]] = {
 }
 
 
-# ── Структурные тесты (mock locales) ──────────────────────────────────────────
+# Структурные тесты (mock locales)
 
 
 class TestLocaleCoverage:
@@ -157,7 +157,7 @@ class TestLocaleCoverage:
             assert result.startswith("[MISSING KEY:")
 
 
-# ── Реальные файлы (пропускаем если не найдены) ───────────────────────────────
+# Реальные файлы (пропускаем если не найдены)
 
 
 @pytest.mark.skipif(not _LOCALES_EXIST, reason=f"Locale files not found at {_LOCALES_DIR}")
