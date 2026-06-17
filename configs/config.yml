@@ -24,6 +24,10 @@ rich_message_max_length: 32768  # лимит rich
 enable_thinking_block: true  # tg-thinking в драфте
 message_effect_id: ""  # эффект
 
+# Загрузки
+max_upload_mb: 8  # лимит файла до скачивания
+max_voice_duration_sec: 600  # лимит голосового
+
 # Сеть
 api_request_timeout_seconds: 120  # таймаут API
 throttle_rate_ms: 1000  # троттл

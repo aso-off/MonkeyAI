@@ -233,7 +233,7 @@ class TestSendMessage:
                 raise _bad_request_error()
             return completion
 
-        setattr(gpt.client.chat.completions, "create", _create)
+        gpt.client.chat.completions.create = _create
         dialog = _fake_dialog(3)
 
         result, _, n_removed = await gpt.send_message(
@@ -379,7 +379,7 @@ class TestSendVisionMessage:
                 raise _bad_request_error()
             return _fake_completion(answer)
 
-        setattr(gpt.client.chat.completions, "create", _create)
+        gpt.client.chat.completions.create = _create
         dialog = _fake_dialog(2)
 
         result, _, n_removed = await gpt.send_vision_message(

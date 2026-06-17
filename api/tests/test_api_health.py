@@ -1,16 +1,17 @@
 """Minimal health smoke test for API (no DB, no external services)."""
 
-from contextlib import asynccontextmanager
 import importlib
 import importlib.util
 import logging
 import sys
 import types
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+
 
 def _install_ci_stubs() -> None:
     """Avoid /app/logs setup during import on GitHub Actions runners."""

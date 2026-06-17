@@ -174,6 +174,7 @@ class TestIsAllowedCached:
     async def test_returns_true_when_sismember(self) -> None:
         import sys
         import types
+
         from src.core import auth_state
         uid = _uid()
 
@@ -193,6 +194,7 @@ class TestIsAllowedCached:
     async def test_returns_false_when_not_in_set_but_set_exists(self) -> None:
         import sys
         import types
+
         from src.core import auth_state
         uid = _uid()
 
@@ -212,6 +214,7 @@ class TestIsAllowedCached:
     async def test_returns_none_when_redis_raises(self) -> None:
         import sys
         import types
+
         from src.core import auth_state
         uid = _uid()
 

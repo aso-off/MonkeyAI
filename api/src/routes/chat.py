@@ -3,18 +3,17 @@ import json
 import logging
 from io import BytesIO
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from schemas.chat import ChatCompleteRequest, ChatCompleteResponse, Usage
 from services.messages import assistant_message, user_message
 from services.moderation import moderate_content
 from services.openai import ChatGPT
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -165,7 +164,7 @@ async def chat_complete(
         try:
             image_buffer = BytesIO(base64.b64decode(req.image_b64))
         except Exception:
-            raise HTTPException(status_code=400, detail="invalid_base64")
+            raise HTTPException(status_code=400, detail="invalid_base64") from None
         image_buffer.name = "image.jpg"
 
     is_flagged, _cats, _scores = await moderate_content(text=req.message, image_buffer=image_buffer)

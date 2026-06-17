@@ -83,5 +83,20 @@ line-length = 120
 exclude = [".venv", "mini-app"]
 
 [tool.ruff.lint]
-# Start with unused imports only; expand to F/E/I when codebase is cleaned up.
-select = ["F401"]
+select = ["F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["F841", "B007", "B905", "B904"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Form",
+    "fastapi.File",
+    "fastapi.Cookie",
+    "fastapi.Security",
+]

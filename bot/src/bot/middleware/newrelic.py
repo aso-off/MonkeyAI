@@ -4,11 +4,10 @@ from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Update
-
 from src.monitoring.newrelic_helpers import (
-    nr_transaction_name,
     nr_add_custom_parameter,
     nr_notice_error,
+    nr_transaction_name,
 )
 
 logger = logging.getLogger(__name__)

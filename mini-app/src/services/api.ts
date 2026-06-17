@@ -522,10 +522,11 @@ export class WsClient {
   async chatStream(
     body: ChatBody,
     onDelta?: (text: string) => void,
+    reqId?: string,
   ): Promise<ChatCompleteResponse> {
     const ok = await this.connect();
     if (!ok) throw new Error('network error');
-    const id = crypto.randomUUID();
+    const id = reqId ?? crypto.randomUUID();
     return new Promise<ChatCompleteResponse>((resolve, reject) => {
       this._handlers.set(id, (msg) => {
         const t = msg.type as string;
@@ -573,10 +574,11 @@ export class WsClient {
     message:    string,
     dialogId:   string | null | undefined,
     onProgress: (step: string) => void,
+    reqId?:     string,
   ): Promise<{ url: string; dialog_id?: string; id?: string }> {
     const ok = await this.connect();
     if (!ok) throw new Error('network error');
-    const id = crypto.randomUUID();
+    const id = reqId ?? crypto.randomUUID();
     return new Promise<{ url: string; dialog_id?: string; id?: string }>((resolve, reject) => {
       this._handlers.set(id, (msg) => {
         const t = msg.type as string;

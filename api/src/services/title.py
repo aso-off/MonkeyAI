@@ -1,5 +1,5 @@
 import asyncio
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
 from core.logger import logger
 
@@ -51,9 +51,8 @@ _title_openai_client = None
 def _title_client():
     global _title_openai_client
     if _title_openai_client is None:
-        from openai import AsyncOpenAI
-
         from core.config import settings
+        from openai import AsyncOpenAI
 
         client = AsyncOpenAI(
             api_key=settings.openai_api_key.get_secret_value(),

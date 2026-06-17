@@ -1,6 +1,5 @@
 import logging
 import random
-from typing import Dict
 
 from aiogram import Bot
 from aiogram.enums import ChatAction
@@ -15,7 +14,7 @@ class MonkeyStickers:
     # Категории "промежуточных" стикеров (отправляются во время обработки и удаляются потом)
     PROCESSING_CATEGORIES = {"thinking", "loading", "generating", "processing"}
 
-    STICKERS: Dict[str, list[str]] = {
+    STICKERS: dict[str, list[str]] = {
         "happy": [
             "CAACAgIAAxkBAAEOHOxn2chHIhFjSfXVEYS-bEO_S9kMtgACsQADMNSdEQcvTnZqWCSfNgQ",
             "CAACAgIAAxkBAAEOHOpn2cgnTHgv_Uisv1lxaBteeJECPgACswADMNSdET9j0fISlCKpNgQ",
@@ -55,7 +54,7 @@ class MonkeyStickers:
 
     def __init__(self) -> None:
         # chat_id → message_id промежуточного стикера
-        self._processing: Dict[int, int] = {}
+        self._processing: dict[int, int] = {}
 
     def get_random(self, emotion: str | None = None) -> str:
         pool = self.STICKERS.get(emotion or "happy") or self.STICKERS["happy"]

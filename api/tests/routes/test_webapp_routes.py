@@ -21,7 +21,7 @@ Faker: user IDs, имена, username, message, model, dialog IDs, ответы 
 
 import json
 import uuid
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -53,8 +53,8 @@ def webapp_client(api_app, mock_redis, fake):
     TestClient с корректно замоканным verify_webapp_init_data и Redis.
     Yield (client, tg_user_dict).
     """
-    from db.db import get_session
     from core.security import verify_webapp_init_data
+    from db.db import get_session
 
     tg = _tg_user()
     init_data = _make_init_data(tg)
@@ -152,8 +152,8 @@ class TestGetMe:
     def test_user_field_missing_in_init_data_returns_401(
         self, api_app, mock_redis, fake
     ) -> None:
-        from db.db import get_session
         from core.security import verify_webapp_init_data
+        from db.db import get_session
 
         async def _bad_init_data() -> dict:
             return {}  # нет поля "user"
@@ -181,8 +181,8 @@ class TestGetMe:
     def test_invalid_user_json_in_init_data_returns_401(
         self, api_app, mock_redis
     ) -> None:
-        from db.db import get_session
         from core.security import verify_webapp_init_data
+        from db.db import get_session
 
         async def _bad_json() -> dict:
             return {"user": "NOT_VALID_JSON{{{"}

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api, type DialogListItem } from '@/services/api'
+import { outbox } from '@/services/outbox'
 
 export const useDialogsStore = defineStore('dialogs', {
   state: () => ({
@@ -80,6 +81,9 @@ export const useDialogsStore = defineStore('dialogs', {
       this.list = this.list.filter((x) => x.dialog_id !== dialogId)
       this.pinned = this.pinned.filter((x) => x.dialog_id !== dialogId)
       this.searchResults = this.searchResults.filter((x) => x.dialog_id !== dialogId)
+      for (const item of outbox.all()) {
+        if (item.body.dialog_id === dialogId) outbox.remove(item.id)
+      }
     },
 
     /** Pin/unpin бампит last_activity — диалог встаёт наверх свежим (как у Grok). */

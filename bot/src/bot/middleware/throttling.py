@@ -5,7 +5,6 @@ from typing import Any
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
 from redis.asyncio import Redis
-
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)

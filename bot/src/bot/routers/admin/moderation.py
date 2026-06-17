@@ -3,7 +3,6 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-
 from src.core.config import settings
 from src.utils.admin import require_admin
 from src.utils.localization import t

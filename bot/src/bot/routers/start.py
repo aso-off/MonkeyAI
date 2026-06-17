@@ -4,9 +4,7 @@ from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
-from aiogram.types import WebAppInfo
-
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
 from src.core.config import settings
 from src.services import api_client as api
 from src.utils.localization import t

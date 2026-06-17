@@ -171,7 +171,7 @@ class TestCbSetLanguage:
 
     @pytest.mark.asyncio
     async def test_faker_supported_langs_all_update(self) -> None:
-        from src.bot.routers.profile.language import cb_set_language, _FIXED_LANGUAGES
+        from src.bot.routers.profile.language import _FIXED_LANGUAGES, cb_set_language
         for lang in list(_FIXED_LANGUAGES.keys())[:4]:
             cb = _fake_callback(data=f"set_lang|{lang}", tg_lang=lang)
             with patch("src.bot.routers.profile.language.api") as mock_api:

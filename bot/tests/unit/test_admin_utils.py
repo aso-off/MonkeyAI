@@ -12,7 +12,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiogram.types import CallbackQuery, Message
-
 from src.utils.admin import require_admin
 
 # Stub-модуль конфига из conftest — через него требует_admin получает settings

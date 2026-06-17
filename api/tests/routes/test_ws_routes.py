@@ -197,6 +197,7 @@ class TestSend:
     @pytest.mark.asyncio
     async def test_send_json_frame_to_websocket(self) -> None:
         import json
+
         import routes.ws as ws_mod
         mock_ws = AsyncMock()
         payload = {"type": "ping", "id": fake.lexify("?" * 8)}

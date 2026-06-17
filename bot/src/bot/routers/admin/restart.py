@@ -4,7 +4,6 @@ import asyncssh
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, Message
-
 from src.core.config import settings
 from src.utils.localization import t
 

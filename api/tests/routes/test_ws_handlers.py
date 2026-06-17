@@ -55,7 +55,7 @@ class TestAuthHandshakeEdgeCases:
         ws = _make_ws()
         ws.receive_text = AsyncMock(return_value=json.dumps({
             "type": "auth",
-            "init_data": f"tma valid_data_here",
+            "init_data": "tma valid_data_here",
         }))
         with patch("routes.ws._verify_init_data", return_value=parsed) as mock_verify:
             result = await ws_mod._auth_handshake(ws)
@@ -481,7 +481,7 @@ class TestHandleImage:
              patch("routes.ws._send", new=AsyncMock()), \
              patch("routes.ws.moderate_content", new=AsyncMock(return_value=(False, {}, {}))), \
              patch("routes.ws.generate_image_b64",
-                   side_effect=asyncio.TimeoutError()):
+                   side_effect=TimeoutError()):
             await ws_mod._handle_image(ws, uid, frame)
 
         assert any(p.get("type") == "image_error" and "timed out" in p.get("error", "")

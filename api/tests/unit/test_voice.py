@@ -3,8 +3,8 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from services.voice import transcribe_audio
+
 
 @pytest.fixture
 def mock_client(mocker):

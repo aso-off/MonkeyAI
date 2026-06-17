@@ -3,8 +3,8 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from src.utils.stickers import MonkeyStickers
+
 
 @pytest.fixture
 def stickers() -> MonkeyStickers:

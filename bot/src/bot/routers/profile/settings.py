@@ -3,7 +3,6 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-
 from src.utils.localization import t
 
 logger = logging.getLogger(__name__)

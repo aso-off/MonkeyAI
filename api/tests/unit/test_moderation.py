@@ -9,7 +9,6 @@ from io import BytesIO
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from services.moderation import MODERATION_CATEGORIES, moderate_content
 
 # Helpers
