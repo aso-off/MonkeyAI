@@ -68,30 +68,36 @@ def test_build_draft_returns_markdown_field():
     assert msg.markdown == "partial"
 
 def test_thinking_draft_placeholder():
-    msg = thinking_draft("Думаю…")
-    assert msg.html.startswith("<tg-thinking>")
-    assert msg.html.endswith("</tg-thinking>")
-    assert 'tg-emoji emoji-id="5818740758257077530"' in msg.html
-    assert "Думаю…" in msg.html
-    assert msg.markdown is None
+    html = thinking_draft("Думаю…").html
+    assert html is not None
+    assert html.startswith("<tg-thinking>")
+    assert html.endswith("</tg-thinking>")
+    assert 'tg-emoji emoji-id="5818740758257077530"' in html
+    assert "Думаю…" in html
+
+def test_thinking_draft_markdown_is_none():
+    assert thinking_draft("Думаю…").markdown is None
 
 def test_thinking_draft_with_reasoning_escaped():
-    msg = thinking_draft("Думаю…", reasoning="a < b & c")
-    assert "a &lt; b &amp; c" in msg.html
-    assert msg.html.endswith("</tg-thinking>")
+    html = thinking_draft("Думаю…", reasoning="a < b & c").html
+    assert html is not None
+    assert "a &lt; b &amp; c" in html
+    assert html.endswith("</tg-thinking>")
 
 def test_thinking_draft_strips_markdown_from_reasoning():
-    msg = thinking_draft("Думаю…", reasoning="## Step one\n**Considering** the `factors`")
-    assert "**" not in msg.html
-    assert "`" not in msg.html
-    assert "##" not in msg.html
-    assert "Considering" in msg.html
-    assert "Step one" in msg.html
+    html = thinking_draft("Думаю…", reasoning="## Step one\n**Considering** the `factors`").html
+    assert html is not None
+    assert "**" not in html
+    assert "`" not in html
+    assert "##" not in html
+    assert "Considering" in html
+    assert "Step one" in html
 
 def test_thinking_draft_empty_reasoning_falls_back_to_label():
-    msg = thinking_draft("Thinking…", reasoning="   ")
-    assert "Thinking…" in msg.html
-    assert msg.html.startswith("<tg-thinking>")
+    html = thinking_draft("Thinking…", reasoning="   ").html
+    assert html is not None
+    assert "Thinking…" in html
+    assert html.startswith("<tg-thinking>")
 
 def test_is_reasoning_model_true():
     assert is_reasoning_model("gpt-5.4-mini", _MODELS) is True

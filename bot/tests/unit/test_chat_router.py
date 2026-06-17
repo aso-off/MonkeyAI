@@ -1040,7 +1040,8 @@ class TestRichMessages:
             mock_api.chat_stream = mock_stream
             mock_monkey.delete_processing = AsyncMock()
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hi")
-        msg.answer_rich.assert_awaited_once()
+        # все rich-варианты (reply+эффект, reply, голый) упали → legacy
+        assert msg.answer_rich.await_count == 3
         msg.answer.assert_awaited_once()
 
     @pytest.mark.asyncio

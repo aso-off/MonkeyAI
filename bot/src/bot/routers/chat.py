@@ -9,7 +9,7 @@ import httpx
 from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
-from aiogram.types import BufferedInputFile, Message, ReplyParameters
+from aiogram.types import BufferedInputFile, InputRichMessage, Message, ReplyParameters
 
 from src.core.config import settings
 
@@ -125,6 +125,23 @@ def _reply_to(message: Message) -> ReplyParameters:
 
 async def _reply(message: Message, text: str, parse_mode: str | None = "HTML") -> None:
     await message.answer(text, parse_mode=parse_mode, reply_parameters=_reply_to(message))
+
+
+async def _send_rich(message: Message, rich_msg: InputRichMessage) -> int | None:
+    reply = _reply_to(message)
+    effect = settings.message_effect_id or None
+    attempts = (
+        lambda: message.answer_rich(rich_message=rich_msg, reply_parameters=reply, message_effect_id=effect),
+        lambda: message.answer_rich(rich_message=rich_msg, reply_parameters=reply),
+        lambda: message.answer_rich(rich_message=rich_msg),
+    )
+    for call in attempts:
+        try:
+            sent = await call()
+            return sent.message_id
+        except Exception as exc:
+            logger.warning("answer_rich failed (chat %s): %s", message.chat.id, exc)
+    return None
 
 
 async def _send_legacy(message: Message, final_raw: str, parse_mode: str) -> None:
@@ -415,16 +432,10 @@ async def _handle_text_or_vision(
                 except Exception as exc:
                     logger.warning("edit rich failed (user %d), sending new: %s", user_id, exc)
             if sent_id is None:
-                try:
-                    sent = await message.answer_rich(
-                        rich_message=rich_msg,
-                        reply_parameters=_reply_to(message),
-                        message_effect_id=settings.message_effect_id or None,
-                    )
-                    sent_id = sent.message_id
-                except Exception as exc:
-                    logger.warning("answer_rich failed (user %d), fallback to legacy: %s", user_id, exc)
-                    await _send_legacy(message, final_raw[: settings.message_max_length], parse_mode)
+                sent_id = await _send_rich(message, rich_msg)
+            if sent_id is None:
+                logger.warning("rich send failed (user %d), fallback to legacy", user_id)
+                await _send_legacy(message, final_raw[: settings.message_max_length], parse_mode)
         else:
             await _send_legacy(message, final_raw, parse_mode)
 
