@@ -3,18 +3,17 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from fastapi.responses import JSONResponse
-from fastapi.responses import Response
 
+from src.bot.commands import _set_commands
 from src.core.bot import bot, fsm_redis
 from src.core.config import settings
 from src.core.logger import logger
-from src.webhook.router import router as webhook_router
-from src.monitoring.heartbeat import _heartbeat, REDIS_KEY_START_TIME, REDIS_KEY_ALIVE, ALIVE_TTL
-from src.monitoring.system_info import _system_info_loop
+from src.monitoring.heartbeat import ALIVE_TTL, REDIS_KEY_ALIVE, REDIS_KEY_START_TIME, _heartbeat
 from src.monitoring.restart import check_restart_notification
-from src.bot.commands import _set_commands
+from src.monitoring.system_info import _system_info_loop
+from src.webhook.router import router as webhook_router
 
 
 @asynccontextmanager

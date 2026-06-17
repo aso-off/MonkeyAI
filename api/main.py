@@ -8,26 +8,15 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 import asyncio
+import uuid
 from contextlib import asynccontextmanager, suppress
 
-import uuid
-
+from core.logger import logger
+from core.redis import close_redis, init_redis
+from db.db import engine, init_db
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
-
-from core.logger import logger
-from core.redis import init_redis, close_redis
-from db.db import init_db, engine
-from routes.health import router as health_router
-from routes.users import router as users_router
-from routes.dialogs import router as dialogs_router
-from routes.chat import router as chat_router
-from routes.media import router as media_router
-from routes.webapp import router as webapp_router
-from routes.ws import router as ws_router
 from monitoring.prometheus import (
     api_client_http_status_class_total,
     api_client_request_duration_seconds,
@@ -38,6 +27,15 @@ from monitoring.prometheus import (
     normalize_path,
     time_seconds,
 )
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from routes.chat import router as chat_router
+from routes.dialogs import router as dialogs_router
+from routes.health import router as health_router
+from routes.media import router as media_router
+from routes.users import router as users_router
+from routes.webapp import router as webapp_router
+from routes.ws import router as ws_router
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 class PrometheusMiddleware:
@@ -98,9 +96,9 @@ async def lifespan(app: FastAPI):
     await init_redis()
 
     # Sync admin/whitelist flags from user-ids.yml into DB
+    from core.config import settings as s
     from db.db import Session
     from db.repositories.users import sync_auth_from_yaml
-    from core.config import settings as s
     from services import whitelist
     async with Session() as session:
         await sync_auth_from_yaml(session, admin_ids=s.admin_ids, allowed_ids=s.allowed_user_ids)

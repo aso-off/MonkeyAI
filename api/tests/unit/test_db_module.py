@@ -71,6 +71,7 @@ class TestGetSession:
     @pytest.mark.asyncio
     async def test_get_session_is_async_generator(self) -> None:
         import inspect
+
         from db.db import get_session
         assert inspect.isasyncgenfunction(get_session)
 

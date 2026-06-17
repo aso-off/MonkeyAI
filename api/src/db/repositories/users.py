@@ -1,10 +1,10 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
+from core.config import settings
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from db.models.user import User, UserState, UserStatistics
 
 _STATE_COLS = frozenset({
@@ -64,7 +64,7 @@ async def get_or_create_user(
         await session.rollback()
         user = await get_user(session, user_id)
         if user is None:
-            raise RuntimeError(f"User {user_id} vanished after concurrent insert")
+            raise RuntimeError(f"User {user_id} vanished after concurrent insert") from None
         return user, False
     return user, True
 
@@ -84,7 +84,7 @@ async def update_user(session: AsyncSession, user_id: int, **kwargs) -> None:
 
 async def update_last_interaction(session: AsyncSession, user_id: int, commit: bool = True) -> None:
     await session.execute(
-        update(User).where(User.id == user_id).values(last_interaction=datetime.now(timezone.utc))
+        update(User).where(User.id == user_id).values(last_interaction=datetime.now(UTC))
     )
     if commit:
         await session.commit()

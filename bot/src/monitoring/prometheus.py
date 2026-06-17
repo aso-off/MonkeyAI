@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 from prometheus_client import Counter, Histogram
-
 
 tg_updates_total = Counter(
     "tg_updates_total",

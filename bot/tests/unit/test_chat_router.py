@@ -220,8 +220,8 @@ class TestIsBotMentioned:
     @pytest.mark.asyncio
     async def test_group_with_mention_returns_true(self) -> None:
         import src.bot.routers.chat as chat_mod
-        from src.bot.routers.chat import _is_bot_mentioned
         from aiogram.enums import ChatType
+        from src.bot.routers.chat import _is_bot_mentioned
         chat_mod._bot_username = "testbot"
         chat_mod._bot_id = 999
         msg = _fake_message(chat_type="group", text="@testbot привет")
@@ -233,8 +233,8 @@ class TestIsBotMentioned:
     @pytest.mark.asyncio
     async def test_group_reply_to_bot_returns_true(self) -> None:
         import src.bot.routers.chat as chat_mod
-        from src.bot.routers.chat import _is_bot_mentioned
         from aiogram.enums import ChatType
+        from src.bot.routers.chat import _is_bot_mentioned
         chat_mod._bot_username = "testbot"
         chat_mod._bot_id = 999
         msg = _fake_message(chat_type="group", text="just text")
@@ -249,8 +249,8 @@ class TestIsBotMentioned:
     @pytest.mark.asyncio
     async def test_group_no_mention_no_reply_returns_false(self) -> None:
         import src.bot.routers.chat as chat_mod
-        from src.bot.routers.chat import _is_bot_mentioned
         from aiogram.enums import ChatType
+        from src.bot.routers.chat import _is_bot_mentioned
         chat_mod._bot_username = "testbot"
         chat_mod._bot_id = 999
         msg = _fake_message(chat_type="group", text="обычный текст")
@@ -263,8 +263,8 @@ class TestIsBotMentioned:
     @pytest.mark.asyncio
     async def test_group_get_bot_meta_exception_returns_true(self) -> None:
         import src.bot.routers.chat as chat_mod
-        from src.bot.routers.chat import _is_bot_mentioned
         from aiogram.enums import ChatType
+        from src.bot.routers.chat import _is_bot_mentioned
         chat_mod._bot_username = None
         msg = _fake_message(chat_type="group")
         msg.chat.type = ChatType.GROUP
@@ -521,6 +521,7 @@ class TestCmdRetry:
     @pytest.mark.asyncio
     async def test_with_image_in_retry_decodes_base64(self) -> None:
         import base64
+
         from src.bot.routers.chat import cmd_retry
         msg = _fake_message()
         bot = _fake_bot()
@@ -1184,8 +1185,8 @@ class TestMsgText:
 
     @pytest.mark.asyncio
     async def test_group_strips_bot_mention_from_text(self) -> None:
-        from aiogram.enums import ChatType
         import src.bot.routers.chat as chat_mod
+        from aiogram.enums import ChatType
         from src.bot.routers.chat import msg_text
         chat_mod._bot_username = "testbot"
         msg = _fake_message(chat_type="group", text="@testbot напиши код")
@@ -1231,7 +1232,7 @@ class TestMsgPhoto:
         caption = fake.sentence()
         msg = _fake_message(chat_type="private")
         msg.caption = caption
-        msg.photo = [MagicMock(file_id="file123")]
+        msg.photo = [MagicMock(file_id="file123", file_size=1024)]
         bot = _fake_bot()
         captured_text = []
         async def mock_run(m, b, lang, uid, text, image_buffer=None):
@@ -1249,7 +1250,7 @@ class TestMsgPhoto:
         from src.bot.routers.chat import msg_photo
         msg = _fake_message(chat_type="private")
         msg.caption = None
-        msg.photo = [MagicMock(file_id="file456")]
+        msg.photo = [MagicMock(file_id="file456", file_size=1024)]
         bot = _fake_bot()
         captured_text = []
         async def mock_run(m, b, lang, uid, text, image_buffer=None):
@@ -1262,6 +1263,21 @@ class TestMsgPhoto:
             mock_monkey.send = AsyncMock()
             await msg_photo(msg, language="ru", bot=bot)
         assert captured_text and captured_text[0] == "describe image"
+
+    @pytest.mark.asyncio
+    async def test_oversized_photo_rejected(self) -> None:
+        from src.bot.routers.chat import msg_photo
+        msg = _fake_message(chat_type="private")
+        msg.photo = [MagicMock(file_id="big", file_size=9 * 1024 * 1024)]
+        bot = _fake_bot()
+        with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
+             patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
+             patch("src.bot.routers.chat.t", return_value="too large"), \
+             patch("src.bot.routers.chat._run_handle", AsyncMock()) as mock_run:
+            await msg_photo(msg, language="ru", bot=bot)
+        mock_run.assert_not_awaited()
+        bot.get_file.assert_not_awaited()
+        msg.answer.assert_awaited()
 
 # msg_voice
 
@@ -1293,7 +1309,7 @@ class TestMsgVoice:
         from src.bot.routers.chat import msg_voice
         transcribed = fake.sentence()
         msg = _fake_message()
-        msg.voice = MagicMock(file_id="voice123")
+        msg.voice = MagicMock(file_id="voice123", file_size=1024, duration=5)
         bot = _fake_bot()
         with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
              patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
@@ -1309,7 +1325,7 @@ class TestMsgVoice:
     async def test_transcription_failure_sends_error(self) -> None:
         from src.bot.routers.chat import msg_voice
         msg = _fake_message()
-        msg.voice = MagicMock(file_id="voice456")
+        msg.voice = MagicMock(file_id="voice456", file_size=1024, duration=5)
         bot = _fake_bot()
         with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
              patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
@@ -1327,7 +1343,7 @@ class TestMsgVoice:
     async def test_empty_transcription_sends_error(self) -> None:
         from src.bot.routers.chat import msg_voice
         msg = _fake_message()
-        msg.voice = MagicMock(file_id="voice789")
+        msg.voice = MagicMock(file_id="voice789", file_size=1024, duration=5)
         bot = _fake_bot()
         with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
              patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
@@ -1339,6 +1355,36 @@ class TestMsgVoice:
             mock_monkey.send = AsyncMock()
             await msg_voice(msg, language="ru", bot=bot)
         mock_run.assert_not_awaited()
+        msg.answer.assert_awaited()
+
+    @pytest.mark.asyncio
+    async def test_too_long_voice_rejected(self) -> None:
+        from src.bot.routers.chat import msg_voice
+        msg = _fake_message()
+        msg.voice = MagicMock(file_id="long", file_size=1024, duration=601)
+        bot = _fake_bot()
+        with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
+             patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
+             patch("src.bot.routers.chat.t", return_value="too long"), \
+             patch("src.bot.routers.chat._run_handle", AsyncMock()) as mock_run:
+            await msg_voice(msg, language="ru", bot=bot)
+        mock_run.assert_not_awaited()
+        bot.get_file.assert_not_awaited()
+        msg.answer.assert_awaited()
+
+    @pytest.mark.asyncio
+    async def test_oversized_voice_rejected(self) -> None:
+        from src.bot.routers.chat import msg_voice
+        msg = _fake_message()
+        msg.voice = MagicMock(file_id="big", file_size=9 * 1024 * 1024, duration=5)
+        bot = _fake_bot()
+        with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
+             patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
+             patch("src.bot.routers.chat.t", return_value="too large"), \
+             patch("src.bot.routers.chat._run_handle", AsyncMock()) as mock_run:
+            await msg_voice(msg, language="ru", bot=bot)
+        mock_run.assert_not_awaited()
+        bot.get_file.assert_not_awaited()
         msg.answer.assert_awaited()
 
 # msg_unsupported / msg_edited

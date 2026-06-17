@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Awaitable, Mapping
 from typing import Any, Protocol, cast
 
@@ -7,7 +8,6 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import ErrorEvent
 from redis.asyncio import Redis
-import logging
 
 from src.core.config import settings
 from src.monitoring.tg_session import MetricsAiohttpSession
@@ -64,25 +64,25 @@ def fsm_redis() -> RedisAsync:
 
 
 def setup_routers(dp: Dispatcher) -> None:
-    from src.bot.routers.start import router as start_router
-    from src.bot.routers.help import router as help_router
-    from src.bot.routers.chat import router as chat_router
-    from src.bot.routers.webapp import router as webapp_router
     from src.bot.routers.about.router import router as about_router
-    from src.bot.routers.profile.assistant import router as profile_assistant_router
-    from src.bot.routers.profile.language import router as profile_language_router
-    from src.bot.routers.profile.model import router as profile_model_router
-    from src.bot.routers.profile.settings import router as profile_settings_router
-    from src.bot.routers.profile.profile import router as profile_router
-    from src.bot.routers.profile.balance import router as profile_balance_router
-    from src.bot.routers.profile.stats import router as profile_stats_router
-    from src.bot.routers.profile.ping import router as profile_ping_router
+    from src.bot.routers.admin.admin import router as admin_panel_router
     from src.bot.routers.admin.moderation import router as admin_moderation_router
-    from src.bot.routers.admin.whitelist import router as admin_whitelist_router
+    from src.bot.routers.admin.restart import router as admin_restart_router
     from src.bot.routers.admin.status import router as admin_status_router
     from src.bot.routers.admin.system import router as admin_system_router
-    from src.bot.routers.admin.restart import router as admin_restart_router
-    from src.bot.routers.admin.admin import router as admin_panel_router
+    from src.bot.routers.admin.whitelist import router as admin_whitelist_router
+    from src.bot.routers.chat import router as chat_router
+    from src.bot.routers.help import router as help_router
+    from src.bot.routers.profile.assistant import router as profile_assistant_router
+    from src.bot.routers.profile.balance import router as profile_balance_router
+    from src.bot.routers.profile.language import router as profile_language_router
+    from src.bot.routers.profile.model import router as profile_model_router
+    from src.bot.routers.profile.ping import router as profile_ping_router
+    from src.bot.routers.profile.profile import router as profile_router
+    from src.bot.routers.profile.settings import router as profile_settings_router
+    from src.bot.routers.profile.stats import router as profile_stats_router
+    from src.bot.routers.start import router as start_router
+    from src.bot.routers.webapp import router as webapp_router
 
     dp.include_routers(
         start_router,
@@ -110,8 +110,8 @@ def setup_routers(dp: Dispatcher) -> None:
 def setup_middleware(dp: Dispatcher) -> None:
     from src.bot.middleware.auth import AuthMiddleware
     from src.bot.middleware.i18n import I18nMiddleware
-    from src.bot.middleware.throttling import ThrottlingMiddleware
     from src.bot.middleware.newrelic import NewRelicMiddleware
+    from src.bot.middleware.throttling import ThrottlingMiddleware
 
     # New Relic регистрируется самым первым как outer middleware для отслеживания всех транзакций и ошибок
     dp.update.outer_middleware(NewRelicMiddleware())
@@ -139,9 +139,9 @@ async def error_handler(event: ErrorEvent) -> None:
 
     try:
         if update.message and update.message.from_user and update.message.chat.type == "private":
+            from src.services import api_client as api
             from src.utils.localization import t
             from src.utils.stickers import monkey
-            from src.services import api_client as api
 
             user = await api.get_user(update.message.from_user.id)
             lang = user.language if user else "ru"

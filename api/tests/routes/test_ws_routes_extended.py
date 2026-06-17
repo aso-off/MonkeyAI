@@ -133,7 +133,7 @@ class TestAuthHandshake:
     async def test_timeout_sends_error_and_returns_none(self) -> None:
         import routes.ws as ws_mod
         ws = AsyncMock()
-        ws.receive_text = AsyncMock(side_effect=asyncio.TimeoutError())
+        ws.receive_text = AsyncMock(side_effect=TimeoutError())
         ws.send_text = AsyncMock()
         result = await ws_mod._auth_handshake(ws)
         assert result is None

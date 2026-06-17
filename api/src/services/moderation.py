@@ -2,9 +2,9 @@ import base64
 import logging
 from io import BytesIO
 
+from core.config import settings
 from openai.types import ModerationMultiModalInputParam
 
-from core.config import settings
 from services.openai import make_client
 
 logger = logging.getLogger(__name__)

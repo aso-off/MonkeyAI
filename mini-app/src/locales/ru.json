@@ -53,6 +53,7 @@
   "lang_tr": "Турецкий",
   "message_flagged": "Сообщение заблокировано модерацией",
   "error_response": "Ошибка при получении ответа",
+  "queued_offline": "⏳ Нет связи - отправлю, когда появится интернет",
   "not_whitelisted_title": "Доступ ограничен",
   "loading_init_tg": "Инициализация Telegram...",
   "loading_check_user": "Проверка пользователя...",

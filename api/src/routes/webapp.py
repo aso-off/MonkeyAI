@@ -12,30 +12,30 @@ import asyncio
 import base64
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import BytesIO
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.ratelimit import enforce_rate_limit
 from core.redis import get_redis
 from core.security import verify_webapp_init_data
-from services import whitelist
 from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import images as image_repo
 from db.repositories import users as user_repo
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from schemas.chat import Usage
 from schemas.user import UserRead
-from services.messages import assistant_message, user_message
+from services import whitelist
 from services.image_generation import IMAGE_MODELS, generate_image_url
 from services.image_processing import upload_to_imgbb
+from services.messages import assistant_message, user_message
 from services.moderation import moderate_content
 from services.openai import ChatGPT
 from services.title import handle_first_message_title
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from routes.ws import _title_broadcast
 
 logger = logging.getLogger(__name__)
@@ -149,7 +149,7 @@ async def _require_whitelisted(session: AsyncSession, user_id: int):
 
 def _unwhitelisted_profile(tg: dict) -> UserRead:
     """Синтетический профиль для не-whitelist — без записи в БД; фронт покажет «Доступ ограничен»."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return UserRead(
         id=tg["id"],
         chat_id=tg["id"],
@@ -449,7 +449,7 @@ async def get_messages(
         try:
             data = await dialog_repo.get_dialog_messages_by_mode(session, user_id)
         except ValueError:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found") from None
         return _MessagesResponse(messages_by_mode=data)
 
     if chat_mode and not dialog_id:

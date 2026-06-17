@@ -2,15 +2,14 @@ import asyncio
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.redis import get_redis
 from core.security import verify_service_token
 from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from schemas.user import UserCreate, UserRead, UserUpdate
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])

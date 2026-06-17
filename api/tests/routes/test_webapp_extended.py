@@ -17,8 +17,8 @@
 import base64
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -41,8 +41,8 @@ def _make_init_data(tg: dict) -> dict:
 
 @pytest.fixture
 def webapp_client(api_app, mock_redis, fake):
-    from db.db import get_session
     from core.security import verify_webapp_init_data
+    from db.db import get_session
     from fastapi.testclient import TestClient
 
     tg = _tg_user()
@@ -66,15 +66,16 @@ class TestRequireUser:
 
     @pytest.mark.asyncio
     async def test_returns_user_from_redis_cache(self) -> None:
+        from datetime import datetime
+
         from routes.webapp import _require_user
-        from datetime import datetime, timezone
         uid = fake.random_int(min=100_000, max=999_999_999)
         user_data = {
             "id": uid, "chat_id": uid, "username": "test",
             "first_name": "Test", "last_name": None,
             "language": "ru", "is_admin": False, "is_whitelisted": True,
-            "first_seen": datetime.now(timezone.utc).isoformat(),
-            "last_interaction": datetime.now(timezone.utc).isoformat(),
+            "first_seen": datetime.now(UTC).isoformat(),
+            "last_interaction": datetime.now(UTC).isoformat(),
             "current_dialog_id": None, "current_chat_mode": "assistant",
             "mini_app_chat_mode": "mini_app_assistant",
             "current_model": "gpt-4o", "theme": "system",
@@ -384,8 +385,8 @@ def _fake_dialog_row(title: str = "Заголовок"):
     d = MagicMock()
     d.id = str(uuid.uuid4())
     d.title = title
-    d.last_activity = datetime.now(timezone.utc)
-    d.start_time = datetime.now(timezone.utc)
+    d.last_activity = datetime.now(UTC)
+    d.start_time = datetime.now(UTC)
     return d
 
 class TestDialogCrud:
@@ -473,7 +474,7 @@ class TestDialogCrud:
         img.url = "https://cdn/x.webp"
         img.prompt = "кот в шляпе"
         img.dialog_id = str(uuid.uuid4())
-        img.created_at = datetime.now(timezone.utc)
+        img.created_at = datetime.now(UTC)
         with patch("routes.webapp.image_repo.list_images", new=AsyncMock(return_value=[img])):
             resp = client.get("/webapp/images")
         assert resp.status_code == 200

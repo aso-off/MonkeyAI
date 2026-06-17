@@ -53,6 +53,7 @@
   "lang_tr": "Turc",
   "message_flagged": "Message bloqué par la modération",
   "error_response": "Erreur lors de l'obtention de la réponse",
+  "queued_offline": "⏳ Pas de connexion - sera envoyé dès votre retour en ligne",
   "not_whitelisted_title": "Accès restreint",
   "loading_init_tg": "Initialisation de Telegram...",
   "loading_check_user": "Vérification de l'utilisateur...",

@@ -137,14 +137,14 @@ class TestCloseClient:
 class TestDecode:
 
     def test_decodes_user_response(self) -> None:
-        from src.services.api_client import _decode, UserResponse
+        from src.services.api_client import UserResponse, _decode
         data = _fake_user_dict()
         result = _decode(json.dumps(data).encode(), UserResponse)
         assert result.id == data["id"]
         assert result.first_name == data["first_name"]
 
     def test_decodes_chat_complete_response(self) -> None:
-        from src.services.api_client import _decode, ChatCompleteResponse
+        from src.services.api_client import ChatCompleteResponse, _decode
         n_in = fake.random_int(min=10, max=500)
         n_out = fake.random_int(min=5, max=200)
         data = {
@@ -385,8 +385,9 @@ class TestGenerateImages:
 
     @pytest.mark.asyncio
     async def test_returns_buffers_and_urls(self) -> None:
-        from src.services import api_client as ac
         import base64
+
+        from src.services import api_client as ac
         raw = fake.binary(length=64)
         b64 = base64.b64encode(raw).decode()
         imgbb_url = fake.url()
@@ -429,8 +430,9 @@ class TestIsUserAdmin:
 
     @pytest.mark.asyncio
     async def test_true_when_in_settings_admin_ids(self) -> None:
-        from src.services import api_client as ac
         import sys
+
+        from src.services import api_client as ac
         uid = _uid()
         # is_user_admin делает re-import: `from src.core.config import settings`
         # Патчим stub settings.admin_ids напрямую
@@ -596,6 +598,7 @@ class TestB64ToBuf:
 
     def test_decodes_base64_to_bytesio(self) -> None:
         import base64
+
         from src.services.api_client import _b64_to_buf
         raw = fake.binary(length=32)
         b64 = base64.b64encode(raw).decode()
@@ -606,6 +609,7 @@ class TestB64ToBuf:
 
     def test_buffer_starts_at_zero(self) -> None:
         import base64
+
         from src.services.api_client import _b64_to_buf
         raw = fake.binary(length=16)
         b64 = base64.b64encode(raw).decode()

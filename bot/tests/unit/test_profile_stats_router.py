@@ -6,7 +6,7 @@
 - cb_profile_stats()   — profile=None, profile с данными, format_date вызывается
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -37,7 +37,7 @@ def _fake_profile(message_count: int | None = None) -> MagicMock:
         fake.random_int(min=2020, max=2025),
         fake.random_int(min=1, max=12),
         fake.random_int(min=1, max=28),
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
     return profile
 

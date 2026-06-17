@@ -5,7 +5,6 @@ import time
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-
 from src.bot.routers.profile.settings import _settings_keyboard
 from src.utils.localization import t
 

@@ -65,8 +65,6 @@ import time
 import uuid
 from collections import defaultdict
 
-from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
-
 from core.config import settings
 from core.redis import get_redis_binary
 from core.security import _verify_init_data
@@ -74,11 +72,12 @@ from db.db import Session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import images as image_repo
 from db.repositories import users as user_repo
+from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
+from schemas.chat import Usage
 from services.image_generation import generate_image_b64
 from services.image_processing import process_generated_image, upload_to_imgbb
-from services.moderation import moderate_content
-from schemas.chat import Usage
 from services.messages import assistant_message, user_message
+from services.moderation import moderate_content
 from services.openai import ChatGPT
 from services.title import handle_first_message_title
 
@@ -222,7 +221,7 @@ async def _auth_handshake(ws: WebSocket) -> int | None:
     try:
         raw = await asyncio.wait_for(ws.receive_text(), timeout=15.0)
         frame = json.loads(raw)
-    except (asyncio.TimeoutError, json.JSONDecodeError, Exception):
+    except (TimeoutError, json.JSONDecodeError, Exception):
         await _send(ws, {"type": "auth_error", "error": "expected auth frame within 15 s"})
         return None
 
@@ -532,7 +531,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
                 generate_image_b64(prompt=message),
                 timeout=120.0,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await _broadcast(user_id, {
                 "type": "image_error", "id": req_id, "error": "generation timed out",
             })

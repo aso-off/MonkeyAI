@@ -66,6 +66,8 @@ class Settings(BaseSettings):
     busy_lock_ttl_seconds: int = 300
     api_request_timeout_seconds: float = 120.0
     throttle_rate_ms: int = 1000
+    max_upload_mb: int = 8
+    max_voice_duration_sec: int = 600
     openai_api_base: str | None = None
     return_n_generated_images: int = 1
     image_size: str = "1024x1024"
@@ -120,6 +122,8 @@ class Settings(BaseSettings):
         self.busy_lock_ttl_seconds       = cfg.get("busy_lock_ttl_seconds", self.busy_lock_ttl_seconds)
         self.api_request_timeout_seconds = cfg.get("api_request_timeout_seconds", self.api_request_timeout_seconds)
         self.throttle_rate_ms            = cfg.get("throttle_rate_ms", self.throttle_rate_ms)
+        self.max_upload_mb               = cfg.get("max_upload_mb", self.max_upload_mb)
+        self.max_voice_duration_sec      = cfg.get("max_voice_duration_sec", self.max_voice_duration_sec)
         self.openai_api_base             = cfg.get("openai_api_base") or None
         self.return_n_generated_images   = cfg.get("return_n_generated_images", self.return_n_generated_images)
         self.image_size                  = cfg.get("image_size", self.image_size)

@@ -26,6 +26,7 @@ async def _collect_system_info(redis) -> None:
 
     import asyncssh
     import yaml as _yaml
+
     from src.utils.localization import t
 
     lang = "ru"
@@ -173,7 +174,7 @@ async def _collect_system_info(redis) -> None:
                 await redis.setex(SYSTEM_INFO_KEY, SYSTEM_INFO_TTL, payload)
                 logger.info("System info collected and cached")
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning("SSH system info collection timed out after %ds", timeout + 5)
     except Exception as e:
         logger.error(f"System info collection error: {e}")

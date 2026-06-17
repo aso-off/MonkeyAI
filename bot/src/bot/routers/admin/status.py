@@ -5,7 +5,6 @@ from datetime import datetime
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-
 from src.core.config import settings
 from src.services import api_client as api
 from src.utils.admin import require_admin

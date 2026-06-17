@@ -70,6 +70,7 @@ class TestBuildStatusText:
     @pytest.mark.asyncio
     async def test_with_start_time_shows_uptime(self) -> None:
         import time
+
         from src.bot.routers.admin.status import _build_status_text
         start = str(time.time() - 3600)
         redis = _fake_redis(start_time=start)

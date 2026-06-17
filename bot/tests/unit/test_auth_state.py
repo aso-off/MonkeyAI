@@ -6,8 +6,8 @@
 """
 
 import pytest
-
 import src.core.auth_state as auth_state
+
 
 @pytest.fixture(autouse=True)
 def reset_auth_state():

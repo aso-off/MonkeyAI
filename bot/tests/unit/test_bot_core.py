@@ -211,8 +211,8 @@ class TestErrorHandler:
     @pytest.mark.asyncio
     async def test_private_chat_error_sends_message(self, bot_module) -> None:
         """В личном чате error_handler пытается отправить сообщение пользователю."""
-        from aiogram.types import ErrorEvent
         from aiogram.enums import ChatType
+        from aiogram.types import ErrorEvent
 
         exc = ValueError(fake.sentence())
         uid = fake.random_int(min=100_000, max=999_999_999)

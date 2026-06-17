@@ -98,6 +98,8 @@ test_language:
     image_generation_error: ""
     voice_recognition_failed: ""
     photo_default_prompt: ""
+    file_too_large: ""
+    voice_too_long: ""
     group_chat_help_caption: ""
     group_chat_missing_video: ""
     edited_message_unsupported: ""

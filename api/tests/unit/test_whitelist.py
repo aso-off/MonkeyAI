@@ -3,10 +3,11 @@
 Redis полностью заменён AsyncMock — реальный сервер не нужен.
 """
 
-import pytest
 from unittest.mock import patch
 
+import pytest
 from services.whitelist import ALLOWED_KEY, add, is_allowed, rebuild, remove
+
 
 @pytest.fixture
 def redis(mock_redis):

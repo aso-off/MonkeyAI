@@ -3,7 +3,6 @@
 import types
 
 import pytest
-
 from src.utils.localization import get_supported_languages, resolve_lang, t
 
 _TEST_LOCALES = {

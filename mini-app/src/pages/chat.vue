@@ -551,6 +551,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
 import { retrieveLaunchParams, viewport, openLink } from "@tma.js/sdk-vue";
 import { api, wsClient, BASE_URL } from "@/services/api";
+import { outbox } from "@/services/outbox";
 import {
   useUserStore,
   dialogMessagesToChat,
@@ -602,6 +603,8 @@ const pendingReconnectIsImage = ref(false);
 const initialLoadDone = ref(false);
 /** True while a bootstrapDialog fetch is in-flight — prevents concurrent duplicate calls. */
 let isLoadingHistory = false;
+/** True while the offline outbox is being flushed — prevents concurrent flushes. */
+let flushingOutbox = false;
 let copyTimeout: ReturnType<typeof setTimeout> | null = null;
 let suppressScrollEvents = false;
 /**
@@ -1467,6 +1470,27 @@ async function sendMessage() {
         streamingBotIdx.value = -1;
         store.setChatHistory(chatMessages.value);
       }, 30_000);
+    } else if (msg === "network error") {
+      outbox.enqueue({
+        id: crypto.randomUUID(),
+        kind: isImageModel ? "image" : "chat",
+        body: {
+          message: text,
+          dialog_id: genDialogId ?? undefined,
+          model: currentModelId.value,
+          chat_mode: store.user?.mini_app_chat_mode ?? "mini_app_assistant",
+          image_url: imageUrl,
+          image_w: imageW,
+          image_h: imageH,
+        },
+        localUrl: localUrl ?? null,
+        createdAt: Date.now(),
+      });
+      chatMessages.value[botIdx] = {
+        type: "bot",
+        contentType: "text",
+        text: t("queued_offline"),
+      };
     } else if (msg === "flagged") {
       chatMessages.value[botIdx] = {
         type: "bot",
@@ -1492,7 +1516,97 @@ async function sendMessage() {
   await nextTick();
   scrollToBottom(); // always scroll after own message receives a response
   store.setChatHistory(chatMessages.value);
+
+  flushOutbox();
 }
+
+// последовательно: сервер допускает одну генерацию на диалог
+async function flushOutbox(): Promise<void> {
+  // не мешаем активной генерации — иначе серверный «already generating»
+  if (flushingOutbox || !wsClient.connected || streamingBotIdx.value !== -1) return;
+  if (outbox.size === 0) return;
+  flushingOutbox = true;
+  let touchedOpenDialog = false;
+  try {
+    for (const item of outbox.all()) {
+      if (!wsClient.connected) break;
+      const open = (item.body.dialog_id ?? null) === (store.dialogId ?? null);
+      try {
+        if (item.kind === "image") {
+          const r = await wsClient.generateImage(
+            item.body.message,
+            item.body.dialog_id ?? null,
+            () => {},
+            item.id,
+          );
+          if (r.url) {
+            imagesStore.prepend({
+              id: Date.now(),
+              url: r.url,
+              prompt: item.body.message,
+              dialog_id: r.dialog_id ?? item.body.dialog_id ?? "",
+              created_at: new Date().toISOString(),
+            });
+          }
+        } else {
+          await wsClient.chatStream(item.body, undefined, item.id);
+        }
+        outbox.remove(item.id);
+        if (open) touchedOpenDialog = true;
+      } catch (e) {
+        const m = e instanceof Error ? e.message : String(e);
+        if (m === "network error") break;
+        if (m === "already generating") {
+          // диалог занят — не теряем, повторим позже
+          if (outbox.markAttempt(item.id) >= 8) {
+            outbox.remove(item.id); // страховка от залипания
+            if (open) touchedOpenDialog = true;
+          }
+          continue;
+        }
+        // терминальная ошибка — не зацикливаемся
+        outbox.remove(item.id);
+        if (open) touchedOpenDialog = true;
+      }
+    }
+  } finally {
+    flushingOutbox = false;
+  }
+  // заменяем «ожидающие» пузыри реальной историей
+  if (touchedOpenDialog && wsClient.connected) {
+    store.chatHistoryPrefetchOk = false;
+    loadChatHistory();
+  }
+}
+
+function injectPendingOutbox(): void {
+  if (wsClient.connected) {
+    flushOutbox();
+    return;
+  }
+  const did = store.dialogId ?? null;
+  let added = false;
+  for (const item of outbox.all()) {
+    if ((item.body.dialog_id ?? null) !== did) continue;
+    chatMessages.value.push({
+      type: "user",
+      contentType: item.body.image_url ? "image" : "text",
+      text: item.body.message,
+      imageUrl: item.body.image_url ?? null,
+      localUrl: item.localUrl ?? null,
+    });
+    chatMessages.value.push({ type: "bot", contentType: "text", text: t("queued_offline") });
+    added = true;
+  }
+  if (added) {
+    store.setChatHistory(chatMessages.value);
+    nextTick().then(scrollToBottom);
+  }
+}
+
+watch(initialLoadDone, (done) => {
+  if (done) injectPendingOutbox();
+});
 
 // markdown-стек грузится отдельным чанком (обычно уже в AppLoading) — здесь подстраховка
 preloadMarkdown();
@@ -2150,6 +2264,7 @@ onMounted(async () => {
   // Push the original user message + empty bot slot so the spinner shows
   // and incoming chat_delta / image_progress frames have somewhere to land.
   wsClient.setTypeHandler("connection_ack", async (msg) => {
+    flushOutbox();
     const genId = msg.generating_id as string | undefined;
     if (msg.is_generating) {
       if (genId && genId === pendingReconnectReqId.value) {

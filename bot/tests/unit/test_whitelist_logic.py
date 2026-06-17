@@ -126,7 +126,7 @@ class TestWriteUserIds:
                 "admin_user_ids": [fake.random_int(min=100_000_000, max=999_999_999)],
                 "allowed_user_ids": [fake.random_int(min=100_000_000, max=999_999_999)],
             }
-            from src.bot.routers.admin.whitelist import _write_user_ids, _read_user_ids
+            from src.bot.routers.admin.whitelist import _read_user_ids, _write_user_ids
             _write_user_ids(original)
             result = _read_user_ids()
             assert result["admin_user_ids"] == original["admin_user_ids"]

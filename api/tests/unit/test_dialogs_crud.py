@@ -1,10 +1,11 @@
 """Репо-тесты CRUD диалогов (Фаза 2) и галереи (Фаза 3)."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 
 def _make_session() -> AsyncMock:
     s = AsyncMock()
@@ -27,8 +28,8 @@ def _fake_row(title) -> MagicMock:
     d = MagicMock()
     d.id = str(uuid.uuid4())
     d.title = title
-    d.last_activity = datetime.now(timezone.utc)
-    d.start_time = datetime.now(timezone.utc)
+    d.last_activity = datetime.now(UTC)
+    d.start_time = datetime.now(UTC)
     d.pinned_at = None
     return d
 
@@ -41,8 +42,8 @@ def _fake_dialog() -> MagicMock:
     d = MagicMock()
     d.id = str(uuid.uuid4())
     d.title = "t"
-    d.last_activity = datetime.now(timezone.utc)
-    d.start_time = datetime.now(timezone.utc)
+    d.last_activity = datetime.now(UTC)
+    d.start_time = datetime.now(UTC)
     return d
 
 @pytest.mark.asyncio
@@ -59,7 +60,7 @@ async def test_list_dialogs_with_cursor() -> None:
     from db.repositories.dialogs import list_dialogs
     session = _make_session()
     session.execute.return_value = _scalars([_fake_dialog()])
-    rows = await list_dialogs(session, 123, datetime.now(timezone.utc), 10)
+    rows = await list_dialogs(session, 123, datetime.now(UTC), 10)
     assert len(rows) == 1
 
 @pytest.mark.asyncio
@@ -133,5 +134,5 @@ async def test_list_images_with_cursor() -> None:
     from db.repositories.images import list_images
     session = _make_session()
     session.execute.return_value = _scalars([MagicMock()])
-    rows = await list_images(session, 1, datetime.now(timezone.utc), 30)
+    rows = await list_images(session, 1, datetime.now(UTC), 30)
     assert len(rows) == 1

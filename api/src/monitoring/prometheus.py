@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import re
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from prometheus_client import Counter, Gauge, Histogram
-
 
 api_client_requests_total = Counter(
     "api_client_requests_total",

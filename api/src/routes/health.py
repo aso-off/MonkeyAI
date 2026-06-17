@@ -1,10 +1,9 @@
 import asyncio
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
-
 from core.redis import get_redis
 from core.security import verify_service_token
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 
 router = APIRouter(tags=["health"])
 

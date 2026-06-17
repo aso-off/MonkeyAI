@@ -23,7 +23,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 # и тело теста получает второй экземпляр fastapi (isinstance ломается, 404).
 import aiogram  # noqa: F401, E402
 import fastapi  # noqa: F401, E402
-
 import pytest
 from faker import Faker
 

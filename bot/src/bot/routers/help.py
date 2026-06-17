@@ -4,8 +4,7 @@ from pathlib import Path
 from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
-from aiogram.types import FSInputFile, Message, CallbackQuery
-
+from aiogram.types import CallbackQuery, FSInputFile, Message
 from src.core.config import settings
 from src.utils.localization import t
 

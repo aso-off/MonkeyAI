@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import CursorResult, delete, func, select, update
+from sqlalchemy import CursorResult, delete, func, select, true, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.user import Dialog, User, UserStatistics
@@ -180,7 +180,7 @@ async def append_messages(
         return False
     msgs = list(dialog.messages or []) + list(new_messages)
     dialog.messages = msgs[-max_messages:]
-    dialog.last_activity = datetime.now(timezone.utc)
+    dialog.last_activity = datetime.now(UTC)
     await session.commit()
     return True
 
@@ -284,11 +284,13 @@ async def get_dialog_messages_page(
 
 
 async def get_user_message_count(session: AsyncSession, user_id: int) -> int:
+    # только сообщения пользователя — ответы модели не считаем
+    elem = func.json_array_elements(Dialog.messages).table_valued("value").lateral()
     result = await session.execute(
-        select(func.coalesce(
-            func.sum(func.json_array_length(Dialog.messages)),
-            0,
-        )).where(Dialog.user_id == user_id)
+        select(func.count())
+        .select_from(Dialog)
+        .join(elem, true())
+        .where(Dialog.user_id == user_id, elem.c.value.op("->>")("role") == "user")
     )
     return result.scalar_one()
 
@@ -439,7 +441,7 @@ async def list_pinned_dialogs(session: AsyncSession, user_id: int) -> list[Dialo
 
 
 async def set_pinned(session: AsyncSession, user_id: int, dialog_id: str, pinned: bool) -> bool:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     result = await session.execute(
         update(Dialog)
         .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
@@ -507,7 +509,7 @@ async def get_all_users_count(session: AsyncSession) -> int:
 
 async def get_active_users_count(session: AsyncSession, days: int = 7) -> int:
     from datetime import timedelta
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(UTC) - timedelta(days=days)
     result = await session.execute(
         select(func.count()).select_from(User).where(User.last_interaction >= cutoff)
     )

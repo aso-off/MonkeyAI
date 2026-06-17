@@ -3,8 +3,9 @@ Module-level auth state — plain Python sets, no pydantic involved.
 Auth middleware reads from here; whitelist router updates here after each save.
 """
 
-from pathlib import Path
 import asyncio
+from pathlib import Path
+
 import yaml
 
 _admin_ids: set[int] = set()

@@ -304,8 +304,8 @@ class TestUploadToImgbb:
 
     @pytest.mark.asyncio
     async def test_raises_on_http_error(self) -> None:
-        from services.image_processing import upload_to_imgbb
         import httpx
+        from services.image_processing import upload_to_imgbb
 
         mock_client = AsyncMock()
         mock_client.post = AsyncMock(
