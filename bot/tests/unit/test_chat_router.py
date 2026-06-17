@@ -498,7 +498,7 @@ class TestCmdRetry:
             mock_monkey.send = AsyncMock()
             await cmd_retry(msg, language="ru", bot=bot, db_user=db_user)
         mock_monkey.send.assert_awaited()
-        msg.reply.assert_awaited()
+        msg.answer.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_empty_dialog_messages_sends_no_retry(self) -> None:
@@ -1130,7 +1130,7 @@ class TestRunHandle:
              patch("src.bot.routers.chat._handle_text_or_vision", AsyncMock(side_effect=asyncio.CancelledError())):
             mock_s.busy_lock_ttl_seconds = 300
             await _run_handle(msg, bot, "ru", msg.from_user.id, "hello")
-        msg.answer.assert_awaited()
+        msg.reply.assert_awaited()
         redis.delete.assert_awaited_once()
 
 
