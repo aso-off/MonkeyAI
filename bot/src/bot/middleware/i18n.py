@@ -4,7 +4,6 @@ from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
-
 from src.services import api_client as api
 from src.utils.localization import _SUPPORTED_LANGS, resolve_lang
 

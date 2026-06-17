@@ -3,7 +3,6 @@
 from datetime import datetime
 
 import pytest
-
 from src.utils.formatting import (
     convert_to_markdownv2,
     escape_html,
@@ -12,6 +11,7 @@ from src.utils.formatting import (
     format_uptime,
     truncate,
 )
+
 
 class TestFormatUptime:
     @pytest.mark.unit

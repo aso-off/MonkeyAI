@@ -1,9 +1,8 @@
 from pathlib import Path
 
+from core.config import settings
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
-
-from core.config import settings
 
 ALEMBIC_INI = "/app/alembic.ini"
 
@@ -41,7 +40,12 @@ def _run_migrations(connection) -> None:
 
 async def init_db() -> None:
     from db.models.user import (  # noqa: F401
-        Dialog, GeneratedImage, Reaction, User, UserState, UserStatistics,
+        Dialog,
+        GeneratedImage,
+        Reaction,
+        User,
+        UserState,
+        UserStatistics,
     )
 
     async with engine.connect() as conn:

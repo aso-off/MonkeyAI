@@ -3,7 +3,6 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-
 from src.services import api_client as api
 from src.utils.formatting import format_date
 from src.utils.localization import t

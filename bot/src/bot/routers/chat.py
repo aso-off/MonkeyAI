@@ -10,7 +10,6 @@ from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
 from aiogram.types import BufferedInputFile, InputRichMessage, Message, ReplyParameters
-
 from src.core.config import settings
 
 if TYPE_CHECKING:
@@ -532,11 +531,15 @@ async def msg_photo(message: Message, language: str, bot: Bot) -> None:
     if await _is_busy(user_id, message, language):
         return
 
-    await monkey.send(bot, message.chat.id, "thinking")
-
     if not message.photo:
         return
     photo = message.photo[-1]
+    if photo.file_size and photo.file_size > settings.max_upload_mb * 1024 * 1024:
+        await _reply(message, t("file_too_large", language).format(settings.max_upload_mb))
+        return
+
+    await monkey.send(bot, message.chat.id, "thinking")
+
     file = await bot.get_file(photo.file_id)
     buf = BytesIO()
     if file.file_path is None:
@@ -566,11 +569,18 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
     if await _is_busy(user_id, message, language):
         return
 
-    await monkey.send(bot, message.chat.id, "thinking")
-
     if message.voice is None:
         return
     voice = message.voice
+    if voice.duration and voice.duration > settings.max_voice_duration_sec:
+        await _reply(message, t("voice_too_long", language).format(settings.max_voice_duration_sec // 60))
+        return
+    if voice.file_size and voice.file_size > settings.max_upload_mb * 1024 * 1024:
+        await _reply(message, t("file_too_large", language).format(settings.max_upload_mb))
+        return
+
+    await monkey.send(bot, message.chat.id, "thinking")
+
     file = await bot.get_file(voice.file_id)
     buf = BytesIO()
     if file.file_path is None:

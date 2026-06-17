@@ -9,8 +9,8 @@ _SRC = Path(__file__).resolve().parents[1] / "src"
 if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from db.db import Base  # noqa: E402
 import db.models.user  # noqa: E402,F401
+from db.db import Base  # noqa: E402
 
 config = context.config
 if config.config_file_name is not None:
@@ -46,9 +46,8 @@ def run_migrations_online() -> None:
 
     import asyncio
 
-    from sqlalchemy.ext.asyncio import async_engine_from_config
-
     from core.config import settings
+    from sqlalchemy.ext.asyncio import async_engine_from_config
 
     async def _run() -> None:
         section = config.get_section(config.config_ini_section) or {}

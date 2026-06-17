@@ -2,18 +2,17 @@ import base64
 import logging
 from io import BytesIO
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from openai import BadRequestError
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.config import settings
 from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import users as user_repo
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from openai import BadRequestError
 from schemas.media import ImageGenerateRequest, ImageGenerateResponse, TranscribeResponse
 from services.image_generation import generate_images
 from services.image_processing import upload_to_imgbb
 from services.voice import transcribe_audio
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/media", tags=["media"])

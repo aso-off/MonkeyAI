@@ -1,16 +1,15 @@
 """Юнит-тесты для bot/src/schemas/user.py — Pydantic модели."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
-
 from src.schemas.user import UserCreate, UserRead, UserUpdate
 
 # Helpers
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 def _valid_user_read_data(fake, **overrides) -> dict:
     return {

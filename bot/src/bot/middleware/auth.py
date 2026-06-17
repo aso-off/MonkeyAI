@@ -4,7 +4,6 @@ from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Update, User
-
 from src.core import auth_state
 from src.core.config import settings
 from src.services import api_client as api

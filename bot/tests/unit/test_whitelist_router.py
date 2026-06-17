@@ -73,9 +73,7 @@ class TestKeyboardBuilders:
         assert any("cancel_user_operation" in (b.callback_data or "") for b in buttons)
 
     def test_faker_keyboards_all_langs(self) -> None:
-        from src.bot.routers.admin.whitelist import (
-            _whitelist_keyboard, _manage_users_keyboard, _cancel_keyboard
-        )
+        from src.bot.routers.admin.whitelist import _cancel_keyboard, _manage_users_keyboard, _whitelist_keyboard
         for lang in ["ru", "en", "de"]:
             assert _whitelist_keyboard(lang, True) is not None
             assert _manage_users_keyboard(lang) is not None

@@ -4,7 +4,6 @@ from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-
 from src.services import api_client as api
 from src.utils.localization import resolve_lang, t
 

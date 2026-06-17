@@ -1,17 +1,17 @@
 """Shared fixtures для api/tests/routes/ — TestClient с мокнутыми зависимостями."""
 
 import importlib.util
+import types
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import AsyncGenerator
 from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import types
 
 def _make_user_ns(fake, **overrides) -> types.SimpleNamespace:
     """Фабрика: ORM-совместимый объект (users + state + statistics) для UserRead.from_orm_user()."""
@@ -28,7 +28,7 @@ def _make_user_ns(fake, **overrides) -> types.SimpleNamespace:
         n_used_tokens=overrides.get("n_used_tokens", {}),
         n_generated_images=overrides.get("n_generated_images", 0),
         n_transcribed_seconds=overrides.get("n_transcribed_seconds", 0.0),
-        last_updated=overrides.get("last_updated", datetime.now(timezone.utc)),
+        last_updated=overrides.get("last_updated", datetime.now(UTC)),
     )
     return types.SimpleNamespace(
         id=overrides.get("id", fake.random_int(min=100_000, max=999_999_999)),
@@ -39,8 +39,8 @@ def _make_user_ns(fake, **overrides) -> types.SimpleNamespace:
         language=overrides.get("language", "ru"),
         is_admin=overrides.get("is_admin", False),
         is_whitelisted=overrides.get("is_whitelisted", True),
-        first_seen=overrides.get("first_seen", datetime.now(timezone.utc)),
-        last_interaction=overrides.get("last_interaction", datetime.now(timezone.utc)),
+        first_seen=overrides.get("first_seen", datetime.now(UTC)),
+        last_interaction=overrides.get("last_interaction", datetime.now(UTC)),
         state=state,
         statistics=statistics,
     )

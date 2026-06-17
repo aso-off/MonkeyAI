@@ -1,12 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from services.messages import assistant_message, user_message
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/dialogs", tags=["dialogs"])
 
@@ -54,7 +53,7 @@ async def get_messages(
         try:
             data = await dialog_repo.get_dialog_messages_by_mode(session, user_id)
         except ValueError:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found") from None
         return {"messages_by_mode": data}
 
     if chat_mode and not dialog_id:

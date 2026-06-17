@@ -7,6 +7,7 @@ Keyboard файлы пустые — вся логика в роутерах. Т
 """
 
 import types
+from datetime import UTC
 
 import pytest
 from aiogram.types import InlineKeyboardMarkup
@@ -264,25 +265,27 @@ class TestBuildProfileText:
 
     @pytest.mark.unit
     def test_regular_user_profile(self, fake) -> None:
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         from src.bot.routers.profile.profile import _build_profile_text
         user = types.SimpleNamespace(
             id=fake.random_int(min=100_000, max=999_999_999),
             language="ru",
-            first_seen=datetime.now(timezone.utc),
+            first_seen=datetime.now(UTC),
         )
         result = _build_profile_text(user, "ru")
         assert isinstance(result, str)
 
     @pytest.mark.unit
     def test_admin_user_has_admin_status(self, fake) -> None:
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         from src.bot.routers.profile.profile import _build_profile_text
         admin_id = 999
         user = types.SimpleNamespace(
             id=admin_id,
             language="ru",
-            first_seen=datetime.now(timezone.utc),
+            first_seen=datetime.now(UTC),
         )
         result = _build_profile_text(user, "ru")
         assert isinstance(result, str)

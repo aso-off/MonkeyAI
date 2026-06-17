@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+
 def _make_session() -> AsyncMock:
     s = AsyncMock()
     s.commit = AsyncMock()

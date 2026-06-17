@@ -5,11 +5,11 @@ on:
     branches: [main]
     paths-ignore:
       - "configs/version.yml"
-      - "mini-app/public/version.json"
+      - "mini-app/**"
   pull_request:
     paths-ignore:
       - "configs/version.yml"
-      - "mini-app/public/version.json"
+      - "mini-app/**"
 
 concurrency:
   group: ci-${{ github.ref }}

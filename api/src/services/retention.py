@@ -1,13 +1,12 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
-
-from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import UTC, datetime, timedelta
 
 from core.config import settings
 from core.logger import logger
 from db.db import Session
 from db.models.user import Dialog, Reaction
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def _purge(session: AsyncSession, model, pk_col, time_col, cutoff, batch_size: int) -> int:
@@ -27,14 +26,14 @@ async def _purge(session: AsyncSession, model, pk_col, time_col, cutoff, batch_s
 
 
 async def cleanup_dialogs(session: AsyncSession) -> int:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=settings.retention_dialogs_inactive_days)
+    cutoff = datetime.now(UTC) - timedelta(days=settings.retention_dialogs_inactive_days)
     return await _purge(
         session, Dialog, Dialog.id, Dialog.last_activity, cutoff, settings.retention_batch_size
     )
 
 
 async def cleanup_reactions(session: AsyncSession) -> int:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=settings.retention_reactions_days)
+    cutoff = datetime.now(UTC) - timedelta(days=settings.retention_reactions_days)
     return await _purge(
         session, Reaction, Reaction.id, Reaction.created_at, cutoff, settings.retention_batch_size
     )

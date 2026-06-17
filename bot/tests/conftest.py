@@ -48,6 +48,8 @@ def _make_fake_settings() -> types.SimpleNamespace:
         busy_lock_ttl_seconds=300,
         api_request_timeout_seconds=120.0,
         throttle_rate_ms=1000,
+        max_upload_mb=8,
+        max_voice_duration_sec=600,
         openai_api_base=None,
         return_n_generated_images=1,
         image_size="1024x1024",

@@ -6,7 +6,7 @@ assistant: {id, role, content, parent_id, model, usage, reaction, created_at}
 
 import secrets
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def new_message_id() -> str:
@@ -15,7 +15,7 @@ def new_message_id() -> str:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def user_message(content: str | list) -> dict:

@@ -1,5 +1,4 @@
 from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAllPrivateChats, BotCommandScopeChat
-
 from src.core.bot import bot
 from src.core.config import settings
 from src.core.logger import logger

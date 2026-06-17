@@ -108,6 +108,8 @@ tr:
     image_generation_error: "Görüntü oluşturulurken bir hata oluştu: {}"
     voice_recognition_failed: "Sesli mesaj tanınamadı"
     photo_default_prompt: "Bu görüntüde ne gösterildiğini açıkla."
+    file_too_large: "🚫 Dosya çok büyük (en fazla {} MB). Lütfen daha küçük bir dosya gönder."
+    voice_too_long: "🚫 Sesli mesaj çok uzun (en fazla {} dk). Lütfen daha kısa bir tane kaydet."
 
     # Group chats
     group_chat_help_caption: "Botu bir grup sohbetine ekleme talimatları"

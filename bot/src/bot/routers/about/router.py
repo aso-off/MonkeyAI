@@ -3,8 +3,7 @@ from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
-
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from src.core.config import settings
 from src.utils.formatting import format_date
 from src.utils.localization import t

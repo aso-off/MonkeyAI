@@ -1,10 +1,11 @@
 """Тесты сервиса retention (пакетная очистка диалогов и реакций)."""
 
 import types
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 
 def _make_session() -> AsyncMock:
     s = AsyncMock()
@@ -26,7 +27,7 @@ async def test_purge_single_batch_deletes_and_commits() -> None:
     session.execute.side_effect = [_scalars(["a", "b"]), MagicMock()]
     n = await _purge(
         session, Dialog, Dialog.id, Dialog.last_activity,
-        datetime.now(timezone.utc), batch_size=500,
+        datetime.now(UTC), batch_size=500,
     )
     assert n == 2
     session.commit.assert_awaited_once()
@@ -43,7 +44,7 @@ async def test_purge_loops_until_batch_not_full() -> None:
     ]
     n = await _purge(
         session, Reaction, Reaction.id, Reaction.created_at,
-        datetime.now(timezone.utc), batch_size=2,
+        datetime.now(UTC), batch_size=2,
     )
     assert n == 3
     assert session.commit.await_count == 2
@@ -57,7 +58,7 @@ async def test_purge_nothing_to_delete() -> None:
     session.execute.side_effect = [_scalars([])]
     n = await _purge(
         session, Dialog, Dialog.id, Dialog.last_activity,
-        datetime.now(timezone.utc), batch_size=500,
+        datetime.now(UTC), batch_size=500,
     )
     assert n == 0
     session.commit.assert_not_awaited()
@@ -80,7 +81,7 @@ async def test_cleanup_dialogs_uses_inactive_cutoff(monkeypatch) -> None:
     await retention.cleanup_dialogs(_make_session())
 
     assert captured["model"] is Dialog
-    expected = datetime.now(timezone.utc) - timedelta(days=90)
+    expected = datetime.now(UTC) - timedelta(days=90)
     assert abs((captured["cutoff"] - expected).total_seconds()) < 5
 
 class _FakeSessionCM:
@@ -117,5 +118,5 @@ async def test_cleanup_reactions_uses_created_cutoff(monkeypatch) -> None:
     await retention.cleanup_reactions(_make_session())
 
     assert captured["model"] is Reaction
-    expected = datetime.now(timezone.utc) - timedelta(days=90)
+    expected = datetime.now(UTC) - timedelta(days=90)
     assert abs((captured["cutoff"] - expected).total_seconds()) < 5

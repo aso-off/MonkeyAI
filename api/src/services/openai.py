@@ -1,11 +1,10 @@
 import base64
 import logging
+from collections.abc import AsyncGenerator
 from io import BytesIO
-from typing import AsyncGenerator
-
-from openai import AsyncOpenAI, BadRequestError
 
 from core.config import settings
+from openai import AsyncOpenAI, BadRequestError
 
 logger = logging.getLogger(__name__)
 
@@ -180,7 +179,7 @@ class ChatGPT:
                 return answer, (r.usage.prompt_tokens, r.usage.completion_tokens), n_before - len(dialog_messages)
             except BadRequestError:
                 if not dialog_messages:
-                    raise ValueError("Dialog reduced to zero but still exceeds token limit")
+                    raise ValueError("Dialog reduced to zero but still exceeds token limit") from None
                 dialog_messages = dialog_messages[1:]
 
     async def send_message_stream(
@@ -248,7 +247,7 @@ class ChatGPT:
                 return answer, (r.usage.prompt_tokens, r.usage.completion_tokens), n_before - len(dialog_messages)
             except BadRequestError:
                 if not dialog_messages:
-                    raise ValueError("Dialog reduced to zero but still exceeds token limit")
+                    raise ValueError("Dialog reduced to zero but still exceeds token limit") from None
                 dialog_messages = dialog_messages[1:]
 
     async def send_vision_message_stream(
