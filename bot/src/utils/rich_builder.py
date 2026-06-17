@@ -18,6 +18,11 @@ def _strip_markdown(text: str) -> str:
     return _RM_MARKDOWN_RE.sub("", text)
 
 
+# кастом-эмодзи перед «мышлением» (набор AIActions)
+_THINKING_EMOJI_ID = "5818740758257077530"
+_THINKING_EMOJI = f'<tg-emoji emoji-id="{_THINKING_EMOJI_ID}">💭</tg-emoji> '
+
+
 def _normalize_segment(text: str) -> str:
     text = _LATEX_DISPLAY_RE.sub(r"$$\1$$", text)
     text = _LATEX_INLINE_RE.sub(r"$\1$", text)
@@ -67,7 +72,7 @@ def build_draft(text: str, max_length: int) -> InputRichMessage:
 def thinking_draft(label: str, reasoning: str | None = None) -> InputRichMessage:
     stripped = _strip_markdown(reasoning).strip() if reasoning else ""
     body = html.escape(stripped or label)
-    return InputRichMessage(html=f"<tg-thinking>{body}</tg-thinking>")
+    return InputRichMessage(html=f"<tg-thinking>{_THINKING_EMOJI}{body}</tg-thinking>")
 
 
 def is_reasoning_model(model: str, models: dict[str, Any]) -> bool:
