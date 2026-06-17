@@ -20,7 +20,7 @@ def _strip_markdown(text: str) -> str:
 
 # кастом-эмодзи перед «мышлением» (набор AIActions)
 _THINKING_EMOJI_ID = "5818740758257077530"
-_THINKING_EMOJI = f'<tg-emoji emoji-id="{_THINKING_EMOJI_ID}">💭</tg-emoji> '
+_THINKING_EMOJI = f'<tg-emoji emoji-id="{_THINKING_EMOJI_ID}">✨</tg-emoji> '
 
 
 def _normalize_segment(text: str) -> str:

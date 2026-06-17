@@ -538,7 +538,7 @@ class TestCmdRetry:
         with patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
              patch("src.bot.routers.chat.api") as mock_api, \
              patch("src.bot.routers.chat._run_handle", AsyncMock()) as mock_run, \
-             patch("src.bot.routers.chat._pop_answer_id", AsyncMock(return_value=None)), \
+             patch("src.bot.routers.chat._get_answer_id", AsyncMock(return_value=None)), \
              patch("src.bot.routers.chat.t", return_value=""):
             mock_api.ensure_dialog = AsyncMock(return_value=_fake_ensure([]))
             mock_api.pop_last_exchange = AsyncMock(return_value=removed)
@@ -972,6 +972,7 @@ class TestRichMessages:
             enable_message_streaming=True,
             enable_rich_messages=True,
             enable_thinking_block=True,
+            draft_throttle_seconds=0.0,
             models=_REASONING_MODELS,
         )
 
@@ -987,8 +988,8 @@ class TestRichMessages:
             mock_api.chat_stream = mock_stream
             mock_monkey.delete_processing = AsyncMock()
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hi")
-        html = bot.send_rich_message_draft.await_args_list[0].kwargs["rich_message"].html
-        assert "step one" in html
+        htmls = [c.kwargs["rich_message"].html for c in bot.send_rich_message_draft.await_args_list]
+        assert any(h and "step one" in h for h in htmls)
 
     @pytest.mark.asyncio
     async def test_no_thinking_for_non_reasoning_model(self) -> None:
