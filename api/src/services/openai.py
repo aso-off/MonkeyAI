@@ -76,8 +76,8 @@ class ChatGPT:
 
     def _responses_options(self) -> dict:
         raw = self._options()
-        # не храним ответы на стороне OpenAI — контекст ведём сами
-        opts: dict = {"store": False}
+        # не храним ответы на стороне OpenAI; truncation=auto — канон-обрезка под окно
+        opts: dict = {"store": False, "truncation": "auto"}
         if "timeout" in raw:
             opts["timeout"] = raw["timeout"]
         if "max_completion_tokens" in raw:
@@ -191,46 +191,37 @@ class ChatGPT:
     ) -> AsyncGenerator[tuple[str, str, str, tuple[int, int], int], None]:
         dialog_messages = list(dialog_messages or [])
         self._validate_mode(chat_mode)
-        n_before = len(dialog_messages)
         n_input = n_output = 0
 
-        while True:
-            try:
-                instructions, input_items = self._build_responses_input(message, dialog_messages, chat_mode)
-                stream = await self.client.responses.create(
-                    model=self.model,
-                    instructions=instructions or None,
-                    input=input_items,
-                    stream=True,
-                    **self._responses_options(),
-                )
-                n_removed = n_before - len(dialog_messages)
-                answer = ""
-                reasoning = ""
-                async for event in stream:
-                    etype = getattr(event, "type", "")
-                    if etype == "response.output_text.delta":
-                        answer += event.delta
-                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
-                    elif etype == "response.reasoning_summary_text.delta":
-                        reasoning += event.delta
-                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
-                    elif etype == "response.completed":
-                        usage = getattr(event.response, "usage", None)
-                        if usage:
-                            n_input, n_output = usage.input_tokens, usage.output_tokens
+        instructions, input_items = self._build_responses_input(message, dialog_messages, chat_mode)
+        stream = await self.client.responses.create(
+            model=self.model,
+            instructions=instructions or None,
+            input=input_items,
+            stream=True,
+            **self._responses_options(),
+        )
+        answer = ""
+        reasoning = ""
+        async for event in stream:
+            etype = getattr(event, "type", "")
+            if etype == "response.output_text.delta":
+                answer += event.delta
+                yield "not_finished", answer, reasoning, (n_input, n_output), 0
+            elif etype == "response.reasoning_summary_text.delta":
+                reasoning += event.delta
+                yield "not_finished", answer, reasoning, (n_input, n_output), 0
+            elif etype == "response.completed":
+                usage = getattr(event.response, "usage", None)
+                if usage:
+                    n_input, n_output = usage.input_tokens, usage.output_tokens
 
-                answer = answer.strip()
-                if not answer:
-                    raise ValueError("Model returned an empty response. Please try again.")
-                if not (n_input or n_output):
-                    logger.warning("Stream ended without usage for model %s", self.model)
-                yield "finished", answer, reasoning, (n_input, n_output), n_removed
-                return
-            except BadRequestError:
-                if not dialog_messages:
-                    raise
-                dialog_messages = dialog_messages[1:]
+        answer = answer.strip()
+        if not answer:
+            raise ValueError("Model returned an empty response. Please try again.")
+        if not (n_input or n_output):
+            logger.warning("Stream ended without usage for model %s", self.model)
+        yield "finished", answer, reasoning, (n_input, n_output), 0
 
     async def send_vision_message(
         self,
@@ -269,45 +260,36 @@ class ChatGPT:
         image_url: str | None = None,
     ) -> AsyncGenerator[tuple[str, str, str, tuple[int, int], int], None]:
         dialog_messages = list(dialog_messages or [])
-        n_before = len(dialog_messages)
         n_input = n_output = 0
 
-        while True:
-            try:
-                instructions, input_items = self._build_responses_input(
-                    message, dialog_messages, chat_mode, image_buffer, image_url
-                )
-                stream = await self.client.responses.create(
-                    model=self.model,
-                    instructions=instructions or None,
-                    input=input_items,
-                    stream=True,
-                    **self._responses_options(),
-                )
-                n_removed = n_before - len(dialog_messages)
-                answer = ""
-                reasoning = ""
-                async for event in stream:
-                    etype = getattr(event, "type", "")
-                    if etype == "response.output_text.delta":
-                        answer += event.delta
-                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
-                    elif etype == "response.reasoning_summary_text.delta":
-                        reasoning += event.delta
-                        yield "not_finished", answer, reasoning, (n_input, n_output), n_removed
-                    elif etype == "response.completed":
-                        usage = getattr(event.response, "usage", None)
-                        if usage:
-                            n_input, n_output = usage.input_tokens, usage.output_tokens
+        instructions, input_items = self._build_responses_input(
+            message, dialog_messages, chat_mode, image_buffer, image_url
+        )
+        stream = await self.client.responses.create(
+            model=self.model,
+            instructions=instructions or None,
+            input=input_items,
+            stream=True,
+            **self._responses_options(),
+        )
+        answer = ""
+        reasoning = ""
+        async for event in stream:
+            etype = getattr(event, "type", "")
+            if etype == "response.output_text.delta":
+                answer += event.delta
+                yield "not_finished", answer, reasoning, (n_input, n_output), 0
+            elif etype == "response.reasoning_summary_text.delta":
+                reasoning += event.delta
+                yield "not_finished", answer, reasoning, (n_input, n_output), 0
+            elif etype == "response.completed":
+                usage = getattr(event.response, "usage", None)
+                if usage:
+                    n_input, n_output = usage.input_tokens, usage.output_tokens
 
-                answer = answer.strip()
-                if not answer:
-                    raise ValueError("Model returned an empty response. Please try again.")
-                if not (n_input or n_output):
-                    logger.warning("Stream ended without usage for model %s", self.model)
-                yield "finished", answer, reasoning, (n_input, n_output), n_removed
-                return
-            except BadRequestError:
-                if not dialog_messages:
-                    raise
-                dialog_messages = dialog_messages[1:]
+        answer = answer.strip()
+        if not answer:
+            raise ValueError("Model returned an empty response. Please try again.")
+        if not (n_input or n_output):
+            logger.warning("Stream ended without usage for model %s", self.model)
+        yield "finished", answer, reasoning, (n_input, n_output), 0

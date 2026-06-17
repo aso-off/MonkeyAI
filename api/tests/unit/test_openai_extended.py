@@ -325,27 +325,15 @@ class TestSendMessageStream:
         assert reasonings[-1] == "think hard "
 
     @pytest.mark.asyncio
-    async def test_stream_bad_request_trims_and_retries(self) -> None:
+    async def test_stream_bad_request_propagates(self) -> None:
+        # truncation=auto закрывает длину, ручного retry-trim больше нет — ошибка пробрасывается
         gpt = _make_gpt()
-        answer = _fake_answer()
-        call_count = [0]
-
-        async def _create(*a, **kw):
-            call_count[0] += 1
-            if call_count[0] == 1:
-                raise _bad_request_error()
-            return FakeAsyncStream(_fake_responses_events(answer))
-
-        setattr(gpt.client.responses, "create", _create)
-        dialog = _fake_dialog(2)
-
-        events = []
-        async for status, text, _reasoning, _, _ in gpt.send_message_stream(
-            _fake_message(), dialog_messages=dialog, chat_mode="assistant"
-        ):
-            events.append(status)
-
-        assert "finished" in events
+        gpt.client.responses.create = AsyncMock(side_effect=_bad_request_error())
+        with pytest.raises(BadRequestError):
+            async for _ in gpt.send_message_stream(
+                _fake_message(), dialog_messages=_fake_dialog(2), chat_mode="assistant"
+            ):
+                pass
 
     @pytest.mark.asyncio
     async def test_stream_usage_from_final_chunk(self) -> None:
@@ -453,25 +441,12 @@ class TestSendVisionMessageStream:
         assert "finished" in events
 
     @pytest.mark.asyncio
-    async def test_vision_stream_bad_request_trims(self) -> None:
+    async def test_vision_stream_bad_request_propagates(self) -> None:
         gpt = _make_gpt()
-        answer = _fake_answer()
         img = BytesIO(fake.binary(length=32))
-        dialog = _fake_dialog(2)
-        call_count = [0]
-
-        async def _create(*a, **kw):
-            call_count[0] += 1
-            if call_count[0] == 1:
-                raise _bad_request_error()
-            return FakeAsyncStream(_fake_responses_events(answer))
-
-        setattr(gpt.client.responses, "create", _create)
-
-        events = []
-        async for status, _, _reasoning, _, _ in gpt.send_vision_message_stream(
-            _fake_message(), dialog_messages=dialog, chat_mode="assistant", image_buffer=img
-        ):
-            events.append(status)
-
-        assert "finished" in events
+        gpt.client.responses.create = AsyncMock(side_effect=_bad_request_error())
+        with pytest.raises(BadRequestError):
+            async for _ in gpt.send_vision_message_stream(
+                _fake_message(), dialog_messages=_fake_dialog(2), chat_mode="assistant", image_buffer=img
+            ):
+                pass
