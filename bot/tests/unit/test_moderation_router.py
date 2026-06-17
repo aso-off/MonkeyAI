@@ -39,7 +39,7 @@ def patch_settings():
         yield ns
 
 
-# ── _moderation_keyboard / _moderation_text ───────────────────────────────────
+# _moderation_keyboard / _moderation_text
 
 
 class TestModerationBuilders:
@@ -85,7 +85,7 @@ class TestModerationBuilders:
         assert text_on != text_off
 
 
-# ── cb_admin_moderation ───────────────────────────────────────────────────────
+# cb_admin_moderation
 
 
 class TestCbAdminModeration:
@@ -121,7 +121,7 @@ class TestCbAdminModeration:
             cb.message.edit_text.assert_awaited_once()
 
 
-# ── cb_toggle_moderation ──────────────────────────────────────────────────────
+# cb_toggle_moderation
 
 
 class TestCbToggleModeration:

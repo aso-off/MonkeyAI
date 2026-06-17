@@ -13,7 +13,7 @@ import pytest
 from services.moderation import MODERATION_CATEGORIES, moderate_content
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _attr_name(category: str) -> str:
     """Преобразует имя категории в имя атрибута (как в модуле)."""
@@ -69,7 +69,7 @@ def mock_client():
         yield client
 
 
-# ── Модерация отключена ───────────────────────────────────────────────────────
+# Модерация отключена
 
 
 class TestModerationDisabled:
@@ -86,7 +86,7 @@ class TestModerationDisabled:
         mock_client.moderations.create.assert_not_awaited()
 
 
-# ── Пустой ввод ───────────────────────────────────────────────────────────────
+# Пустой ввод
 
 
 class TestEmptyInput:
@@ -108,7 +108,7 @@ class TestEmptyInput:
         assert flagged is False
 
 
-# ── Чистый контент ────────────────────────────────────────────────────────────
+# Чистый контент
 
 
 class TestCleanContent:
@@ -144,7 +144,7 @@ class TestCleanContent:
         assert call_kwargs["model"] == "omni-moderation-latest"
 
 
-# ── Флагированный контент ─────────────────────────────────────────────────────
+# Флагированный контент
 
 
 class TestFlaggedContent:
@@ -214,7 +214,7 @@ class TestFlaggedContent:
         assert "harassment" in cats and "violence" in cats
 
 
-# ── Изображение ───────────────────────────────────────────────────────────────
+# Изображение
 
 
 class TestImageInput:
@@ -245,7 +245,7 @@ class TestImageInput:
         assert "text" in types_in_input and "image_url" in types_in_input
 
 
-# ── Обработка ошибок ──────────────────────────────────────────────────────────
+# Обработка ошибок
 
 
 class TestErrorHandling:

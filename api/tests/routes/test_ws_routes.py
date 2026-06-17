@@ -25,7 +25,7 @@ fake = Faker()
 Faker.seed(42)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _fake_image_b64() -> str:
@@ -36,7 +36,7 @@ def _fake_image_id() -> str:
     return fake.sha256()[:48]
 
 
-# ── GET /webapp/images/{image_id} ─────────────────────────────────────────────
+# GET /webapp/images/{image_id}
 
 
 class TestGetImage:
@@ -101,7 +101,7 @@ class TestGetImage:
                 ws_mod._IMAGE_TS.pop(image_id, None)
 
 
-# ── _store_image() ────────────────────────────────────────────────────────────
+# _store_image()
 
 
 class TestStoreImage:
@@ -169,7 +169,7 @@ class TestStoreImage:
         ws_mod._IMAGE_TS.pop(image_id, None)
 
 
-# ── _spawn() ──────────────────────────────────────────────────────────────────
+# _spawn()
 
 
 class TestSpawn:
@@ -200,7 +200,7 @@ class TestSpawn:
         await asyncio.sleep(0.01)  # Ждём завершения
 
 
-# ── _send() ───────────────────────────────────────────────────────────────────
+# _send()
 
 
 class TestSend:
@@ -223,7 +223,7 @@ class TestSend:
         await ws_mod._send(mock_ws, {"type": "test"})
 
 
-# ── WebSocket auth flow ───────────────────────────────────────────────────────
+# WebSocket auth flow
 
 
 class TestWebSocketAuth:

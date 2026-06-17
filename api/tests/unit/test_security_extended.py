@@ -29,7 +29,7 @@ Faker.seed(42)
 _SECURITY_FILE = Path(__file__).resolve().parents[2] / "src" / "core" / "security.py"
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _load_real_security() -> Any:
@@ -58,7 +58,7 @@ def _make_init_data(bot_token: str, user_id: int, max_age_seconds: int = 3600) -
     return "&".join(f"{k}={quote(str(v))}" for k, v in params.items())
 
 
-# ── verify_service_token ──────────────────────────────────────────────────────
+# verify_service_token
 
 
 class TestVerifyServiceToken:
@@ -112,7 +112,7 @@ class TestVerifyServiceToken:
         assert exc_info.value.status_code == 401
 
 
-# ── _verify_init_data ─────────────────────────────────────────────────────────
+# _verify_init_data
 
 
 class TestVerifyInitData:
@@ -181,7 +181,7 @@ class TestVerifyInitData:
         assert user["id"] == uid
 
 
-# ── verify_webapp_init_data ───────────────────────────────────────────────────
+# verify_webapp_init_data
 
 
 class TestVerifyWebappInitData:

@@ -16,7 +16,7 @@ from unittest.mock import patch
 import pytest
 
 
-# ── Патч настроек для всего модуля ────────────────────────────────────────────
+# Патч настроек для всего модуля
 
 @pytest.fixture(autouse=True)
 def patch_whitelist_module_settings():
@@ -31,7 +31,7 @@ def patch_whitelist_module_settings():
         yield
 
 
-# ── Валидация User ID ─────────────────────────────────────────────────────────
+# Валидация User ID
 
 
 class TestUserIdValidation:
@@ -71,7 +71,7 @@ class TestUserIdValidation:
         assert len(valid_ids) > 15
 
 
-# ── Read/Write YAML helpers ───────────────────────────────────────────────────
+# Read/Write YAML helpers
 
 
 class TestReadUserIds:
@@ -139,7 +139,7 @@ class TestWriteUserIds:
             assert result["allowed_user_ids"] == original["allowed_user_ids"]
 
 
-# ── Логика добавления/удаления ────────────────────────────────────────────────
+# Логика добавления/удаления
 
 
 class TestAddUserLogic:
@@ -260,7 +260,7 @@ class TestAdminManagementLogic:
         assert len(allowed) == 10  # в whitelist остались
 
 
-# ── Суперадмин проверки ───────────────────────────────────────────────────────
+# Суперадмин проверки
 
 
 class TestSuperadminRestrictions:

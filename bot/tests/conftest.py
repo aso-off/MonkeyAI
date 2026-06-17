@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from faker import Faker
 
-# ── sys.path ──────────────────────────────────────────────────────────────────
+# sys.path
 
 _BOT_DIR = Path(__file__).resolve().parents[1]
 # Добавляем только bot/ — бот-модули используют "from src.X import ...",
@@ -28,7 +28,7 @@ _BOT_DIR = Path(__file__).resolve().parents[1]
 if str(_BOT_DIR) not in sys.path:
     sys.path.insert(0, str(_BOT_DIR))
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _make_fake_settings() -> types.SimpleNamespace:
     return types.SimpleNamespace(
@@ -96,7 +96,7 @@ def _make_fake_settings() -> types.SimpleNamespace:
     )
 
 
-# ── КРИТИЧЕСКИЙ ФИX: stub src.core.config до любого импорта bot-модулей ───────
+# stub src.core.config до любого импорта bot-модулей
 
 _fake_settings_singleton = _make_fake_settings()
 
@@ -114,7 +114,7 @@ _stub_logger: Any = types.ModuleType("src.core.logger")
 _stub_logger.logger = logging.getLogger("bot_test")
 sys.modules.setdefault("src.core.logger", _stub_logger)
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 Faker.seed(42)
 

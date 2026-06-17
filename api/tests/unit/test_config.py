@@ -36,7 +36,7 @@ _BASE_YAML: dict[str, str] = {
 }
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _open_mock(yaml_map: dict):
@@ -80,7 +80,7 @@ def _base_env() -> dict:
     }
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 
 @pytest.fixture(scope="module")
@@ -97,7 +97,7 @@ def cfg():
     return module, env, admin_id, allowed_id
 
 
-# ── _load_yaml ────────────────────────────────────────────────────────────────
+# _load_yaml
 
 
 class TestLoadYaml:
@@ -134,7 +134,7 @@ class TestLoadYaml:
         assert result["section"][key] == val
 
 
-# ── parse_admin_ids validator ─────────────────────────────────────────────────
+# parse_admin_ids validator
 
 
 class TestParseAdminIds:
@@ -174,7 +174,7 @@ class TestParseAdminIds:
             assert result == [uid]
 
 
-# ── Свойства database_url / redis_url ─────────────────────────────────────────
+# Свойства database_url / redis_url
 
 
 class TestSettingsProperties:
@@ -214,7 +214,7 @@ class TestSettingsProperties:
         assert "localhost" in url or "postgres" in url
 
 
-# ── Значения из YAML (load_yaml_configs) ─────────────────────────────────────
+# Значения из YAML (load_yaml_configs)
 
 
 class TestSettingsYamlValues:
@@ -270,7 +270,7 @@ class TestSettingsYamlValues:
         assert uid in result
 
 
-# ── get_settings lru_cache ────────────────────────────────────────────────────
+# get_settings lru_cache
 
 
 class TestGetSettings:

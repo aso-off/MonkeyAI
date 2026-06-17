@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from faker import Faker
 
-# ── sys.path ──────────────────────────────────────────────────────────────────
+# sys.path
 
 _API_DIR = Path(__file__).resolve().parents[1]
 _API_SRC = _API_DIR / "src"
@@ -24,7 +24,7 @@ for _p in (str(_API_DIR), str(_API_SRC)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _make_fake_settings() -> types.SimpleNamespace:
     return types.SimpleNamespace(
@@ -65,7 +65,7 @@ def _make_fake_settings() -> types.SimpleNamespace:
     )
 
 
-# ── Module-level stubs (выполняются при импорте conftest, до коллекции тестов) ─
+# Module-level stubs (выполняются при импорте conftest, до коллекции тестов)
 
 _stub_logger: Any = types.ModuleType("core.logger")
 _stub_logger.logger = logging.getLogger("api_test")
@@ -99,7 +99,7 @@ _stub_redis.get_redis = lambda: _stub_redis_instance
 _stub_redis.get_redis_binary = lambda: _stub_redis_instance
 sys.modules.setdefault("core.redis", _stub_redis)
 
-# core.security — нужен routes.health и другим роутерам при импорте
+# core.security - нужен routes.health и другим роутерам при импорте
 _stub_security: Any = types.ModuleType("core.security")
 
 
@@ -117,7 +117,7 @@ _stub_security.verify_webapp_init_data = _noop_verify_webapp_init_data
 _stub_security._verify_init_data = None  # unit tests загружают реальный модуль через importlib
 sys.modules.setdefault("core.security", _stub_security)
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 Faker.seed(42)
 

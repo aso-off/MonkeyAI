@@ -19,7 +19,7 @@ from src.utils.admin import require_admin
 _STUB_CONFIG: Any = sys.modules["src.core.config"]
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _make_msg(user_id: int) -> MagicMock:
     msg = MagicMock(spec=Message)
@@ -50,7 +50,7 @@ def stub_settings(request):
     _STUB_CONFIG.settings = original
 
 
-# ── С db_user ─────────────────────────────────────────────────────────────────
+# С db_user
 
 
 class TestRequireAdminWithDbUser:
@@ -128,7 +128,7 @@ class TestRequireAdminWithDbUser:
         cb.answer.assert_awaited_once()
 
 
-# ── Без db_user (API-запрос) ───────────────────────────────────────────────────
+# Без db_user (API-запрос)
 
 
 class TestRequireAdminWithoutDbUser:

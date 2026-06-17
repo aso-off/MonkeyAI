@@ -35,7 +35,7 @@ _ROUTER_FILE = _BOT_SRC / "webhook" / "router.py"
 _APP_FILE = _BOT_SRC / "webhook" / "app.py"
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 
 def _fake_update_data() -> dict:
@@ -81,7 +81,7 @@ def _make_fake_bot_module():
     return fake_bot_mod, mock_bot, mock_dp, mock_redis
 
 
-# ── webhook/router.py ─────────────────────────────────────────────────────────
+# webhook/router.py
 
 
 @pytest.fixture(scope="module")
@@ -206,7 +206,7 @@ class TestWebhookRouter:
             assert resp.status_code == 200
 
 
-# ── webhook/app.py — create_app() ────────────────────────────────────────────
+# webhook/app.py — create_app()
 
 
 @pytest.fixture(scope="module")

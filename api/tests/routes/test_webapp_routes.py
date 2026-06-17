@@ -34,7 +34,7 @@ Faker.seed(42)
 _MODELS = ["gpt-4o", "gpt-5.4-nano"]
 
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Fixtures
 
 
 def _tg_user(**overrides) -> dict:
@@ -91,7 +91,7 @@ def _user_obj(fake, user_factory):
     return user_factory()
 
 
-# ── GET /webapp/me ────────────────────────────────────────────────────────────
+# GET /webapp/me
 
 
 class TestGetMe:
@@ -214,7 +214,7 @@ class TestGetMe:
         assert resp.status_code == 401
 
 
-# ── PATCH /webapp/me ──────────────────────────────────────────────────────────
+# PATCH /webapp/me
 
 
 class TestUpdateMe:
@@ -299,7 +299,7 @@ class TestUpdateMe:
         assert resp.status_code in (404, 500)
 
 
-# ── POST /webapp/dialogs/new ──────────────────────────────────────────────────
+# POST /webapp/dialogs/new
 
 
 class TestWebappUploadImage:
@@ -336,7 +336,7 @@ class TestWebappUploadImage:
         assert resp.status_code == 502
 
 
-# ── POST /webapp/dialogs/new ──────────────────────────────────────────────────
+# POST /webapp/dialogs/new
 
 
 class TestWebappDialogsNew:
@@ -378,7 +378,7 @@ class TestWebappDialogsNew:
             assert resp.json()["dialog_id"] == did
 
 
-# ── POST /webapp/dialogs/ensure ───────────────────────────────────────────────
+# POST /webapp/dialogs/ensure
 
 
 class TestWebappDialogsEnsure:
@@ -397,7 +397,7 @@ class TestWebappDialogsEnsure:
         assert resp.json()["dialog_id"] == did
 
 
-# ── POST /webapp/dialogs/bootstrap ────────────────────────────────────────────
+# POST /webapp/dialogs/bootstrap
 
 
 class TestWebappBootstrap:
@@ -455,7 +455,7 @@ class TestWebappBootstrap:
         assert resp.json()["dialog_id"] is None
 
 
-# ── GET /webapp/dialogs/messages/page ────────────────────────────────────────
+# GET /webapp/dialogs/messages/page
 
 
 class TestWebappMessagesPage:
@@ -500,7 +500,7 @@ class TestWebappMessagesPage:
         assert resp.json()["next_before_index"] == 10
 
 
-# ── GET /webapp/dialogs/messages ─────────────────────────────────────────────
+# GET /webapp/dialogs/messages
 
 
 class TestWebappGetMessages:
@@ -566,7 +566,7 @@ class TestWebappGetMessages:
         assert resp.status_code == 404
 
 
-# ── POST /webapp/chat ─────────────────────────────────────────────────────────
+# POST /webapp/chat
 
 
 class TestWebappChat:
@@ -642,7 +642,7 @@ class TestWebappChat:
             assert resp.status_code == 200
 
 
-# ── Helpers (покрываем через маршруты) ────────────────────────────────────────
+# Helpers (покрываем через маршруты)
 
 
 class TestWebappHelpers:

@@ -50,7 +50,7 @@ def _fake_callback(data: str = "profile_language", uid: int | None = None, tg_la
     return cb
 
 
-# ── _language_keyboard ────────────────────────────────────────────────────────
+# _language_keyboard
 
 
 class TestLanguageKeyboard:
@@ -92,7 +92,7 @@ class TestLanguageKeyboard:
                 assert (btn.callback_data or "").startswith("set_lang|") or btn.callback_data == "profile_settings"
 
 
-# ── cmd_language ──────────────────────────────────────────────────────────────
+# cmd_language
 
 
 class TestCmdLanguage:
@@ -113,7 +113,7 @@ class TestCmdLanguage:
         msg.answer.assert_awaited_once()
 
 
-# ── cb_profile_language ───────────────────────────────────────────────────────
+# cb_profile_language
 
 
 class TestCbProfileLanguage:
@@ -135,7 +135,7 @@ class TestCbProfileLanguage:
         cb.message.edit_text.assert_awaited_once()
 
 
-# ── cb_set_language ───────────────────────────────────────────────────────────
+# cb_set_language
 
 
 class TestCbSetLanguage:

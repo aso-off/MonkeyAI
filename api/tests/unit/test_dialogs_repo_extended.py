@@ -85,7 +85,7 @@ def _fake_dialog_obj(uid: int | None = None, did: str | None = None, messages: l
     return d
 
 
-# ── get_dialog_messages_by_mode ───────────────────────────────────────────────
+# get_dialog_messages_by_mode
 
 
 class TestGetDialogMessagesByMode:
@@ -156,7 +156,7 @@ class TestGetDialogMessagesByMode:
         assert "artist" in result
 
 
-# ── get_all_users_count ───────────────────────────────────────────────────────
+# get_all_users_count
 
 
 class TestGetAllUsersCount:
@@ -191,7 +191,7 @@ class TestGetAllUsersCount:
             assert result == count
 
 
-# ── get_active_users_count ────────────────────────────────────────────────────
+# get_active_users_count
 
 
 class TestGetActiveUsersCount:
@@ -217,7 +217,7 @@ class TestGetActiveUsersCount:
         assert result == count
 
 
-# ── get_user_message_count ────────────────────────────────────────────────────
+# get_user_message_count
 
 
 class TestGetUserMessageCount:
@@ -254,7 +254,7 @@ class TestGetUserMessageCount:
             assert result == count
 
 
-# ── set_dialog_messages edge cases ───────────────────────────────────────────
+# set_dialog_messages edge cases
 
 
 class TestSetDialogMessagesEdgeCases:
@@ -276,7 +276,7 @@ class TestSetDialogMessagesEdgeCases:
             await set_dialog_messages(session, _uid(), [], dialog_id=None)
 
 
-# ── update_n_used_tokens edge cases ──────────────────────────────────────────
+# update_n_used_tokens edge cases
 
 
 class TestUpdateNUsedTokensEdgeCases:
@@ -328,7 +328,7 @@ class TestUpdateNUsedTokensEdgeCases:
         session.commit.assert_not_awaited()
 
 
-# ── start_new_dialog ──────────────────────────────────────────────────────────
+# start_new_dialog
 
 
 class TestStartNewDialog:
@@ -370,7 +370,7 @@ class TestStartNewDialog:
         session.commit.assert_not_awaited()
 
 
-# ── get_dialog_messages ───────────────────────────────────────────────────────
+# get_dialog_messages
 
 
 class TestGetDialogMessages:
@@ -421,7 +421,7 @@ class TestGetDialogMessages:
             await get_dialog_messages(session, _uid(), dialog_id=None)
 
 
-# ── get_dialog_messages_page ──────────────────────────────────────────────────
+# get_dialog_messages_page
 
 
 class TestGetDialogMessagesPage:
@@ -507,7 +507,7 @@ class TestGetDialogMessagesPage:
             assert total == n
 
 
-# ── append_dialog_message ─────────────────────────────────────────────────────
+# append_dialog_message
 
 
 class TestAppendDialogMessage:
@@ -551,7 +551,7 @@ class TestAppendDialogMessage:
         session.commit.assert_awaited_once()
 
 
-# ── ensure_active_dialog ──────────────────────────────────────────────────────
+# ensure_active_dialog
 
 
 class TestEnsureActiveDialog:
@@ -620,7 +620,7 @@ class TestEnsureActiveDialog:
         session.commit.assert_awaited()
 
 
-# ── ensure_active_mini_app_dialog ─────────────────────────────────────────────
+# ensure_active_mini_app_dialog
 
 
 class TestEnsureActiveMiniAppDialog:

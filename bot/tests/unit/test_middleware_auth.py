@@ -30,7 +30,7 @@ def _tg_user(uid: int | None = None) -> MagicMock:
     return u
 
 
-# ── _chat_id_for_user ─────────────────────────────────────────────────────────
+# _chat_id_for_user
 
 
 class TestChatIdForUser:
@@ -74,7 +74,7 @@ class TestChatIdForUser:
             assert _chat_id_for_user(MagicMock(), uid) == uid
 
 
-# ── AuthMiddleware ─────────────────────────────────────────────────────────────
+# AuthMiddleware
 
 
 class TestAuthMiddleware:

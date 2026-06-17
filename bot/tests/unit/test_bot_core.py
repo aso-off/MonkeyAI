@@ -31,7 +31,7 @@ _BOT_SRC = Path(__file__).resolve().parents[2] / "src"
 _BOT_FILE = _BOT_SRC / "core" / "bot.py"
 
 
-# ── Fixture загрузки ──────────────────────────────────────────────────────────
+# Fixture загрузки
 
 
 @pytest.fixture(scope="module")
@@ -74,7 +74,7 @@ def bot_module():
     yield module
 
 
-# ── Module-level объекты ──────────────────────────────────────────────────────
+# Module-level объекты
 
 
 class TestModuleLevelObjects:
@@ -92,7 +92,7 @@ class TestModuleLevelObjects:
         assert bot_module.dp is not None
 
 
-# ── create_bot ────────────────────────────────────────────────────────────────
+# create_bot
 
 
 class TestCreateBot:
@@ -126,7 +126,7 @@ class TestCreateBot:
             assert call_kwargs["default"].parse_mode == ParseMode.HTML
 
 
-# ── create_dispatcher ─────────────────────────────────────────────────────────
+# create_dispatcher
 
 
 class TestCreateDispatcher:
@@ -150,7 +150,7 @@ class TestCreateDispatcher:
         assert any("redis" in u for u in redis_urls)
 
 
-# ── setup_routers ─────────────────────────────────────────────────────────────
+# setup_routers
 
 
 class TestSetupRouters:
@@ -168,7 +168,7 @@ class TestSetupRouters:
         assert len(call_args[0]) >= 5
 
 
-# ── setup_middleware ──────────────────────────────────────────────────────────
+# setup_middleware
 
 
 class TestSetupMiddleware:
@@ -189,7 +189,7 @@ class TestSetupMiddleware:
         mock_dp.message.middleware.assert_called_once()
 
 
-# ── error_handler ─────────────────────────────────────────────────────────────
+# error_handler
 
 
 class TestErrorHandler:

@@ -21,7 +21,7 @@ def mock_bot() -> MagicMock:
     return bot
 
 
-# ── get_random ────────────────────────────────────────────────────────────────
+# get_random
 
 
 class TestGetRandom:
@@ -65,7 +65,7 @@ class TestGetRandom:
             assert cat in stickers.STICKERS
 
 
-# ── send ─────────────────────────────────────────────────────────────────────
+# send
 
 
 class TestSend:
@@ -134,7 +134,7 @@ class TestSend:
         assert stickers._processing.get(10) == msg_id
 
 
-# ── delete_processing ─────────────────────────────────────────────────────────
+# delete_processing
 
 
 class TestDeleteProcessing:
@@ -173,7 +173,7 @@ class TestDeleteProcessing:
         assert chat_id not in stickers._processing
 
 
-# ── Синглтон monkey ───────────────────────────────────────────────────────────
+# Синглтон monkey
 
 
 class TestMonkeySingleton:

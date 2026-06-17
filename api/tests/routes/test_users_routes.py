@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-# ── GET /users/{user_id} ──────────────────────────────────────────────────────
+# GET /users/{user_id}
 
 
 class TestGetUser:
@@ -59,7 +59,7 @@ class TestGetUser:
             assert resp.status_code == 200
 
 
-# ── POST /users ───────────────────────────────────────────────────────────────
+# POST /users
 
 
 class TestCreateUser:
@@ -118,7 +118,7 @@ class TestCreateUser:
             assert resp.status_code == 201
 
 
-# ── PATCH /users/{user_id} ────────────────────────────────────────────────────
+# PATCH /users/{user_id}
 
 
 class TestUpdateUser:
@@ -178,7 +178,7 @@ class TestUpdateUser:
         mock_add.assert_awaited_once_with(user.id)
 
 
-# ── GET /users/stats ──────────────────────────────────────────────────────────
+# GET /users/stats
 
 
 class TestUsersStats:
@@ -215,7 +215,7 @@ class TestUsersStats:
         assert resp.json()["active_users_count"] == active
 
 
-# ── GET /health (базовая проверка роутера) ────────────────────────────────────
+# GET /health (базовая проверка роутера)
 
 
 class TestHealthRoute:
