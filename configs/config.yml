@@ -5,6 +5,7 @@ busy_lock_ttl_seconds: 300  # анти-дубль
 # Диалог
 n_chat_modes_per_page: 5
 dialog_context_limit: 20  # контекст
+user_cache_ttl_seconds: 45  # кэш профиля в боте
 
 # Retention (сезон — 90 дней)
 retention:

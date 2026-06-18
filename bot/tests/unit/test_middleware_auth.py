@@ -109,11 +109,33 @@ class TestAuthMiddleware:
              patch("src.bot.middleware.auth.auth_state") as mock_as, \
              patch("src.bot.middleware.auth.api") as mock_api:
             mock_s.whitelist_mode = True
+            mock_s.user_cache_ttl_seconds = 45
             mock_as.is_allowed_cached = AsyncMock(return_value=True)
             mock_api.get_or_create_user = AsyncMock(return_value=db_user)
             result = await mw(handler, MagicMock(), data)
         assert result == "ok"
         assert data["db_user"] is db_user
+
+    @pytest.mark.asyncio
+    async def test_cache_hit_skips_api(self) -> None:
+        from src.bot.middleware.auth import AuthMiddleware
+        from src.core import user_cache
+        mw = AuthMiddleware()
+        handler = AsyncMock(return_value="ok")
+        user = _tg_user()
+        cached = MagicMock()
+        user_cache.put(user.id, cached, 60)
+        data = {"event_from_user": user}
+        with patch("src.bot.middleware.auth.settings") as mock_s, \
+             patch("src.bot.middleware.auth.auth_state") as mock_as, \
+             patch("src.bot.middleware.auth.api") as mock_api:
+            mock_s.whitelist_mode = True
+            mock_as.is_allowed_cached = AsyncMock(return_value=True)
+            mock_api.get_or_create_user = AsyncMock()
+            result = await mw(handler, MagicMock(), data)
+        assert result == "ok"
+        assert data["db_user"] is cached
+        mock_api.get_or_create_user.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_cache_miss_sync_allow_proceeds(self) -> None:
@@ -125,6 +147,7 @@ class TestAuthMiddleware:
              patch("src.bot.middleware.auth.auth_state") as mock_as, \
              patch("src.bot.middleware.auth.api") as mock_api:
             mock_s.whitelist_mode = True
+            mock_s.user_cache_ttl_seconds = 45
             mock_as.is_allowed_cached = AsyncMock(return_value=None)
             mock_as.is_allowed = MagicMock(return_value=True)
             mock_api.get_or_create_user = AsyncMock(return_value=MagicMock())
@@ -155,6 +178,7 @@ class TestAuthMiddleware:
         with patch("src.bot.middleware.auth.settings") as mock_s, \
              patch("src.bot.middleware.auth.api") as mock_api:
             mock_s.whitelist_mode = False
+            mock_s.user_cache_ttl_seconds = 45
             mock_api.get_or_create_user = AsyncMock(return_value=MagicMock())
             result = await mw(handler, MagicMock(), data)
         assert result == "ok"
@@ -187,6 +211,7 @@ class TestAuthMiddleware:
                  patch("src.bot.middleware.auth.auth_state") as mock_as, \
                  patch("src.bot.middleware.auth.api") as mock_api:
                 mock_s.whitelist_mode = True
+                mock_s.user_cache_ttl_seconds = 45
                 mock_as.is_allowed_cached = AsyncMock(return_value=True)
                 mock_api.get_or_create_user = AsyncMock(return_value=MagicMock())
                 await mw(handler, MagicMock(), data)

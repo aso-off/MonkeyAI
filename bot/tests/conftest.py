@@ -40,6 +40,7 @@ def _make_fake_settings() -> types.SimpleNamespace:
         whitelist_mode=True,
         allowed_user_ids=[],
         n_chat_modes_per_page=5,
+        user_cache_ttl_seconds=45,
         enable_message_streaming=True,
         enable_content_moderation=True,
         dialog_context_limit=20,
@@ -118,6 +119,14 @@ sys.modules.setdefault("src.core.logger", _stub_logger)
 # Fixtures
 
 Faker.seed(42)
+
+@pytest.fixture(autouse=True)
+def _clear_user_cache():
+    from src.core import user_cache
+
+    user_cache.clear()
+    yield
+    user_cache.clear()
 
 @pytest.fixture(scope="session")
 def fake() -> Faker:
