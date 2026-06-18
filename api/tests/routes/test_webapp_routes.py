@@ -12,7 +12,7 @@
 - POST /webapp/chat
 - _extract_tg_user: missing user field, invalid JSON
 - _unwhitelisted_profile: синтетический профиль
-- _require_whitelisted: not whitelisted → 403
+- _require_whitelisted: not whitelisted > 403
 - _redis_read_prefs, _redis_write_prefs: косвенно через маршруты
 - _db_write_prefs: косвенно через PATCH /me
 
@@ -406,7 +406,7 @@ class TestWebappBootstrap:
 
     @pytest.mark.api
     def test_bootstrap_no_active_dialog_returns_draft(self, webapp_client) -> None:
-        """Нет активного диалога → черновик (dialog_id=None), без создания."""
+        """Нет активного диалога > черновик (dialog_id=None), без создания."""
         client, _ = webapp_client
         with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
              patch("routes.webapp.dialog_repo.get_mini_app_dialog_id",
@@ -424,7 +424,7 @@ class TestWebappBootstrap:
 
     @pytest.mark.api
     def test_bootstrap_stale_or_empty_dialog_returns_draft(self, webapp_client) -> None:
-        """Активный id есть, но диалог пуст/удалён (total=0) → черновик."""
+        """Активный id есть, но диалог пуст/удалён (total=0) > черновик."""
         client, _ = webapp_client
         did = str(uuid.uuid4())
         with patch("routes.webapp._require_whitelisted", new=AsyncMock(return_value=None)), \
@@ -624,7 +624,7 @@ class TestWebappHelpers:
 
     @pytest.mark.api
     def test_require_whitelisted_forbidden_via_new_dialog(self, webapp_client) -> None:
-        """_require_whitelisted → False → 403."""
+        """_require_whitelisted > False > 403."""
         from fastapi import HTTPException
         client, _ = webapp_client
         exc = HTTPException(status_code=403, detail="not whitelisted")

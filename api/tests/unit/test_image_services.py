@@ -260,7 +260,7 @@ class TestProcessGeneratedImage:
         b64 = _tiny_png_b64()
         r_low = process_generated_image(b64, quality=10)
         r_high = process_generated_image(b64, quality=95)
-        # low quality → smaller size_kb (for non-trivial images)
+        # low quality > smaller size_kb (for non-trivial images)
         assert isinstance(r_low["size_kb"], float)
         assert isinstance(r_high["size_kb"], float)
 

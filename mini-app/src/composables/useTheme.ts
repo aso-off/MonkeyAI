@@ -1,13 +1,13 @@
 /**
- * useTheme — управление темой приложения.
+ * useTheme - управление темой приложения.
  *
  * Поддерживает три режима:
- *   'system'  — следует теме Telegram (определяется по bg_color из themeParams)
- *   'light'   — всегда светлая
- *   'dark'    — всегда тёмная
+ *   'system'  - следует теме Telegram (определяется по bg_color из themeParams)
+ *   'light'   - всегда светлая
+ *   'dark'    - всегда тёмная
  *
  * Тема хранится в БД (users.theme). При входе читается из store.user.theme.
- * При изменении в настройках — store.setTheme() → PATCH /webapp/me.
+ * При изменении в настройках - store.setTheme() > PATCH /webapp/me.
  * localStorage НЕ используется.
  */
 
@@ -76,7 +76,7 @@ export function useTheme() {
   applyClass(resolveScheme(store.currentTheme as ThemeOverride))
 
   // React to Telegram theme change in real time via SDK signal (only matters when override is 'system').
-  // themeParams.isDark is a @telegram-apps/signals Signal — call .sub() to subscribe.
+  // themeParams.isDark is a @telegram-apps/signals Signal - call .sub() to subscribe.
   const onSdkThemeChanged = () => {
     if ((store.currentTheme as ThemeOverride) === 'system') {
       // isDark() reads the current value from the signal

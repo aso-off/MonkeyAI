@@ -207,7 +207,7 @@ class TestGetOrCreateUser:
         async def _execute(*a, **kw):
             call_count[0] += 1
             if call_count[0] == 1:
-                return _scalar_result(None)  # first get_user → None
+                return _scalar_result(None)  # first get_user > None
             return _scalar_result(existing_user)  # second get_user after rollback
 
         session = _make_session()
@@ -232,7 +232,7 @@ class TestUpdateUser:
 
         await update_user(session, uid, language="en", theme="dark")
 
-        # language → users, theme → user_states: два UPDATE, один commit
+        # language > users, theme > user_states: два UPDATE, один commit
         assert session.execute.await_count == 2
         session.commit.assert_awaited_once()
 

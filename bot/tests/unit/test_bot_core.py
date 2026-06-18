@@ -2,14 +2,14 @@
 Тесты для bot/src/core/bot.py.
 
 Стратегия: загружаем реальный модуль через importlib, мокируя:
-- aiogram.Bot              → не создаём реального Telegram-клиента
-- aiogram.Dispatcher       → не создаём реального диспетчера
-- redis.asyncio.Redis.from_url → не нужен реальный Redis
+- aiogram.Bot              > не создаём реального Telegram-клиента
+- aiogram.Dispatcher       > не создаём реального диспетчера
+- redis.asyncio.Redis.from_url > не нужен реальный Redis
 - aiogram.fsm.storage.redis.RedisStorage
 - src.monitoring.tg_session.MetricsAiohttpSession
 
 module-level код (bot = create_bot(), dp = create_dispatcher(), ...)
-выполняе��ся при загрузке → все строки попадают в coverage.
+выполняе��ся при загрузке > все строки попадают в coverage.
 
 Faker: language codes, error messages.
 """

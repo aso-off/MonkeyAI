@@ -15,7 +15,7 @@ export default defineConfig(({ command }) => ({
   },
   // GitHub Pages: https://aso-off.github.io/mini-app/
   base: '/mini-app/',
-  // Read .env from mini-app/ (contains only VITE_API_URL — safe to keep local)
+  // Read .env from mini-app/ (contains only VITE_API_URL - safe to keep local)
   envDir: fileURLToPath(new URL('.', import.meta.url)),
   plugins: [
     vue(),

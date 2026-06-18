@@ -116,9 +116,9 @@ def setup_middleware(dp: Dispatcher) -> None:
     # New Relic регистрируется самым первым как outer middleware для отслеживания всех транзакций и ошибок
     dp.update.outer_middleware(NewRelicMiddleware())
 
-    # Auth регистрируется первым → выполняется первым (outermost):
+    # Auth регистрируется первым > выполняется первым (outermost):
     #   получает db_user из БД и кладёт в data["db_user"]
-    # I18n регистрируется вторым → выполняется вторым:
+    # I18n регистрируется вторым > выполняется вторым:
     #   берёт db_user из data без повторного запроса в БД
     dp.update.middleware(AuthMiddleware())
     dp.update.middleware(I18nMiddleware())

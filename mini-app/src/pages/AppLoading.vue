@@ -64,7 +64,7 @@ const showError = ref(false);
 const stickerContainer = ref<HTMLDivElement | null>(null);
 const stickerLoaded = ref(false);
 
-// Welcome greeting — user's first name from TMA init data, fallback to "Monkey AI"
+// Welcome greeting - user's first name from TMA init data, fallback to "Monkey AI"
 const _firstName = (() => {
   try { return initData.user()?.first_name ?? ''; } catch { return ''; }
 })();
@@ -72,7 +72,7 @@ const welcomeText = computed(() =>
   _firstName ? t('loading_welcome', { name: _firstName }) : 'Monkey AI',
 );
 
-// Random tip — index fixed once so it stays stable even if locale changes mid-load
+// Random tip - index fixed once so it stays stable even if locale changes mid-load
 let _tipIndex = -1;
 const randomTip = computed(() => {
   const tips = tm('loading_tips') as string[];
@@ -123,7 +123,7 @@ async function loadRandomSticker() {
         progressiveLoad: true,
       },
     });
-    // DOMLoaded fires when lottie inserts the SVG into the DOM — more reliable than data_ready
+    // DOMLoaded fires when lottie inserts the SVG into the DOM - more reliable than data_ready
     stickerAnim.addEventListener('DOMLoaded', _showSticker);
     stickerAnim.addEventListener('error', _showSticker);
   } catch (e) {
@@ -145,7 +145,7 @@ function animateTo(target: number, duration: number): Promise<void> {
     function step(now: number) {
       const elapsed = now - startTime;
       const frac = Math.min(elapsed / duration, 1);
-      // ease-in-out cubic — slow start, slow end, feels organic
+      // ease-in-out cubic - slow start, slow end, feels organic
       const eased = frac < 0.5
         ? 4 * frac * frac * frac
         : 1 - Math.pow(-2 * frac + 2, 3) / 2;
@@ -187,26 +187,26 @@ async function runLoading(): Promise<void> {
 
   try {
     await store.init();
-    // init() swallows its own errors — check explicitly so we retry if getMe failed.
+    // init() swallows its own errors - check explicitly so we retry if getMe failed.
     if (!store.user) throw new Error('user not loaded');
     if (store.user.is_whitelisted) {
       await Promise.all([
         store.prefetchChatHistory(),
         dialogs.loadInitial().catch(() => {}),
         preloadMarkdown(), // стили/форматирование готовы до показа чата
-        // чанки ленивых роутов — готовы до перехода, без мерцания
+        // чанки ленивых роутов - готовы до перехода, без мерцания
         import('@/pages/chat.vue'),
         import('@/pages/images.vue'),
         import('@/pages/settings.vue'),
       ]);
-      // саб-настройки мелкие — тянем в фон без ожидания
+      // саб-настройки мелкие - тянем в фон без ожидания
       void import('@/pages/settings_theme.vue');
       void import('@/pages/settings_lang.vue');
       void import('@/pages/settings_privacy.vue');
       void import('@/pages/settings_terms.vue');
     }
   } catch {
-    // API failed — retry up to 3 times with 3 s delay, then show error.
+    // API failed - retry up to 3 times with 3 s delay, then show error.
     if (myId !== _runId) return;
     _retryCount++;
     if (_retryCount >= 3) {
@@ -224,7 +224,7 @@ async function runLoading(): Promise<void> {
   await animateTo(100, 500);
   await pause(200);
 
-  // Apply saved language preference at the very last moment — loading screen is about
+  // Apply saved language preference at the very last moment - loading screen is about
   // to fade out, so no language switch is visible during loading. Main app opens with
   // the correct saved locale from the first frame.
   const _CIS_LANGS = new Set(['ru', 'be', 'uk', 'kk', 'ky', 'uz', 'tg', 'tk', 'hy', 'az', 'mo']);
@@ -317,7 +317,7 @@ onUnmounted(() => {
   height: 220px;
 }
 
-/* Sticker — fade in when lottie is ready */
+/* Sticker - fade in when lottie is ready */
 .loading-sticker {
   position: absolute;
   inset: 0;
@@ -399,7 +399,7 @@ onUnmounted(() => {
   height: 100%;
   border-radius: 3px;
   background-color: var(--tg-theme-button-color, #2979ff);
-  /* No CSS transition — easing is handled by the rAF animateTo() */
+  /* No CSS transition - easing is handled by the rAF animateTo() */
 }
 
 .loading-error-text {

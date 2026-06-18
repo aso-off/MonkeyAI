@@ -80,7 +80,7 @@ marked.use({
   },
 });
 
-// внешние ссылки — всегда в новой вкладке и безопасно
+// внешние ссылки - всегда в новой вкладке и безопасно
 DOMPurify.addHook("afterSanitizeAttributes", (node) => {
   if (node.nodeName === "A") {
     node.setAttribute("target", "_blank");
@@ -95,7 +95,7 @@ const SANITIZE_OPTS = {
 
 /**
  * Незакрытые во время стрима блоки (```код или $$формула) показываем как
- * обычный текст до прихода закрывающего разделителя — без мигания полу-блока.
+ * обычный текст до прихода закрывающего разделителя - без мигания полу-блока.
  */
 function splitUnclosed(text: string): { md: string; tail: string } {
   const lines = text.split("\n");

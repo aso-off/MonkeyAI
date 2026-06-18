@@ -15,10 +15,10 @@ import { ripple } from './directives/ripple';
 
 import { messages } from './locales';
 
-// Mock the environment in case, we are outside Telegram (DEV only — tree-shaken in production).
+// Mock the environment in case, we are outside Telegram (DEV only - tree-shaken in production).
 import './mockEnv';
 
-/** Same CIS-language set as the bot's resolve_lang(): maps CIS langs → 'ru'. */
+/** Same CIS-language set as the bot's resolve_lang(): maps CIS langs > 'ru'. */
 const _CIS_LANGS = new Set(['ru', 'be', 'uk', 'kk', 'ky', 'uz', 'tg', 'tk', 'hy', 'az', 'mo']);
 const _SUPPORTED_LANGS = new Set(['ru', 'en', 'de', 'es', 'fr', 'pl', 'pt', 'tr']);
 
@@ -33,7 +33,7 @@ function resolveLocale(tgLang: string | undefined): string {
 
 // Wrap in an async function to avoid top-level await in the ES module.
 // Telegram's Android/iOS WebView may not support top-level await even when
-// the user's Chrome browser does — they use different WebView engines.
+// the user's Chrome browser does - they use different WebView engines.
 async function main() {
   try {
     // retrieveLaunchParams() throws if there are no valid TG launch params
@@ -55,7 +55,7 @@ async function main() {
     });
 
     // initData.restore() has been called inside init(), so initData.user() is now safe.
-    // Resolve the initial locale from the Telegram client language immediately —
+    // Resolve the initial locale from the Telegram client language immediately -
     // this ensures "Access Restricted" (and any other pre-API screens) are shown
     // in the correct language before the DB round-trip completes.
     let initialLocale: string = 'en';
@@ -84,7 +84,7 @@ async function main() {
 
     app.mount('#app');
   } catch {
-    // App opened outside Telegram or Telegram client is too old —
+    // App opened outside Telegram or Telegram client is too old -
     // show a friendly "Oops" screen instead of a blank page.
     // Pattern mirrors the official React TMA template (EnvUnsupported).
     createApp(EnvUnsupported).mount('#app');

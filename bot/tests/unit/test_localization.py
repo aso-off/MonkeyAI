@@ -20,7 +20,7 @@ _TEST_LOCALES = {
     },
     "de": {
         "greeting": "Hallo!",
-        # 'hello' намеренно отсутствует → тест fallback на ru
+        # 'hello' намеренно отсутствует > тест fallback на ru
     },
 }
 
@@ -34,7 +34,7 @@ def mock_locales(mocker):
 class TestResolveLang:
     @pytest.mark.unit
     @pytest.mark.parametrize("input_lang,expected", [
-        # CIS → ru
+        # CIS > ru
         ("ru", "ru"), ("uk", "ru"), ("be", "ru"), ("kk", "ru"), ("ky", "ru"),
         ("uz", "ru"), ("tg", "ru"), ("tk", "ru"), ("hy", "ru"), ("az", "ru"), ("mo", "ru"),
         # Поддерживаемые
@@ -43,7 +43,7 @@ class TestResolveLang:
         # Региональный суффикс отбрасывается
         ("es-MX", "es"), ("pt-BR", "pt"), ("en-US", "en"),
         ("ru-RU", "ru"), ("fr-CA", "fr"), ("de-AT", "de"),
-        # Unsupported → en
+        # Unsupported > en
         ("zh", "en"), ("ja", "en"), ("ar", "en"), ("ko", "en"), ("hi", "en"),
         # Edge cases
         (None, "en"), ("", "en"),
@@ -82,7 +82,7 @@ class TestT:
 
     @pytest.mark.unit
     def test_missing_key_in_lang_falls_back_to_ru(self, mock_locales) -> None:
-        # "de" не имеет ключа "hello" → fallback на ru
+        # "de" не имеет ключа "hello" > fallback на ru
         result = t("hello", "de")
         assert "Привет" in result
 

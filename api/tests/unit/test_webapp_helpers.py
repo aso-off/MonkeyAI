@@ -4,7 +4,7 @@
 Покрываем недостающие ветки:
 - _prefs_key()                   — формат ключа
 - _redis_write_prefs()           — hset + expire
-- _redis_read_prefs()            — hit, exception → {}
+- _redis_read_prefs()            — hit, exception > {}
 - _db_write_prefs()              — success, exception
 - _redis_invalidate_user_cache() — success, exception (pass)
 - _resolve_mini_app_dialog_id()  — с body_dialog_id, без

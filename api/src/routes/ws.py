@@ -6,48 +6,48 @@ the same stream of events in real time.
 
 Protocol
 --------
-Frames are JSON objects. Direction marks: → client→server, ← server→client.
+Frames are JSON objects. Direction marks: > client>server, < server>client.
 
 Auth (must be first frame):
-  → {"type": "auth", "init_data": "<raw tma initData>"}
-  ← {"type": "auth_ok",    "user_id": 123}
-  ← {"type": "auth_error", "error":   "..."}
+  > {"type": "auth", "init_data": "<raw tma initData>"}
+  < {"type": "auth_ok",    "user_id": 123}
+  < {"type": "auth_error", "error":   "..."}
 
 Text chat (контекст строится на сервере — клиент шлёт только dialog_id):
-  → {"type": "chat", "id": "<uuid>", "message": "...", "model": "gpt-4o",
+  > {"type": "chat", "id": "<uuid>", "message": "...", "model": "gpt-4o",
       "dialog_id": "..." | null, "chat_mode": "..."}
 
-  ← {"type": "user_message",   "id": "<uuid>", "message_id": "msg_...",
+  < {"type": "user_message",   "id": "<uuid>", "message_id": "msg_...",
       "text": "...", "dialog_id": "..."|null}
      (sent to all OTHER devices so they show the message before generation starts)
-  ← {"type": "generation_start", "id": "<uuid>"}
+  < {"type": "generation_start", "id": "<uuid>"}
      (sent to ALL devices including sender)
-  ← {"type": "chat_delta",     "id": "<uuid>", "dialog_id": "...", "text": "<накопленный текст>"}
+  < {"type": "chat_delta",     "id": "<uuid>", "dialog_id": "...", "text": "<накопленный текст>"}
      (стриминг, троттлинг ~150 мс, ALL devices)
-  ← {"type": "chat_done",      "id": "<uuid>", "dialog_id": "...",
+  < {"type": "chat_done",      "id": "<uuid>", "dialog_id": "...",
       "message": {"id": "msg_...", "role": "assistant", "content": "...", "parent_id": "msg_...",
                   "model": "...", "usage": {...}, "reaction": null, "created_at": "..."},
       "n_first_removed": 0, "is_flagged": false}
-  ← {"type": "chat_error",     "id": "<uuid>", "error": "..."}
+  < {"type": "chat_error",     "id": "<uuid>", "error": "..."}
 
 Image generation:
-  → {"type": "image", "id": "<uuid>", "message": "...", "dialog_id": "..." | null}
+  > {"type": "image", "id": "<uuid>", "message": "...", "dialog_id": "..." | null}
 
-  ← {"type": "user_message",      "id": "<uuid>", "message_id": "msg_...",
+  < {"type": "user_message",      "id": "<uuid>", "message_id": "msg_...",
       "text": "...", "dialog_id": "..."|null}   (other devices only)
-  ← {"type": "generation_start",  "id": "<uuid>"}  (all devices)
-  ← {"type": "image_progress",    "id": "<uuid>", "step": "moderating" | "generating"}
-  ← {"type": "image_done",        "id": "<uuid>", "url": "https://...",
+  < {"type": "generation_start",  "id": "<uuid>"}  (all devices)
+  < {"type": "image_progress",    "id": "<uuid>", "step": "moderating" | "generating"}
+  < {"type": "image_done",        "id": "<uuid>", "url": "https://...",
       "size_kb": 220.5, "dialog_id": "...", "message": {...assistant message...}}
-  ← {"type": "image_error",       "id": "<uuid>", "error": "..."}
+  < {"type": "image_error",       "id": "<uuid>", "error": "..."}
 
 Connection state on reconnect:
-  ← {"type": "connection_ack", "is_generating": bool, "generating_id": str|null,
+  < {"type": "connection_ack", "is_generating": bool, "generating_id": str|null,
       "generating_text": str|null}
 
-Keepalive (every 15 s, server → client):
-  ← {"type": "ping"}
-  → {"type": "pong"}
+Keepalive (every 15 s, server > client):
+  < {"type": "ping"}
+  > {"type": "pong"}
 
 Global generation guard:
   Only one active generation per user is allowed at a time.
@@ -84,18 +84,18 @@ from services.title import handle_first_message_title
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webapp")
 
-# user_id → set of active WebSocket connections (one per device).
+# user_id > set of active WebSocket connections (one per device).
 _WS_POOL: dict[int, set[WebSocket]] = defaultdict(set)
 
 _CONTEXT_LIMIT = 20
 # троттлинг дельт — частые мелкие кадры ронял Cloudflare Tunnel
 _DELTA_THROTTLE_S = 0.15
 
-# (user_id, dialog_id) → req_id of the active generation.
+# (user_id, dialog_id) > req_id of the active generation.
 # Блокировка на диалог: разные чаты можно генерировать одновременно, один — нет.
 _USER_GENERATING: dict[tuple[int, str | None], str] = {}
 
-# (user_id, dialog_id) → original user message text for the active generation.
+# (user_id, dialog_id) > original user message text for the active generation.
 # Sent in connection_ack so late-joining devices can display the user message.
 _USER_GENERATING_TEXT: dict[tuple[int, str | None], str] = {}
 
@@ -545,7 +545,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
             with contextlib.suppress(asyncio.CancelledError):
                 await keepalive_task
 
-        # 5. Convert PNG → WebP in memory (CPU-bound Pillow, run in thread).
+        # 5. Convert PNG > WebP in memory (CPU-bound Pillow, run in thread).
         try:
             img_result = await asyncio.to_thread(process_generated_image, b64_data)
         except Exception:
@@ -630,16 +630,13 @@ async def _message_loop(ws: WebSocket, user_id: int) -> None:
         else:
             await _send(ws, {"type": "error", "error": f"unknown type: {msg_type!r}"})
 
-
-# ---------------------------------------------------------------------------
 # Endpoint
-# ---------------------------------------------------------------------------
 
 @router.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket) -> None:
     """
     Main WebSocket endpoint for the Telegram Mini App.
-    Path: /webapp/ws  →  wss://api.si881.ru/webapp/ws
+    Path: /webapp/ws  >  wss://api.si881.ru/webapp/ws
 
     Multiple devices per user are supported simultaneously.
     All devices receive the same stream of events in real time.

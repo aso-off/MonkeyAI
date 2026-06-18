@@ -81,7 +81,7 @@ defineEmits<{ close: []; rename: []; delete: []; pin: []; unpin: [] }>();
 .sheet-item:not(.sheet-item--danger) img {
   filter: brightness(0) saturate(100%) invert(60%);
 }
-/* разделитель — зазор с фоном панели, как в списке чатов */
+/* разделитель - зазор с фоном панели, как в списке чатов */
 .sheet-item + .sheet-item {
   margin-top: 2px;
 }

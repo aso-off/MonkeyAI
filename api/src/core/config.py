@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -6,7 +7,7 @@ import yaml
 from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-CONFIGS_DIR = Path("/app/configs")
+CONFIGS_DIR = Path(os.environ.get("MONKEY_CONFIGS_DIR", "/app/configs"))
 
 
 def _load_yaml(path: Path) -> Any:

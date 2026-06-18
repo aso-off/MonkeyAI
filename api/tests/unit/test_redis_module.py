@@ -177,7 +177,7 @@ class TestCloseRedis:
 
     @pytest.mark.asyncio
     async def test_init_close_cycle(self, redis_module) -> None:
-        """Полный цикл: init → get → close → get raises."""
+        """Полный цикл: init > get > close > get raises."""
         with mock.patch("redis.asyncio.from_url", return_value=mock.AsyncMock()):
             await redis_module.init_redis()
 

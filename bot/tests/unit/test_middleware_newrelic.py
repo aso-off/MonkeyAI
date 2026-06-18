@@ -6,8 +6,8 @@
 - event.callback_query: с data (prefix по ":"), без data
 - event.my_chat_member
 - fallback (event_type)
-- исключение при разборе update → tx_name "update/unknown"
-- исключение в handler → nr_notice_error вызван, исключение ре-рейзится
+- исключение при разборе update > tx_name "update/unknown"
+- исключение в handler > nr_notice_error вызван, исключение ре-рейзится
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -247,7 +247,7 @@ class TestNewRelicMiddleware:
         from src.bot.middleware.newrelic import NewRelicMiddleware
         mw = NewRelicMiddleware()
         handler = AsyncMock()
-        # message truthy, но text.startswith поднимает → попадаем в except
+        # message truthy, но text.startswith поднимает > попадаем в except
         msg = MagicMock()
         msg.from_user = None
         msg.chat = None

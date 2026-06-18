@@ -28,7 +28,7 @@ Faker.seed(42)
 
 @pytest.fixture(scope="module")
 def reference_keys() -> frozenset[str]:
-    """Ключи из test.yml → gold standard для всех языков."""
+    """Ключи из test.yml > gold standard для всех языков."""
     data = yaml.safe_load(_TEST_LOCALE_FILE.read_text(encoding="utf-8")) or {}
     keys = frozenset((data.get("test_language") or {}).keys())
     assert keys, "test.yml пустой — нет эталонных ключей"

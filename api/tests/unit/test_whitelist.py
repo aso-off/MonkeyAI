@@ -56,8 +56,8 @@ class TestIsAllowed:
 
     @pytest.mark.unit
     @pytest.mark.parametrize("exists_return,expected", [
-        (1, False),   # сет есть, пользователя нет → False
-        (0, None),    # сет не построен → None
+        (1, False),   # сет есть, пользователя нет > False
+        (0, None),    # сет не построен > None
     ])
     async def test_exists_variants(self, redis, exists_return: int, expected) -> None:
         redis.sismember.return_value = False

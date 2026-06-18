@@ -13,7 +13,7 @@ export interface ChatMessage {
   type: 'user' | 'bot'
   contentType?: 'text' | 'image'
   imageUrl?: string | null
-  /** dataURL только что отправленного фото — мгновенный показ без ожидания CDN */
+  /** dataURL только что отправленного фото - мгновенный показ без ожидания CDN */
   localUrl?: string | null
   imageW?: number | null
   imageH?: number | null
@@ -131,7 +131,7 @@ export const useUserStore = defineStore('user', {
       } catch (e) {
         this.currentModel = prev
         if (this.user && prevUserModel !== undefined) this.user.current_model = prevUserModel
-        // AbortError is normal (navigation/tab close) — don't log it.
+        // AbortError is normal (navigation/tab close) - don't log it.
         if (!(e instanceof DOMException && e.name === 'AbortError')) {
           console.error('[UserStore] Failed to sync model to DB:', e)
         }

@@ -7,7 +7,7 @@
 - cmd_system()           — require_admin False, нет кэша, есть кэш
 - cb_admin_system()      — require_admin False, нет кэша, есть кэш,
                            message not modified (исключение проглатывается),
-                           другое исключение → answer fallback
+                           другое исключение > answer fallback
 """
 
 import json

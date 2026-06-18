@@ -152,7 +152,7 @@ class TestVerifyInitData:
         bot_token = fake.sha256()[:40]
         uid = fake.random_int(min=100_000, max=999_999_999)
         init_data = _make_init_data(bot_token, uid)
-        # Портим токен бота → HMAC будет неверным
+        # Портим токен бота > HMAC будет неверным
         with pytest.raises(ValueError, match="invalid hash"):
             security_mod._verify_init_data(init_data, "wrong_" + bot_token)
 

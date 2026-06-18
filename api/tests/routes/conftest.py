@@ -66,7 +66,7 @@ def api_app():
 def api_client(api_app, mock_redis):
     """
     TestClient с переопределёнными зависимостями:
-    - get_session → AsyncMock (нет реальной БД)
+    - get_session > AsyncMock (нет реальной БД)
     - get_redis патчится на уровне routes.users
     """
     from db.db import get_session

@@ -44,8 +44,10 @@ bot = [
 
 [dependency-groups]
 dev = [
+    "asgi-lifespan==2.1.0",
     "coverage==7.13.5",
     "faker==40.15.0",
+    "fakeredis==2.26.1",
     "pytest==9.0.3",
     "pytest-asyncio==1.3.0",
     "pytest-cov==7.1.0",

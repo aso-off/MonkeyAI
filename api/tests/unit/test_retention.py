@@ -39,8 +39,8 @@ async def test_purge_loops_until_batch_not_full() -> None:
 
     session = _make_session()
     session.execute.side_effect = [
-        _scalars([1, 2]), MagicMock(),  # полный батч → ещё итерация
-        _scalars([3]), MagicMock(),     # неполный → стоп
+        _scalars([1, 2]), MagicMock(),  # полный батч > ещё итерация
+        _scalars([3]), MagicMock(),     # неполный > стоп
     ]
     n = await _purge(
         session, Reaction, Reaction.id, Reaction.created_at,
