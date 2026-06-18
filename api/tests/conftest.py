@@ -100,7 +100,7 @@ sys.modules.setdefault("core.redis", _stub_redis)
 _stub_security: Any = types.ModuleType("core.security")
 
 async def _noop_verify_service_token() -> None:
-    """Noop: без параметров — FastAPI не пытается распарсить *args из запроса."""
+    """Noop: без параметров - FastAPI не пытается распарсить *args из запроса."""
     return None
 
 async def _noop_verify_webapp_init_data() -> dict:
@@ -117,7 +117,7 @@ Faker.seed(42)
 
 @pytest.fixture(scope="session")
 def fake() -> Faker:
-    """Faker с ru_RU + en_US локалями. Session-scoped — создаётся один раз."""
+    """Faker с ru_RU + en_US локалями. Session-scoped - создаётся один раз."""
     return Faker(["ru_RU", "en_US"])
 
 @pytest.fixture

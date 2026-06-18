@@ -2,12 +2,12 @@
 Тесты для helpers в api/src/routes/webapp.py.
 
 Покрываем недостающие ветки:
-- _prefs_key()                   — формат ключа
-- _redis_write_prefs()           — hset + expire
-- _redis_read_prefs()            — hit, exception > {}
-- _db_write_prefs()              — success, exception
-- _redis_invalidate_user_cache() — success, exception (pass)
-- _resolve_mini_app_dialog_id()  — с body_dialog_id, без
+- _prefs_key()                   - формат ключа
+- _redis_write_prefs()           - hset + expire
+- _redis_read_prefs()            - hit, exception > {}
+- _db_write_prefs()              - success, exception
+- _redis_invalidate_user_cache() - success, exception (pass)
+- _resolve_mini_app_dialog_id()  - с body_dialog_id, без
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

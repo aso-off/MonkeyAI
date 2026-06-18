@@ -1,4 +1,4 @@
-"""\nThin HTTP client — bot talks to the API service.\nAll methods are async and raise on non-2xx responses.\n"""
+"""\nThin HTTP client - bot talks to the API service.\nAll methods are async and raise on non-2xx responses.\n"""
 import base64
 import logging
 import os
@@ -76,7 +76,7 @@ class NewDialogResponse(msgspec.Struct, frozen=True):
 
 
 class EnsureDialogResponse(msgspec.Struct, frozen=True):
-    """Returned by POST /dialogs/{user_id}/ensure — includes messages so the caller
+    """Returned by POST /dialogs/{user_id}/ensure - includes messages so the caller
     never needs a separate get_dialog_messages round-trip."""
     dialog_id: str
     messages: list
@@ -166,7 +166,7 @@ async def get_user(user_id: int) -> UserResponse | None:
 async def update_user(user_id: int, **kwargs) -> UserResponse:
     r = await _request("PATCH", f"/users/{user_id}", json=kwargs)
     r.raise_for_status()
-    user_cache.invalidate(user_id)  # профиль изменился — кэш бота сбросить
+    user_cache.invalidate(user_id)  # профиль изменился - кэш бота сбросить
     return _decode(r.content, UserResponse)
 
 
@@ -265,7 +265,7 @@ async def chat_stream(
                 if line.startswith("data: "):
                     yield _decode(line[6:].encode(), ChatStreamChunk)
         except (httpx.RemoteProtocolError, httpx.ReadError) as exc:
-            # обрыв chunked на полпути — отдаём накопленное
+            # обрыв chunked на полпути - отдаём накопленное
             logger.warning("chat_stream interrupted for user %d: %s", user_id, exc)
 
 

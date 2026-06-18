@@ -47,7 +47,7 @@ async def _set_commands() -> None:
         )
     logger.info("User commands set (%s)", " + ".join(_ALL_LANGS))
 
-    # Групповые чаты — без help_group_chat и прочего личного
+    # Групповые чаты - без help_group_chat и прочего личного
     for lang in _ALL_LANGS:
         await bot.set_my_commands(
             _make_user_commands(lang)[:6],  # start, new, mode, retry, balance, settings

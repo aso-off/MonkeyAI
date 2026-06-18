@@ -75,7 +75,7 @@ class ChatGPT:
 
     def _responses_options(self) -> dict:
         raw = self._options()
-        # не храним ответы на стороне OpenAI; truncation=auto — канон-обрезка под окно
+        # не храним ответы на стороне OpenAI; truncation=auto - канон-обрезка под окно
         opts: dict = {"store": False, "truncation": "auto"}
         if "timeout" in raw:
             opts["timeout"] = raw["timeout"]

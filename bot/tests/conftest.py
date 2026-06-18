@@ -6,7 +6,7 @@
 
     settings = get_settings()   # bot/src/core/config.py, module level
 
-попытается прочитать /app/.env и /app/configs/*.yml — файлы,
+попытается прочитать /app/.env и /app/configs/*.yml - файлы,
 которых нет в локальном окружении > ValidationError > ImportError.
 """
 
@@ -23,7 +23,7 @@ from faker import Faker
 # sys.path
 
 _BOT_DIR = Path(__file__).resolve().parents[1]
-# Добавляем только bot/ — бот-модули используют "from src.X import ...",
+# Добавляем только bot/ - бот-модули используют "from src.X import ...",
 # поэтому bot/src в sys.path не нужен и конфликтует с api/src (одинаковые имена: schemas, core).
 if str(_BOT_DIR) not in sys.path:
     sys.path.insert(0, str(_BOT_DIR))
@@ -130,7 +130,7 @@ def _clear_user_cache():
 
 @pytest.fixture(scope="session")
 def fake() -> Faker:
-    """Faker с ru_RU + en_US локалями. Session-scoped — создаётся один раз."""
+    """Faker с ru_RU + en_US локалями. Session-scoped - создаётся один раз."""
     return Faker(["ru_RU", "en_US"])
 
 @pytest.fixture

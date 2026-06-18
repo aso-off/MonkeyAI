@@ -2,11 +2,11 @@
 Тесты для bot/src/bot/routers/profile/model.py.
 
 Покрываем:
-- _model_keyboard()   — пустые модели, с моделями, текущая модель отмечена ✅
-- _model_text()       — со scores, без scores
-- cmd_model()         — db_user=None, модель в списке, модель не в списке
-- cb_profile_model()  — те же ветки через callback
-- cb_set_model()      — модель недоступна, db_user=None, та же модель, смена модели
+- _model_keyboard()   - пустые модели, с моделями, текущая модель отмечена ✅
+- _model_text()       - со scores, без scores
+- cmd_model()         - db_user=None, модель в списке, модель не в списке
+- cb_profile_model()  - те же ветки через callback
+- cb_set_model()      - модель недоступна, db_user=None, та же модель, смена модели
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

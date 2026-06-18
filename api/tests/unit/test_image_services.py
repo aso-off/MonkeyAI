@@ -1,7 +1,7 @@
 """
 Тесты для:
-- api/src/services/image_generation.py — generate_image_b64, generate_image_url, generate_images
-- api/src/services/image_processing.py — process_generated_image, upload_to_imgbb
+- api/src/services/image_generation.py - generate_image_b64, generate_image_url, generate_images
+- api/src/services/image_processing.py - process_generated_image, upload_to_imgbb
 
 Faker: prompts, URLs, binary content, API keys.
 PIL.Image используется напрямую (tiny 4×4 PNG).

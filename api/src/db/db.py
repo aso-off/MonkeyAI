@@ -16,7 +16,7 @@ Session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession
 
 
 async def get_session():
-    """FastAPI dependency — yields an async DB session."""
+    """FastAPI dependency - yields an async DB session."""
     async with Session() as session:
         yield session
 

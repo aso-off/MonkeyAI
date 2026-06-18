@@ -2,10 +2,10 @@
 Тесты для bot/src/bot/routers/profile/ping.py.
 
 Покрываем:
-- _ping_result_keyboard() — структура, callback_data
-- _measure_ping_ms()      — нормальный замер, минимальное значение 0.01
-- cmd_ping()              — вызывает _measure_ping_ms, отвечает пользователю
-- cb_ping()               — вызывает _measure_ping_ms, редактирует сообщение
+- _ping_result_keyboard() - структура, callback_data
+- _measure_ping_ms()      - нормальный замер, минимальное значение 0.01
+- cmd_ping()              - вызывает _measure_ping_ms, отвечает пользователю
+- cb_ping()               - вызывает _measure_ping_ms, редактирует сообщение
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

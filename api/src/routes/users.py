@@ -14,9 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])
 
-_USER_TTL = 300   # 5 minutes — hot path for every bot message
-_STATS_TTL = 60   # 1 minute — rough counts, staleness acceptable
-_FULL_TTL = 120   # 2 minutes — aggregated profile (user + message_count)
+_USER_TTL = 300   # 5 minutes - hot path for every bot message
+_STATS_TTL = 60   # 1 minute - rough counts, staleness acceptable
+_FULL_TTL = 120   # 2 minutes - aggregated profile (user + message_count)
 
 # Redis helpers
 
@@ -40,7 +40,7 @@ async def _redis_write_user(user: UserRead) -> None:
         logger.warning("Redis write failed for user %d", user.id)
 
 
-_WEBAPP_PREFS_KEY_TTL = 86_400  # 24 h — mirrors webapp.py
+_WEBAPP_PREFS_KEY_TTL = 86_400  # 24 h - mirrors webapp.py
 # Mapping from /users PATCH field names > webapp:user_prefs hash field names
 _BOT_TO_WEBAPP_PREFS: dict[str, str] = {
     "language": "language",
@@ -58,7 +58,7 @@ async def _redis_sync_webapp_prefs(user_id: int, updates: dict) -> None:
     try:
         r = get_redis()
         key = f"webapp:user_prefs:{user_id}"
-        # Only update if the key already exists — if it's absent the next GET /webapp/me
+        # Only update if the key already exists - if it's absent the next GET /webapp/me
         # falls through to DB which already has the fresh value.
         if await r.exists(key):
             await r.hset(key, mapping=prefs)
@@ -118,10 +118,7 @@ async def _get_user_cached(user_id: int, session: AsyncSession) -> UserRead | No
     await _redis_write_user(user_read)
     return user_read
 
-
-# ---------------------------------------------------------------------------
 # Routes
-# ---------------------------------------------------------------------------
 
 @router.get("/stats")
 async def users_stats(
@@ -224,7 +221,7 @@ async def update_user(
     # Merge updates into the cached object.
     updated_user = UserRead.model_validate({**user.model_dump(), **updates})
 
-    # Redis write is synchronous — the next GET returns the new value immediately.
+    # Redis write is synchronous - the next GET returns the new value immediately.
     await _redis_write_user(updated_user)
 
     # Keep the mini-app's webapp:user_prefs cache in sync so GET /webapp/me

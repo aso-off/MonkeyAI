@@ -1,10 +1,10 @@
 """Тесты покрытия локализации.
 
 Два слоя:
-1. Структурный (без реальных файлов) — проверяем функции с mock locales
-2. Файловый (если locale/*.yml существуют) — верифицируем реальные данные:
+1. Структурный (без реальных файлов) - проверяем функции с mock locales
+2. Файловый (если locale/*.yml существуют) - верифицируем реальные данные:
    - все языки имеют одинаковый набор ключей
-   - все значения — непустые строки
+   - все значения - непустые строки
    - нет дублирующихся ключей
 """
 
@@ -132,7 +132,7 @@ class TestLocaleCoverage:
         import types
         locales = {
             "ru": {"hello": "Привет!"},
-            "de": {},  # пустой DE — нет ни одного ключа
+            "de": {},  # пустой DE - нет ни одного ключа
         }
         mocker.patch(
             "src.utils.localization.get_settings",
@@ -175,7 +175,7 @@ class TestRealLocaleFiles:
     def test_all_real_langs_have_same_keys(self, real_locales) -> None:
         langs = list(real_locales.keys())
         if len(langs) < 2:
-            pytest.skip("Only one language found — cannot compare")
+            pytest.skip("Only one language found - cannot compare")
         ru_keys = set(real_locales.get("ru", {}).keys())
         for lang in langs:
             lang_keys = set(real_locales[lang].keys())
@@ -194,7 +194,7 @@ class TestRealLocaleFiles:
     def test_no_empty_real_values(self, real_locales) -> None:
         for lang, keys in real_locales.items():
             if lang == "test_language":
-                continue  # эталонный шаблон — все значения намеренно пустые
+                continue  # эталонный шаблон - все значения намеренно пустые
             for key, value in keys.items():
                 assert value.strip(), f"Lang='{lang}', key='{key}': empty string"
 

@@ -1,6 +1,6 @@
 """Юнит-тесты для keyboard builder функций из bot routers.
 
-Keyboard файлы пустые — вся логика в роутерах. Тестируем:
+Keyboard файлы пустые - вся логика в роутерах. Тестируем:
 - структуру (количество кнопок, callback_data)
 - условные ветки (is_admin, webapp_url)
 - web_app кнопки
@@ -247,7 +247,7 @@ class TestProfileKeyboard:
         all_data = {btn.callback_data for row in _profile_keyboard("ru").inline_keyboard for btn in row if btn.callback_data}
         assert "back_to_start" in all_data
 
-# profile/profile.py — _build_profile_text
+# profile/profile.py - _build_profile_text
 
 class TestBuildProfileText:
     @pytest.fixture(autouse=True)

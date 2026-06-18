@@ -105,5 +105,5 @@ class MonkeyStickers:
             return False
 
 
-# Глобальный синглтон — используется во всех роутерах
+# Глобальный синглтон - используется во всех роутерах
 monkey = MonkeyStickers()

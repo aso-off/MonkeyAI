@@ -2,11 +2,11 @@
 Тесты для bot/src/bot/routers/profile/assistant.py.
 
 Покрываем:
-- _assistant_keyboard()  — skip_keys, текущий режим ✅, имена через t(), статические имена
-- _assistant_text()      — template welcome ({key}), static welcome, нет welcome
-- cmd_mode()             — db_user=None, с db_user
-- cb_profile_assistant() — db_user=None, успешно, TelegramBadRequest
-- cb_set_chat_mode()     — режим не найден, db_user=None, тот же режим, смена режима
+- _assistant_keyboard()  - skip_keys, текущий режим ✅, имена через t(), статические имена
+- _assistant_text()      - template welcome ({key}), static welcome, нет welcome
+- cmd_mode()             - db_user=None, с db_user
+- cb_profile_assistant() - db_user=None, успешно, TelegramBadRequest
+- cb_set_chat_mode()     - режим не найден, db_user=None, тот же режим, смена режима
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

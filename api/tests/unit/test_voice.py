@@ -1,4 +1,4 @@
-"""Юнит-тесты для api/src/services/voice.py — transcribe_audio."""
+"""Юнит-тесты для api/src/services/voice.py - transcribe_audio."""
 
 from unittest.mock import AsyncMock, MagicMock
 

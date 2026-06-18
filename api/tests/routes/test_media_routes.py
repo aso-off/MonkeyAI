@@ -2,9 +2,9 @@
 Тесты для api/src/routes/media.py.
 
 Покрываем:
-- POST /media/images/generate — success, BadRequestError (422), generic error (502),
+- POST /media/images/generate - success, BadRequestError (422), generic error (502),
   с user_id (счётчик), с imgbb_api_key (upload)
-- POST /media/audio/transcribe — success, file too large (413)
+- POST /media/audio/transcribe - success, file too large (413)
 
 Faker: prompt, file content, user_id, URL, durations.
 """

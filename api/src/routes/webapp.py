@@ -1,8 +1,8 @@
 """
-Mini App — webapp routes.
+Mini App - webapp routes.
 
 All endpoints are authenticated via Telegram initData (Authorization: tma <initData>).
-The user_id is extracted server-side from the validated initData — it is never
+The user_id is extracted server-side from the validated initData - it is never
 trusted from the request body.
 
 Auth spec: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
@@ -84,10 +84,7 @@ async def _redis_invalidate_user_cache(user_id: int) -> None:
     except Exception:
         pass
 
-
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 def _extract_tg_user(init_data: dict) -> dict:
     """
@@ -122,18 +119,18 @@ async def _require_user(session: AsyncSession, user_id: int):
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not registered — call GET /webapp/me first",
+            detail="User not registered - call GET /webapp/me first",
         )
     return UserRead.from_orm_user(user)
 
 
 async def _require_whitelisted(session: AsyncSession, user_id: int):
-    """Raise 403 if not whitelisted. Общий Redis-сет первым, БД-флаг — fallback."""
+    """Raise 403 if not whitelisted. Общий Redis-сет первым, БД-флаг - fallback."""
     cached = await whitelist.is_allowed(user_id)
     if cached is False:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access restricted — account not whitelisted",
+            detail="Access restricted - account not whitelisted",
         )
     if cached is True:
         return None
@@ -142,13 +139,13 @@ async def _require_whitelisted(session: AsyncSession, user_id: int):
     if not user.is_whitelisted:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access restricted — account not whitelisted",
+            detail="Access restricted - account not whitelisted",
         )
     return user
 
 
 def _unwhitelisted_profile(tg: dict) -> UserRead:
-    """Синтетический профиль для не-whitelist — без записи в БД; фронт покажет «Доступ ограничен»."""
+    """Синтетический профиль для не-whitelist - без записи в БД; фронт покажет «Доступ ограничен»."""
     now = datetime.now(UTC)
     return UserRead(
         id=tg["id"],
@@ -171,10 +168,7 @@ def _unwhitelisted_profile(tg: dict) -> UserRead:
         n_transcribed_seconds=0.0,
     )
 
-
-# ---------------------------------------------------------------------------
 # Schemas (webapp-specific, user_id comes from initData not body)
-# ---------------------------------------------------------------------------
 
 class WebAppChatBody(BaseModel):
     message: str
@@ -265,10 +259,7 @@ async def _resolve_mini_app_dialog_id(
         return body_dialog_id
     return await dialog_repo.ensure_active_mini_app_dialog(session, user_id)
 
-
-# ---------------------------------------------------------------------------
 # Routes
-# ---------------------------------------------------------------------------
 
 @router.get("/me", response_model=UserRead)
 async def get_me(
@@ -277,7 +268,7 @@ async def get_me(
 ):
     """
     Register or return the current Telegram user.
-    Multi-device access is allowed — all devices for a user share one account.
+    Multi-device access is allowed - all devices for a user share one account.
     Prefs (language/theme/model/mode) are read from Redis first for instant
     consistency with changes made via PATCH /me.
     """
@@ -322,7 +313,7 @@ async def update_me(
     Update user preferences from the mini-app.
 
     Redis is written first (instant read on next GET /me), then PostgreSQL.
-    Both are awaited — 200 means data is consistent in Redis and DB.
+    Both are awaited - 200 means data is consistent in Redis and DB.
     """
     tg = _extract_tg_user(init_data)
     user_id = tg["id"]
@@ -384,7 +375,7 @@ async def bootstrap_dialog(
     """Вернуть активный mini-app диалог с последними 20 сообщениями.
 
     НЕ создаёт диалог: при ленивой модели он рождается первым сообщением.
-    Если активного нет / он удалён / пуст — отдаём черновик (dialog_id=None).
+    Если активного нет / он удалён / пуст - отдаём черновик (dialog_id=None).
     """
     tg = _extract_tg_user(init_data)
     user_id = tg["id"]
@@ -459,10 +450,7 @@ async def get_messages(
     messages = await dialog_repo.get_dialog_messages(session, user_id, dialog_id)
     return _MessagesResponse(messages=messages)
 
-
-# ---------------------------------------------------------------------------
 # Dialog list / rename / delete / search  (Recents)
-# ---------------------------------------------------------------------------
 
 class _DialogListItem(BaseModel):
     dialog_id: str
@@ -585,16 +573,13 @@ async def activate_dialog(
     init_data: dict = Depends(verify_webapp_init_data),
     session: AsyncSession = Depends(get_session),
 ) -> None:
-    """Пометить диалог активным — чтобы reload мини-аппа вернул именно его."""
+    """Пометить диалог активным - чтобы reload мини-аппа вернул именно его."""
     user_id = _extract_tg_user(init_data)["id"]
     await _require_whitelisted(session, user_id)
     if not await dialog_repo.set_active_mini_app_dialog(session, user_id, dialog_id):
         raise HTTPException(status_code=404, detail="Dialog not found")
 
-
-# ---------------------------------------------------------------------------
 # Generated images gallery
-# ---------------------------------------------------------------------------
 
 class _ImageItem(BaseModel):
     id: int
@@ -779,10 +764,7 @@ async def chat_complete(
         n_first_removed=n_removed,
     )
 
-
-# ---------------------------------------------------------------------------
 # Reactions
-# ---------------------------------------------------------------------------
 
 class _ReactionPayload(BaseModel):
     reaction: str        # "like" | "dislike"
@@ -797,7 +779,7 @@ class _ReactionPayload(BaseModel):
     summary="Record message reaction",
     description=(
         "Save a **like** or **dislike** reaction for a bot response.\n\n"
-        "Stores a reference (`dialog_id` + `mid`) to the message — raw text is **not** "
+        "Stores a reference (`dialog_id` + `mid`) to the message - raw text is **not** "
         "duplicated. Resolve the text by joining `dialogs.messages` on `mid`.\n\n"
         "**Analytics queries:**\n"
         "```sql\n"
@@ -833,7 +815,7 @@ async def post_reaction(
     session.add(reaction)
     await session.commit()
 
-    # реакция живёт и в самом сообщении — переживает перезагрузку истории
+    # реакция живёт и в самом сообщении - переживает перезагрузку истории
     if payload.dialog_id and payload.message_id:
         await dialog_repo.set_message_reaction(
             session, tg["id"], payload.dialog_id, payload.message_id, payload.reaction

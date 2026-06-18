@@ -1,6 +1,6 @@
 """Юнит-тесты для api/src/services/whitelist.py.
 
-Redis полностью заменён AsyncMock — реальный сервер не нужен.
+Redis полностью заменён AsyncMock - реальный сервер не нужен.
 """
 
 from unittest.mock import patch

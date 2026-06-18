@@ -19,7 +19,7 @@ pt:
     help: "❓ Ajuda"
     open_mini_app: "Abrir Mini-App"
     welcome_description: "Sou um assistente inteligente criado para responder às tuas perguntas e ajudar-te em várias tarefas."
-    welcome_instruction: "Usa os botões abaixo para navegar ou envia-me uma mensagem — vou tentar ajudar-te!"
+    welcome_instruction: "Usa os botões abaixo para navegar ou envia-me uma mensagem - vou tentar ajudar-te!"
     language_prompt: "Escolhe o idioma:"
     language_system: "Sistema"
     profile_error: "Erro de perfil"
@@ -83,7 +83,7 @@ pt:
     artist_name: "🐒🎨 Artista Monkey"
     artist_welcome: "🎨 Olá, sou um <b>Monkey com capacidades artísticas</b>. Vou desenhar tudo o que me escreveres (por exemplo <i>um macaco a tirar uma selfie na Times Square, ilustração</i>)"
     text_improver_name: "🙈📝 Copywriter Monkey"
-    text_improver_welcome: "📝 Olá, sou um <b>Monkey com capacidades de copywriting</b>. Envia-me qualquer texto — vou melhorá-lo e corrigir todos os erros."
+    text_improver_welcome: "📝 Olá, sou um <b>Monkey com capacidades de copywriting</b>. Envia-me qualquer texto - vou melhorá-lo e corrigir todos os erros."
     error_message: "Ocorreu um erro: {}"
     error_response: "A ligação foi interrompida. Tenta novamente."
 

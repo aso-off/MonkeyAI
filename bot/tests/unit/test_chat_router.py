@@ -4,22 +4,22 @@
 Покрываем:
 - set_bot_meta / _get_bot_meta
 - _is_busy
-- _is_bot_mentioned      — private chat, group @mention, group reply-to-bot
+- _is_bot_mentioned      - private chat, group @mention, group reply-to-bot
 - _last_user_text_from_dialog_entry
 - _mode_welcome
-- cmd_new                — busy, user=None, с welcome, без welcome
-- cmd_cancel             — активная задача, нет задачи
-- cmd_retry              — busy, db_user=None, ensure_dialog фейл,
+- cmd_new                - busy, user=None, с welcome, без welcome
+- cmd_cancel             - активная задача, нет задачи
+- cmd_retry              - busy, db_user=None, ensure_dialog фейл,
                            пустые messages, нет текста, с изображением,
                            set_dialog_messages фейл
-- generate_image         — успех, HTTP 400/422, HTTP 429, HTTP other, generic error
-- _handle_text_or_vision — streaming (done/flagged), non-streaming,
+- generate_image         - успех, HTTP 400/422, HTTP 429, HTTP other, generic error
+- _handle_text_or_vision - streaming (done/flagged), non-streaming,
                            artist mode, пустой текст, exception, cancelled,
                            context_removed_one, context_removed_many, markdownv2
-- _run_handle            — лок захвачен, лок занят, CancelledError
-- msg_text               — не упомянут, busy, group cleanup, private
-- msg_photo              — не упомянут, busy, с caption, без caption
-- msg_voice              — не упомянут, busy, transcription error, пустой
+- _run_handle            - лок захвачен, лок занят, CancelledError
+- msg_text               - не упомянут, busy, group cleanup, private
+- msg_photo              - не упомянут, busy, с caption, без caption
+- msg_voice              - не упомянут, busy, transcription error, пустой
 - msg_unsupported / msg_edited
 """
 
@@ -905,7 +905,7 @@ class TestRichMessages:
             await _handle_text_or_vision(msg, bot, "ru", db_user.id, "hi")
         msg.answer_rich.assert_awaited_once()
         msg.answer.assert_not_awaited()
-        # финал — ответ-цитата на сообщение пользователя
+        # финал - ответ-цитата на сообщение пользователя
         rp = msg.answer_rich.await_args.kwargs["reply_parameters"]
         assert rp.message_id == msg.message_id
 

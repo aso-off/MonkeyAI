@@ -2,10 +2,10 @@
 Тесты для bot/src/bot/routers/about/router.py.
 
 Покрываем:
-- _about_text()    — валидная дата, невалидная дата (ValueError > None)
-- _about_keyboard() — структура клавиатуры
-- cmd_about        — Message handler
-- cb_about         — CallbackQuery handler
+- _about_text()      - валидная дата, невалидная дата (ValueError > None)
+- _about_keyboard()  - структура клавиатуры
+- cmd_about          - Message handler
+- cb_about           - CallbackQuery handler
 """
 
 import types

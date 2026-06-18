@@ -2,10 +2,10 @@
 Тесты для bot/src/bot/routers/admin/system.py.
 
 Покрываем:
-- _back_keyboard()       — структура
-- _get_cached_text()     — нет данных, корректный JSON с blocks, пустые blocks, invalid JSON
-- cmd_system()           — require_admin False, нет кэша, есть кэш
-- cb_admin_system()      — require_admin False, нет кэша, есть кэш,
+- _back_keyboard()       - структура
+- _get_cached_text()     - нет данных, корректный JSON с blocks, пустые blocks, invalid JSON
+- cmd_system()           - require_admin False, нет кэша, есть кэш
+- cb_admin_system()      - require_admin False, нет кэша, есть кэш,
                            message not modified (исключение проглатывается),
                            другое исключение > answer fallback
 """

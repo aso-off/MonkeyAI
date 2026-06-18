@@ -2,8 +2,8 @@
 Тесты для bot/src/bot/middleware/auth.py.
 
 Покрываем:
-- _chat_id_for_user()     — Update+message, Update+callback, fallback
-- AuthMiddleware.__call__ — нет user, whitelist deny cached, whitelist allow cached,
+- _chat_id_for_user()     - Update+message, Update+callback, fallback
+- AuthMiddleware.__call__ - нет user, whitelist deny cached, whitelist allow cached,
                             cache-miss с sync fallback, whitelist off, api-ошибка
 """
 

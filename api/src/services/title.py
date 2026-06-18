@@ -13,7 +13,7 @@ def _title_model() -> str:
 
     return settings.models.get("title_model") or _TITLE_MODEL_FALLBACK
 
-# ссылки на фоновые задачи — иначе GC может убить их до завершения
+# ссылки на фоновые задачи - иначе GC может убить их до завершения
 _bg_tasks: set = set()
 _TITLE_PROMPT = (
     "Сформулируй короткий заголовок диалога по первому сообщению пользователя "
@@ -21,7 +21,7 @@ _TITLE_PROMPT = (
     "2–4 слова, именная фраза на языке пользователя. "
     "Заголовок описывает тему, а не повторяет формулировку запроса: "
     "без глаголов в повелительном наклонении. "
-    "Если сообщение короткое или неинформативное — определи тему по ответу ассистента. "
+    "Если сообщение короткое или неинформативное - определи тему по ответу ассистента. "
     "Без кавычек, точки в конце, markdown и эмодзи. "
     "Не выдумывай факты и не расшифровывай сокращения.\n"
     "Примеры:\n"
@@ -43,7 +43,7 @@ def truncate_title(text: str, limit: int = _TITLE_LIMIT) -> str:
     return cut + "…"
 
 
-# Отдельный клиент для заголовков — НЕ общий с генерацией бота.
+# Отдельный клиент для заголовков - НЕ общий с генерацией бота.
 # wait_for-отмена общего клиента портила пул httpx > бот ловил incomplete chunked read.
 _title_openai_client = None
 
@@ -100,7 +100,7 @@ async def _refine_title(
             return
         async with Session() as session:
             await update_dialog_title(session, dialog_id, title)
-            # токены заголовка — в общий бакет title-модели
+            # токены заголовка - в общий бакет title-модели
             if user_id and (n_in or n_out):
                 await update_n_used_tokens(session, user_id, _title_model(), n_in, n_out)
         if on_refined is not None:

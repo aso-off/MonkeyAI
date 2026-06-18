@@ -2,8 +2,8 @@
 Тесты для bot/src/bot/routers/profile/stats.py.
 
 Покрываем:
-- _stats_keyboard()    — структура, callback_data
-- cb_profile_stats()   — profile=None, profile с данными, format_date вызывается
+- _stats_keyboard()    - структура, callback_data
+- cb_profile_stats()   - profile=None, profile с данными, format_date вызывается
 """
 
 from datetime import UTC, datetime

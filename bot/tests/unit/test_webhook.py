@@ -1,7 +1,7 @@
 """
 Тесты для:
-- bot/src/webhook/router.py  — POST /webhook endpoint
-- bot/src/webhook/app.py     — create_app(), lifespan, /health, /metrics, /webhook_info
+- bot/src/webhook/router.py  - POST /webhook endpoint
+- bot/src/webhook/app.py     - create_app(), lifespan, /health, /metrics, /webhook_info
 
 Стратегия: загружаем реальные модули через importlib, мокируя bot/dp.
 TestClient для HTTP-тестов.
@@ -19,7 +19,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 # Предзагрузка реальных модулей: внутри фикстур router/app грузятся под
 # patch.dict(sys.modules), который при выходе удаляет ключи, добавленные во
-# время блока. Если fastapi/aiogram импортируются впервые там — они стираются,
+# время блока. Если fastapi/aiogram импортируются впервые там - они стираются,
 # и тело теста получает второй экземпляр fastapi (isinstance ломается, 404).
 import aiogram  # noqa: F401, E402
 import fastapi  # noqa: F401, E402
@@ -198,7 +198,7 @@ class TestWebhookRouter:
                 )
             assert resp.status_code == 200
 
-# webhook/app.py — create_app()
+# webhook/app.py - create_app()
 
 @pytest.fixture(scope="module")
 def webhook_app_module():

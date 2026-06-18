@@ -16,7 +16,7 @@ _REQUEST_INTERVAL = 0.2
 
 
 async def _measure_ping_ms() -> float:
-    from src.core.bot import bot  # ленивый импорт — избегает circular import с core.bot
+    from src.core.bot import bot  # ленивый импорт - избегает circular import с core.bot
     total = 0.0
     for i in range(_NUM_REQUESTS):
         start = time.perf_counter()

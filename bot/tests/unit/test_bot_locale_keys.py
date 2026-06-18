@@ -7,7 +7,7 @@
 Тест упадёт если:
   - у языка нет ключа из test_language        (missing)
   - у языка есть лишний ключ, которого нет в test_language  (extra)
-  - любое строковое значение в языковом файле — пустая строка
+  - любое строковое значение в языковом файле - пустая строка
   - в test.yml появились непустые значения (нарушение назначения шаблона)
 """
 
@@ -31,7 +31,7 @@ def reference_keys() -> frozenset[str]:
     """Ключи из test.yml > gold standard для всех языков."""
     data = yaml.safe_load(_TEST_LOCALE_FILE.read_text(encoding="utf-8")) or {}
     keys = frozenset((data.get("test_language") or {}).keys())
-    assert keys, "test.yml пустой — нет эталонных ключей"
+    assert keys, "test.yml пустой - нет эталонных ключей"
     return keys
 
 @pytest.fixture(scope="module")
@@ -57,11 +57,11 @@ class TestReferenceFile:
 
     def test_reference_has_reasonable_key_count(self, reference_keys: frozenset[str]) -> None:
         assert len(reference_keys) >= 50, (
-            f"В test.yml слишком мало ключей: {len(reference_keys)} — возможно файл неполный"
+            f"В test.yml слишком мало ключей: {len(reference_keys)} - возможно файл неполный"
         )
 
     def test_reference_all_values_are_empty_strings(self) -> None:
-        """test.yml — шаблон, все значения должны быть пустыми строками."""
+        """test.yml - шаблон, все значения должны быть пустыми строками."""
         data = yaml.safe_load(_TEST_LOCALE_FILE.read_text(encoding="utf-8")) or {}
         section = data.get("test_language") or {}
         non_empty = {k: v for k, v in section.items() if v != ""}
@@ -79,7 +79,7 @@ class TestReferenceFile:
             )
 
     def test_reference_no_duplicate_keys(self) -> None:
-        """YAML-парсер объединяет дубли — проверяем через raw-текст."""
+        """YAML-парсер объединяет дубли - проверяем через raw-текст."""
         raw = _TEST_LOCALE_FILE.read_text(encoding="utf-8")
         data = yaml.safe_load(raw) or {}
         section = data.get("test_language") or {}
@@ -113,7 +113,7 @@ class TestLocaleKeyCompleteness:
     ) -> None:
         """В языке нет ключей сверх тех, что заявлены в test.yml.
 
-        Если тест падает — добавьте новый ключ в test.yml.
+        Если тест падает - добавьте новый ключ в test.yml.
         """
         lang_keys = frozenset(all_locale_data[lang].keys())
         extra = lang_keys - reference_keys
@@ -146,7 +146,7 @@ class TestLocaleValues:
         lang: str,
         all_locale_data: dict,
     ) -> None:
-        """Все значения в языковом файле — строки."""
+        """Все значения в языковом файле - строки."""
         non_string = {
             k: type(v).__name__
             for k, v in all_locale_data[lang].items()
