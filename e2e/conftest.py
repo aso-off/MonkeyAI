@@ -4,6 +4,7 @@ import hmac
 import json
 import os
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -14,8 +15,9 @@ _ROOT = Path(__file__).resolve().parents[1]
 _API = _ROOT / "api"
 _API_SRC = _API / "src"
 
-# env должен быть проставлен ДО импорта приложения (core.config читает его на импорте)
+# env должен быть проставлен ДО импорта приложения (core.config/logger читают его на импорте)
 os.environ.setdefault("MONKEY_CONFIGS_DIR", str(_ROOT / "configs"))
+os.environ.setdefault("MONKEY_LOG_DIR", tempfile.mkdtemp(prefix="e2e-logs-"))
 os.environ.setdefault("POSTGRES_HOST", "localhost")
 os.environ.setdefault("POSTGRES_PORT", "5432")
 os.environ.setdefault("POSTGRES_DB", "monkey_test")

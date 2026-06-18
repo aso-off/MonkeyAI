@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def _setup() -> logging.Logger:
-    log_dir = Path("/app/logs")
+    log_dir = Path(os.environ.get("MONKEY_LOG_DIR", "/app/logs"))
     log_dir.mkdir(parents=True, exist_ok=True)
 
     level = getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
