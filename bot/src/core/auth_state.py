@@ -1,5 +1,5 @@
 """
-Module-level auth state — plain Python sets, no pydantic involved.
+Module-level auth state - plain Python sets, no pydantic involved.
 Auth middleware reads from here; whitelist router updates here after each save.
 """
 
@@ -40,7 +40,7 @@ def is_allowed(user_id: int) -> bool:
 
 
 async def is_allowed_cached(user_id: int) -> bool | None:
-    """True/False из общего Redis-сета; None — если Redis недоступен или сет не построен."""
+    """True/False из общего Redis-сета; None - если Redis недоступен или сет не построен."""
     from src.core.bot import fsm_redis
 
     try:

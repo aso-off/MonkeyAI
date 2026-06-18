@@ -21,7 +21,7 @@ async def remove(user_id: int) -> None:
 
 
 async def is_allowed(user_id: int) -> bool | None:
-    """True/False из сета; None — если Redis недоступен или сет не построен."""
+    """True/False из сета; None - если Redis недоступен или сет не построен."""
     try:
         r = get_redis()
         if await r.sismember(ALLOWED_KEY, user_id):

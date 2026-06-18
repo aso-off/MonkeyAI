@@ -2,12 +2,12 @@
 Тесты для api/src/db/db.py.
 
 Покрываем:
-- get_session()  — async generator (lines 17-18 не покрыты т.к. routes-тесты
+- get_session()  - async generator (lines 17-18 не покрыты т.к. routes-тесты
   используют dependency_overrides, который обходит реальную функцию)
-- init_db()      — lines 22-34
-- Base           — DeclarativeBase (lines 7-8)
+- init_db()      - lines 22-34
+- Base           - DeclarativeBase (lines 7-8)
 
-Нюанс: AsyncEngine.begin — read-only property; патчим через mock.patch("db.db.engine").
+Нюанс: AsyncEngine.begin - read-only property; патчим через mock.patch("db.db.engine").
 """
 
 from unittest import mock

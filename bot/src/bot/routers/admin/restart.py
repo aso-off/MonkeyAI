@@ -110,7 +110,7 @@ async def cb_admin_restart(query: CallbackQuery, language: str) -> None:
         return
 
     try:
-        # Сохраняем существующую клавиатуру — текст меняется, кнопки остаются
+        # Сохраняем существующую клавиатуру - текст меняется, кнопки остаются
         await query.message.edit_text(
             t("restart_in_progress_msg", language),
             reply_markup=query.message.reply_markup,

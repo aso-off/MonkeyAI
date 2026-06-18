@@ -2,11 +2,11 @@
 Тесты для bot/src/bot/routers/start.py.
 
 Покрываем:
-- _private_keyboard()      — с is_admin=True/False, с webapp_url
-- _group_keyboard()        — базовый случай
-- cmd_start()              — private chat, group chat, с/без db_user
-- cmd_menu()               — private chat, group chat
-- cb_back_to_start()       — private chat
+- _private_keyboard()      - с is_admin=True/False, с webapp_url
+- _group_keyboard()        - базовый случай
+- cmd_start()              - private chat, group chat, с/без db_user
+- cmd_menu()               - private chat, group chat
+- cb_back_to_start()       - private chat
 
 Faker: user IDs, имена, language codes.
 """

@@ -6,7 +6,7 @@
 - Логику добавления/удаления пользователей и админов
 - Проверки (уже в списке, не в списке, admin нельзя удалить как user)
 
-Реальный файл /app/configs/user-ids.yml не используется — всё через mock.
+Реальный файл /app/configs/user-ids.yml не используется - всё через mock.
 """
 
 import types
@@ -36,11 +36,11 @@ class TestUserIdValidation:
 
     @pytest.mark.unit
     @pytest.mark.parametrize("raw,is_valid", [
-        ("12345678",    True),   # 8 цифр — минимум
+        ("12345678",    True),   # 8 цифр - минимум
         ("123456789",   True),   # 9 цифр
-        ("9999999999999", True), # 13 цифр — максимум
-        ("1234567",     False),  # 7 цифр — слишком мало
-        ("12345678901234", False), # 14 цифр — слишком много
+        ("9999999999999", True), # 13 цифр - максимум
+        ("1234567",     False),  # 7 цифр - слишком мало
+        ("12345678901234", False), # 14 цифр - слишком много
         ("abc12345",    False),  # не цифры
         ("",            False),  # пустая строка
         ("12 345678",   False),  # пробел
@@ -159,7 +159,7 @@ class TestAddUserLogic:
             uid = fake.random_int(min=100_000_000, max=999_999_999)
             if uid not in allowed:
                 allowed.append(uid)
-        # После добавления уникальных — нет дубликатов
+        # После добавления уникальных - нет дубликатов
         assert len(allowed) == len(set(allowed))
 
 class TestRemoveUserLogic:
@@ -168,7 +168,7 @@ class TestRemoveUserLogic:
         uid = fake.random_int(min=100_000_000, max=999_999_999)
         allowed = [uid, uid + 1]
         admins: list[int] = []
-        # Не в admins — можно удалить
+        # Не в admins - можно удалить
         if uid not in admins and uid in allowed:
             allowed.remove(uid)
         assert uid not in allowed
@@ -177,7 +177,7 @@ class TestRemoveUserLogic:
     def test_cannot_remove_admin_as_user(self, fake) -> None:
         uid = fake.random_int(min=100_000_000, max=999_999_999)
         allowed = [uid]
-        admins = [uid]  # uid — и в admin, и в allowed
+        admins = [uid]  # uid - и в admin, и в allowed
         # Попытка удалить как user > должна быть отклонена
         should_reject = uid in admins
         assert should_reject is True
@@ -256,7 +256,7 @@ class TestSuperadminRestrictions:
     def test_only_superadmin_can_add_admin(self, fake) -> None:
         superadmin_id = 999_000_000
         regular_admin_id = fake.random_int(min=100_000_000, max=999_999_999)
-        # regular_admin — не суперадмин, не может добавлять/удалять adminов
+        # regular_admin - не суперадмин, не может добавлять/удалять adminов
         is_superadmin = regular_admin_id == superadmin_id
         assert is_superadmin is False
 

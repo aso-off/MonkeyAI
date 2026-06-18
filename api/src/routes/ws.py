@@ -1,7 +1,7 @@
 """
 WebSocket endpoint for the Telegram Mini App.
 
-Multiple devices per user are supported simultaneously — all devices receive
+Multiple devices per user are supported simultaneously - all devices receive
 the same stream of events in real time.
 
 Protocol
@@ -13,7 +13,7 @@ Auth (must be first frame):
   < {"type": "auth_ok",    "user_id": 123}
   < {"type": "auth_error", "error":   "..."}
 
-Text chat (контекст строится на сервере — клиент шлёт только dialog_id):
+Text chat (контекст строится на сервере - клиент шлёт только dialog_id):
   > {"type": "chat", "id": "<uuid>", "message": "...", "model": "gpt-4o",
       "dialog_id": "..." | null, "chat_mode": "..."}
 
@@ -88,11 +88,11 @@ router = APIRouter(prefix="/webapp")
 _WS_POOL: dict[int, set[WebSocket]] = defaultdict(set)
 
 _CONTEXT_LIMIT = 20
-# троттлинг дельт — частые мелкие кадры ронял Cloudflare Tunnel
+# троттлинг дельт - частые мелкие кадры ронял Cloudflare Tunnel
 _DELTA_THROTTLE_S = 0.15
 
 # (user_id, dialog_id) > req_id of the active generation.
-# Блокировка на диалог: разные чаты можно генерировать одновременно, один — нет.
+# Блокировка на диалог: разные чаты можно генерировать одновременно, один - нет.
 _USER_GENERATING: dict[tuple[int, str | None], str] = {}
 
 # (user_id, dialog_id) > original user message text for the active generation.
@@ -112,14 +112,11 @@ _IMAGE_REDIS_TTL = 86_400  # 24 h in Redis  (survives server restart)
 
 
 # Server-initiated ping interval (keeps Cloudflare tunnel alive).
-# 15 s < Cloudflare's 100 s idle timeout — extra headroom on mobile where
+# 15 s < Cloudflare's 100 s idle timeout - extra headroom on mobile where
 # pong replies may be delayed.
 _PING_INTERVAL = 15  # seconds
 
-
-# ---------------------------------------------------------------------------
 # Image store helpers
-# ---------------------------------------------------------------------------
 
 async def _store_image(b64_data: str) -> str:
     """Decode base64 data-URI, persist to memory + Redis (24 h), return secret image_id."""
@@ -128,7 +125,7 @@ async def _store_image(b64_data: str) -> str:
     except ValueError:
         b64 = b64_data
     img_bytes = base64.b64decode(b64)
-    image_id = secrets.token_hex(24)  # 192-bit random — no auth needed
+    image_id = secrets.token_hex(24)  # 192-bit random - no auth needed
     # In-memory cache (hot path).
     _IMAGE_STORE[image_id] = img_bytes
     _IMAGE_TS[image_id] = time.monotonic()
@@ -138,7 +135,7 @@ async def _store_image(b64_data: str) -> str:
     for k in expired:
         _IMAGE_STORE.pop(k, None)
         _IMAGE_TS.pop(k, None)
-    # Persist to Redis — survives server restarts for 24 h.
+    # Persist to Redis - survives server restarts for 24 h.
     try:
         await get_redis_binary().setex(f"webapp:image:{image_id}", _IMAGE_REDIS_TTL, img_bytes)
     except Exception:
@@ -148,10 +145,10 @@ async def _store_image(b64_data: str) -> str:
 
 @router.get("/images/{image_id}")
 async def get_image(image_id: str) -> Response:
-    """Serve a generated image by its temporary ID (no auth — 192-bit token provides security)."""
+    """Serve a generated image by its temporary ID (no auth - 192-bit token provides security)."""
     img_bytes = _IMAGE_STORE.get(image_id)
     if img_bytes is None:
-        # Memory miss — try Redis (e.g. after server restart).
+        # Memory miss - try Redis (e.g. after server restart).
         try:
             img_bytes = await get_redis_binary().get(f"webapp:image:{image_id}")
         except Exception:
@@ -163,10 +160,7 @@ async def get_image(image_id: str) -> Response:
         _IMAGE_TS[image_id] = time.monotonic()
     return Response(content=img_bytes, media_type="image/png")
 
-
-# ---------------------------------------------------------------------------
 # Task helper
-# ---------------------------------------------------------------------------
 
 def _spawn(coro) -> asyncio.Task:
     """Create a background task with a strong reference to prevent GC."""
@@ -181,10 +175,7 @@ def _spawn(coro) -> asyncio.Task:
     task.add_done_callback(_log_exc)
     return task
 
-
-# ---------------------------------------------------------------------------
 # Send helpers
-# ---------------------------------------------------------------------------
 
 async def _send(ws: WebSocket, payload: dict) -> None:
     """Send a JSON frame to a single connection; silently ignores closed sockets."""
@@ -208,10 +199,7 @@ def _title_broadcast(user_id: int, dialog_id: str):
         await _broadcast(user_id, {"type": "dialog_title", "dialog_id": dialog_id, "title": title})
     return _cb
 
-
-# ---------------------------------------------------------------------------
 # Auth handshake
-# ---------------------------------------------------------------------------
 
 async def _auth_handshake(ws: WebSocket) -> int | None:
     """
@@ -251,10 +239,7 @@ async def _auth_handshake(ws: WebSocket) -> int | None:
         await _send(ws, {"type": "auth_error", "error": "malformed user field"})
         return None
 
-
-# ---------------------------------------------------------------------------
 # Heartbeat
-# ---------------------------------------------------------------------------
 
 async def _heartbeat(ws: WebSocket) -> None:
     """Send a ping frame every _PING_INTERVAL seconds to keep the tunnel alive.
@@ -269,16 +254,13 @@ async def _heartbeat(ws: WebSocket) -> None:
         except Exception:
             return  # Let the endpoint's FIRST_COMPLETED logic cancel _message_loop
 
-
-# ---------------------------------------------------------------------------
 # Generation keepalive
-# ---------------------------------------------------------------------------
 
 async def _generation_keepalive(user_id: int, req_id: str) -> None:
     """Broadcast image_progress every 10 s while OpenAI is generating.
 
     Two purposes:
-    1. Keeps the Cloudflare Tunnel alive — without payload, any side of the
+    1. Keeps the Cloudflare Tunnel alive - without payload, any side of the
        tunnel can time out after 100 s of silence.
     2. Gives the user a progress indicator (elapsed seconds).
 
@@ -295,10 +277,7 @@ async def _generation_keepalive(user_id: int, req_id: str) -> None:
             "elapsed": elapsed,
         })
 
-
-# ---------------------------------------------------------------------------
 # Chat handler  (runs in background via _spawn)
-# ---------------------------------------------------------------------------
 
 async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
     req_id = str(frame.get("id") or uuid.uuid4())
@@ -314,7 +293,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "empty message"})
         return
 
-    # Guard: одна генерация на диалог (разные диалоги — параллельно).
+    # Guard: одна генерация на диалог (разные диалоги - параллельно).
     gen_key = (user_id, dialog_id)
     if gen_key in _USER_GENERATING:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "already generating"})
@@ -326,7 +305,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         if image_url else message
     )
     user_msg = user_message(user_content)
-    # размеры фото — для скелетона 1:1 при перезагрузке истории (не уходит в OpenAI)
+    # размеры фото - для скелетона 1:1 при перезагрузке истории (не уходит в OpenAI)
     if image_url and image_w and image_h:
         try:
             user_msg["image_meta"] = {"w": int(image_w), "h": int(image_h)}
@@ -407,7 +386,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
                 n_input, n_output, n_removed = ni, no, nr
                 if status == "not_finished":
                     now = time.monotonic()
-                    # троттлинг — частые мелкие кадры ронял Cloudflare Tunnel
+                    # троттлинг - частые мелкие кадры ронял Cloudflare Tunnel
                     if now - last_delta >= _DELTA_THROTTLE_S:
                         last_delta = now
                         await _broadcast(user_id, {
@@ -445,7 +424,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         except Exception:
             logger.exception("Failed to persist chat message for user %d", user_id)
 
-        # 8. Final frame to ALL devices — полный канонический объект сообщения.
+        # 8. Final frame to ALL devices - полный канонический объект сообщения.
         await _broadcast(user_id, {
             "type": "chat_done",
             "id": req_id,
@@ -459,10 +438,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
         _USER_GENERATING.pop(gen_key, None)
         _USER_GENERATING_TEXT.pop(gen_key, None)
 
-
-# ---------------------------------------------------------------------------
 # Image handler  (runs in background via _spawn)
-# ---------------------------------------------------------------------------
 
 async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
     req_id = str(frame.get("id") or uuid.uuid4())
@@ -473,7 +449,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         await _send(ws, {"type": "image_error", "id": req_id, "error": "empty prompt"})
         return
 
-    # Guard: одна генерация на диалог (разные диалоги — параллельно).
+    # Guard: одна генерация на диалог (разные диалоги - параллельно).
     gen_key = (user_id, dialog_id)
     if gen_key in _USER_GENERATING:
         await _send(ws, {"type": "image_error", "id": req_id, "error": "already generating"})
@@ -522,7 +498,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         except Exception:
             logger.exception("Failed to persist image prompt for user %d", user_id)
 
-        # 4. Generation — keepalive task prevents Cloudflare idle-timeout during
+        # 4. Generation - keepalive task prevents Cloudflare idle-timeout during
         #    the ~30-120 s wait for OpenAI to return the image.
         await _broadcast(user_id, {"type": "image_progress", "id": req_id, "step": "generating"})
         keepalive_task = asyncio.create_task(_generation_keepalive(user_id, req_id))
@@ -555,7 +531,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
             })
             return
 
-        # 6. Upload WebP to ImgBB — returns a permanent CDN URL (~40 bytes).
+        # 6. Upload WebP to ImgBB - returns a permanent CDN URL (~40 bytes).
         #    This avoids sending large base64 frames over WebSocket, which caused
         #    Cloudflare Tunnel to drop the connection every time.
         try:
@@ -568,7 +544,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
             })
             return
 
-        # 7. Persist to DB — store the ImgBB URL (~80 bytes) for permanent history.
+        # 7. Persist to DB - store the ImgBB URL (~80 bytes) for permanent history.
         assistant_msg = assistant_message(img_url, parent_id=user_msg["id"], model="gpt-image-1.5")
         try:
             async with Session() as session:
@@ -588,7 +564,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         except Exception:
             logger.exception("Failed to persist image for user %d", user_id)
 
-        # 8. Notify client — tiny JSON frame (~120 bytes), Cloudflare won't drop it.
+        # 8. Notify client - tiny JSON frame (~120 bytes), Cloudflare won't drop it.
         await _broadcast(user_id, {
             "type": "image_done",
             "id": req_id,
@@ -602,10 +578,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
         _USER_GENERATING.pop(gen_key, None)
         _USER_GENERATING_TEXT.pop(gen_key, None)
 
-
-# ---------------------------------------------------------------------------
 # Message loop
-# ---------------------------------------------------------------------------
 
 async def _message_loop(ws: WebSocket, user_id: int) -> None:
     while True:
@@ -674,7 +647,7 @@ async def websocket_endpoint(ws: WebSocket) -> None:
         heart_task = asyncio.create_task(_heartbeat(ws))
         loop_task  = asyncio.create_task(_message_loop(ws, user_id))
         # Add done-callback immediately so the exception is marked as
-        # "retrieved" the moment _message_loop finishes — most reliable
+        # "retrieved" the moment _message_loop finishes - most reliable
         # way to silence "Task exception was never retrieved", fires
         # before any GC pass and is not affected by CancelledError
         # propagation in the enclosing coroutine.
@@ -696,7 +669,7 @@ async def websocket_endpoint(ws: WebSocket) -> None:
             # Retrieve the exception here so asyncio never warns
             # "Task exception was never retrieved", even when this
             # coroutine is cancelled (CancelledError) by Uvicorn on an
-            # abrupt TCP/QUIC drop (code 1006) — in that case the
+            # abrupt TCP/QUIC drop (code 1006) - in that case the
             # post-finally block below is skipped entirely.
             if loop_task.done() and not loop_task.cancelled():
                 with contextlib.suppress(Exception):

@@ -1,4 +1,4 @@
-"""Юнит-тесты для bot/src/schemas/user.py — Pydantic модели."""
+"""Юнит-тесты для bot/src/schemas/user.py - Pydantic модели."""
 
 from datetime import UTC, datetime
 

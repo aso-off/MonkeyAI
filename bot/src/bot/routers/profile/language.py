@@ -34,9 +34,9 @@ _LANGUAGE_PAIRS: list[list[tuple[str, str]]] = [
 def _language_keyboard(effective_lang: str, db_lang: str, tg_lang_code: str | None) -> InlineKeyboardMarkup:
     """Строим keyboard выбора языка.
 
-    effective_lang — resolved interface language for button labels.
-    db_lang        — what is stored in DB ("ru", "en", ... or "system").
-    tg_lang_code   — raw Telegram language_code (e.g. "uk", "en", "sv").
+    effective_lang - resolved interface language for button labels.
+    db_lang        - what is stored in DB ("ru", "en", ... or "system").
+    tg_lang_code   - raw Telegram language_code (e.g. "uk", "en", "sv").
     """
     resolved = resolve_lang(tg_lang_code)
     resolved_label = resolved.upper()

@@ -1,4 +1,4 @@
-"""Shared fixtures для api/tests/routes/ — TestClient с мокнутыми зависимостями."""
+"""Shared fixtures для api/tests/routes/ - TestClient с мокнутыми зависимостями."""
 
 import importlib.util
 import types

@@ -2,11 +2,11 @@
 Тесты для bot/src/bot/routers/admin/status.py.
 
 Покрываем:
-- _status_keyboard()     — структура клавиатуры
-- _build_status_text()   — uptime из Redis / без, api_ping OK/None,
+- _status_keyboard()     - структура клавиатуры
+- _build_status_text()   - uptime из Redis / без, api_ping OK/None,
                            stats OK/exception, openai OK/нет, invalid creation_date
-- cmd_status()           — require_admin False, True
-- cb_admin_status()      — require_admin False, True
+- cmd_status()           - require_admin False, True
+- cb_admin_status()      - require_admin False, True
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

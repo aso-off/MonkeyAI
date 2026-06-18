@@ -5,7 +5,7 @@
         <!-- Заголовок -->
         <div class="img-head">{{ $t('images') }}</div>
 
-        <!-- Ввод промпта — по центру -->
+        <!-- Ввод промпта - по центру -->
         <div class="img-hero">
           <form class="img-form" @submit.prevent="submitImage">
             <div class="img-field">

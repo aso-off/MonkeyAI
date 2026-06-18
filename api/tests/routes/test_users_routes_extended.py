@@ -2,9 +2,9 @@
 Расширенные тесты для api/src/routes/users.py.
 
 Покрываем недостающие ветки:
-- GET  /users/stats            — cached / uncached
-- GET  /users/{id}/full        — redis cached / cache miss (found / not found)
-- PATCH /users/{id}            — is_whitelisted=False > whitelist.remove
+- GET  /users/stats            - cached / uncached
+- GET  /users/{id}/full        - redis cached / cache miss (found / not found)
+- PATCH /users/{id}            - is_whitelisted=False > whitelist.remove
 - Helpers: _redis_write_user, _redis_read_user, _redis_write_stats,
            _redis_read_stats, _redis_sync_webapp_prefs (косвенно через роуты)
 """
@@ -129,7 +129,7 @@ class TestGetUserFull:
             resp = api_client.get(f"/users/{user.id}/full")
         assert resp.status_code == 200
 
-# PATCH /users/{id} — whitelist branches
+# PATCH /users/{id} - whitelist branches
 
 class TestUpdateUserWhitelist:
 

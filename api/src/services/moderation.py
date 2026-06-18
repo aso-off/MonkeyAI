@@ -86,5 +86,5 @@ async def moderate_content(
         return is_flagged, flagged_categories, scores
 
     except Exception:
-        logger.exception("Content moderation failed — allowing content through")
+        logger.exception("Content moderation failed - allowing content through")
         return False, {}, {}

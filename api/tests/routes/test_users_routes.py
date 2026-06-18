@@ -1,10 +1,10 @@
 """Тесты для API роутов /users/* через FastAPI TestClient.
 
 Зависимости мокируются через patch на уровне модулей:
-- db.repositories.users — get_user, get_or_create_user, update_user
-- db.repositories.dialogs — get_all_users_count, get_active_users_count, get_user_message_count
-- core.redis.get_redis — mock из conftest
-- verify_service_token — noop stub из api/tests/conftest.py
+- db.repositories.users - get_user, get_or_create_user, update_user
+- db.repositories.dialogs - get_all_users_count, get_active_users_count, get_user_message_count
+- core.redis.get_redis - mock из conftest
+- verify_service_token - noop stub из api/tests/conftest.py
 
 Реальная БД и Redis не нужны.
 """

@@ -2,10 +2,10 @@
 Тесты для bot/src/bot/routers/profile/balance.py.
 
 Покрываем:
-- _balance_keyboard()    — структура клавиатуры
-- _build_balance_text()  — user=None, пустые токены, с токенами, с изображениями, с голосом
-- cmd_balance()          — без db_user, с db_user
-- cb_show_balance()      — без db_user, с db_user
+- _balance_keyboard()    - структура клавиатуры
+- _build_balance_text()  - user=None, пустые токены, с токенами, с изображениями, с голосом
+- cmd_balance()          - без db_user, с db_user
+- cb_show_balance()      - без db_user, с db_user
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

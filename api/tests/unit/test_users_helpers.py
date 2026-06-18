@@ -2,9 +2,9 @@
 Тесты для helpers в api/src/routes/users.py.
 
 Покрываем недостающие ветки:
-- _redis_write_stats()  — success, exception (pass)
-- _redis_read_stats()   — cache hit, miss, raw=None, exception
-- _db_update_user()     — success, exception
+- _redis_write_stats()  - success, exception (pass)
+- _redis_read_stats()   - cache hit, miss, raw=None, exception
+- _db_update_user()     - success, exception
 """
 
 import json

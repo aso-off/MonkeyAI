@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 
 
 def new_message_id() -> str:
-    # время в префиксе — id сортируются хронологически (как ULID)
+    # время в префиксе - id сортируются хронологически (как ULID)
     return f"msg_{int(time.time() * 1000):012x}{secrets.token_hex(5)}"
 
 

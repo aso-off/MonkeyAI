@@ -191,7 +191,7 @@ async def get_context(
     dialog_id: str,
     limit: int = 20,
 ) -> list:
-    """Последние limit сообщений диалога — контекст строится на сервере."""
+    """Последние limit сообщений диалога - контекст строится на сервере."""
     result = await session.execute(
         select(Dialog.messages).where(Dialog.id == dialog_id, Dialog.user_id == user_id)
     )
@@ -204,7 +204,7 @@ async def delete_last_exchange(
     user_id: int,
     dialog_id: str,
 ) -> dict | None:
-    """Удаляет последний обмен (хвост assistant-ответов + user-вопрос) — для /retry.
+    """Удаляет последний обмен (хвост assistant-ответов + user-вопрос) - для /retry.
 
     Возвращает удалённое user-сообщение или None, если удалять нечего.
     """
@@ -284,7 +284,7 @@ async def get_dialog_messages_page(
 
 
 async def get_user_message_count(session: AsyncSession, user_id: int) -> int:
-    # только сообщения пользователя — ответы модели не считаем
+    # только сообщения пользователя - ответы модели не считаем
     elem = func.json_array_elements(Dialog.messages).table_valued("value").lateral()
     result = await session.execute(
         select(func.count())
@@ -362,7 +362,7 @@ async def get_mini_app_dialog_id(
 
 
 async def set_active_mini_app_dialog(session: AsyncSession, user_id: int, dialog_id: str) -> bool:
-    """Сделать диалог активным для текущего mini-app режима — чтобы reload вернул именно его."""
+    """Сделать диалог активным для текущего mini-app режима - чтобы reload вернул именно его."""
     user = await get_user(session, user_id)
     if user is None:
         return False
@@ -414,7 +414,7 @@ async def list_dialogs(
     before: datetime | None = None,
     limit: int = 20,
 ) -> list[Dialog]:
-    """Незакреплённые mini-app диалоги, newest activity first. Cursor — last_activity < before."""
+    """Незакреплённые mini-app диалоги, newest activity first. Cursor - last_activity < before."""
     q = select(Dialog).where(
         Dialog.user_id == user_id,
         Dialog.chat_mode.like(_MINI_APP_PREFIX),
@@ -445,7 +445,7 @@ async def set_pinned(session: AsyncSession, user_id: int, dialog_id: str, pinned
     result = await session.execute(
         update(Dialog)
         .where(Dialog.id == dialog_id, Dialog.user_id == user_id)
-        # бамп last_activity — диалог встаёт наверх свежим (как у Grok)
+        # бамп last_activity - диалог встаёт наверх свежим (как у Grok)
         .values(pinned_at=now if pinned else None, last_activity=now)
     )
     await session.commit()
@@ -459,7 +459,7 @@ async def search_dialogs(
     limit: int = 50,
     include_untitled: bool = False,
 ):
-    # ILIKE под C-локалью Postgres не сворачивает кириллицу — фильтруем в Python (Unicode).
+    # ILIKE под C-локалью Postgres не сворачивает кириллицу - фильтруем в Python (Unicode).
     # Берём только лёгкие колонки (без messages), с разумным потолком.
     q = (
         select(

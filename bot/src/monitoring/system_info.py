@@ -21,7 +21,7 @@ async def _collect_system_info(redis) -> None:
     """Collect docker stats + host metrics via SSH and cache result in Redis."""
     ssh = settings.ssh_connection
     if not ssh.get("hostname"):
-        logger.debug("SSH not configured — skipping system info collection")
+        logger.debug("SSH not configured - skipping system info collection")
         return
 
     import asyncssh

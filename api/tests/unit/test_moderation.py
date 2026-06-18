@@ -1,6 +1,6 @@
 """Юнит-тесты для api/src/services/moderation.py.
 
-OpenAI client заменён AsyncMock — реальные запросы не делаются.
+OpenAI client заменён AsyncMock - реальные запросы не делаются.
 settings патчится для контроля флагов и threshold'ов.
 """
 

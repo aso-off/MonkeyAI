@@ -2,9 +2,9 @@
 Тесты для bot/src/bot/routers/admin/admin.py.
 
 Покрываем:
-- _admin_panel_keyboard()  — builder с 5 строками кнопок
-- cmd_admin()              — admin > показывает панель, non-admin > ignore
-- cb_admin_panel()         — callback_query "admin_panel"
+- _admin_panel_keyboard()  - builder с 5 строками кнопок
+- cmd_admin()              - admin > показывает панель, non-admin > ignore
+- cb_admin_panel()         - callback_query "admin_panel"
 
 Faker: user IDs, language.
 """

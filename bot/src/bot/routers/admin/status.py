@@ -25,7 +25,7 @@ def _status_keyboard(lang: str) -> InlineKeyboardMarkup:
 
 
 async def _build_status_text(lang: str) -> str:
-    from src.core.bot import fsm_redis  # ленивый импорт — избегает circular import с core.bot
+    from src.core.bot import fsm_redis  # ленивый импорт - избегает circular import с core.bot
     redis = fsm_redis()
 
     # Uptime из Redis
@@ -36,7 +36,7 @@ async def _build_status_text(lang: str) -> str:
     else:
         uptime_str = "—"
 
-    # Telegram API — сам факт что мы отвечаем означает что всё ок
+    # Telegram API - сам факт что мы отвечаем означает что всё ок
     telegram_ok = True
     telegram_status = t("status_active", lang)
 
@@ -59,7 +59,7 @@ async def _build_status_text(lang: str) -> str:
         db_ok = False
         db_status = t("status_inactive", lang)
 
-    # OpenAI — проверяем что ключ задан
+    # OpenAI - проверяем что ключ задан
     openai_ok = bool(settings.openai_api_key)
     openai_status = t("status_active", lang) if openai_ok else t("status_inactive", lang)
 

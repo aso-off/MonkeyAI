@@ -11,13 +11,13 @@ from core.config import settings
 
 _SERVICE_TOKEN = os.environ.get("API_SERVICE_TOKEN", "")
 
-# Shown in Swagger UI as a lock icon — click "Authorize" and enter the token value.
+# Shown in Swagger UI as a lock icon - click "Authorize" and enter the token value.
 _bearer_scheme = HTTPBearer(
     auto_error=False,
     scheme_name="ServiceToken",
     description=(
         "Internal bot>API token. Click **Authorize** and paste the value of "
-        "`API_SERVICE_TOKEN` (without the `Bearer ` prefix — Swagger adds it)."
+        "`API_SERVICE_TOKEN` (without the `Bearer ` prefix - Swagger adds it)."
     ),
 )
 

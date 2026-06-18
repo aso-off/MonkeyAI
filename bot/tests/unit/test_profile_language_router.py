@@ -2,10 +2,10 @@
 Тесты для bot/src/bot/routers/profile/language.py.
 
 Покрываем:
-- _language_keyboard()   — system selected, конкретный язык selected, tg_lang=None
-- cmd_language()         — с db_user, без db_user
-- cb_profile_language()  — с db_user, без db_user
-- cb_set_language()      — невалидный lang, "system", валидный lang, TelegramBadRequest
+- _language_keyboard()   - system selected, конкретный язык selected, tg_lang=None
+- cmd_language()         - с db_user, без db_user
+- cb_profile_language()  - с db_user, без db_user
+- cb_set_language()      - невалидный lang, "system", валидный lang, TelegramBadRequest
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

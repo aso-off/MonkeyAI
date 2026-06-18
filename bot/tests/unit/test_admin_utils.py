@@ -1,7 +1,7 @@
-"""Юнит-тесты для bot/src/utils/admin.py — функция require_admin.
+"""Юнит-тесты для bot/src/utils/admin.py - функция require_admin.
 
 Важно: admin.py делает `from src.core.config import settings` ВНУТРИ функции.
-Поэтому патчить `src.utils.admin.settings` нельзя — такого атрибута нет.
+Поэтому патчить `src.utils.admin.settings` нельзя - такого атрибута нет.
 Патчим через sys.modules["src.core.config"].settings напрямую.
 """
 
@@ -14,7 +14,7 @@ import pytest
 from aiogram.types import CallbackQuery, Message
 from src.utils.admin import require_admin
 
-# Stub-модуль конфига из conftest — через него требует_admin получает settings
+# Stub-модуль конфига из conftest - через него требует_admin получает settings
 _STUB_CONFIG: Any = sys.modules["src.core.config"]
 
 # Helpers

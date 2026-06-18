@@ -2,12 +2,12 @@
 Расширенные тесты для api/src/services/openai.py.
 
 Покрываем то, что не захватывает test_openai_service.py:
-- make_client()          — singleton + openai_api_base branch
-- _encode_image()        — base64 + позиция буфера
-- send_message()         — happy path, BadRequestError (trim), BadRequestError (empty)
-- send_message_stream()  — streaming, BadRequestError trim
-- send_vision_message()  — happy path, BadRequestError
-- send_vision_message_stream() — streaming
+- make_client()          - singleton + openai_api_base branch
+- _encode_image()        - base64 + позиция буфера
+- send_message()         - happy path, BadRequestError (trim), BadRequestError (empty)
+- send_message_stream()  - streaming, BadRequestError trim
+- send_vision_message()  - happy path, BadRequestError
+- send_vision_message_stream() - streaming
 
 Faker: messages, model names, chat_mode, dialog contents, answer texts.
 """
@@ -146,7 +146,7 @@ class TestMakeClient:
             oai_mod._openai_client = original
 
     def test_client_created_successfully_when_no_base_url(self) -> None:
-        """Когда openai_api_base=None — клиент создаётся без ошибок."""
+        """Когда openai_api_base=None - клиент создаётся без ошибок."""
         import services.openai as oai_mod
         original = oai_mod._openai_client
         oai_mod._openai_client = None
@@ -158,9 +158,9 @@ class TestMakeClient:
                 mock_instance = MagicMock()
                 MockOpenAI.return_value = mock_instance
                 result = oai_mod.make_client()
-            # Клиент создан без иск��ючений
+            # Клиент создан без исключений
             assert result is mock_instance
-            # base_url устанавливается только в openai_api_base ветке — та не выполнилась
+            # base_url устанавливается только в openai_api_base ветке - та не выполнилась
             MockOpenAI.assert_called_once()
         finally:
             oai_mod._openai_client = original
@@ -309,7 +309,7 @@ class TestSendMessageStream:
 
     @pytest.mark.asyncio
     async def test_stream_bad_request_propagates(self) -> None:
-        # truncation=auto закрывает длину, ручного retry-trim больше нет — ошибка пробрасывается
+        # truncation=auto закрывает длину, ручного retry-trim больше нет - ошибка пробрасывается
         gpt = _make_gpt()
         gpt.client.responses.create = AsyncMock(side_effect=_bad_request_error())
         with pytest.raises(BadRequestError):
