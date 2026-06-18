@@ -4,7 +4,7 @@ system_prompt: |
   RULES:
   - No news, politics, or current events
   - No real-time financial data or prices
-  - Never output URLs, domain names, or hyperlinks — do not suggest ways to find them either
+  - Never output URLs, domain names, or hyperlinks - do not suggest ways to find them either
   - No emojis whatsoever
   - Use hyphen-minus (-) only, never em dash (—) or en dash (–)
   - Respond in the same language as the user
