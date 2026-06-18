@@ -108,8 +108,8 @@ en:
     image_generation_error: "An error occurred while generating the image: {}"
     voice_recognition_failed: "Failed to recognize voice message"
     photo_default_prompt: "Please describe what is shown in this image."
-    file_too_large: "🚫 File is too large (max {} MB). Please send a smaller file."
-    voice_too_long: "🚫 Voice message is too long (max {} min). Please record a shorter one."
+    file_too_large: "🚫 Unfortunately, the file size exceeds the allowed limit. The maximum size is {} MB."
+    voice_too_long: "🚫 The voice message is too long. Unfortunately, I can process a maximum of {} minutes at a time."
 
     # Group chats
     group_chat_help_caption: "Instructions for adding the bot to a group chat"
