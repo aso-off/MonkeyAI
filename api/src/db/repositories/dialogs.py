@@ -264,11 +264,11 @@ async def get_dialog_messages_page(
 ) -> tuple[list, int, int]:
     """Return a page of messages using cursor-based pagination.
 
-    before_index=None → last ``limit`` messages (newest, bootstrap behaviour).
-    before_index=N    → ``limit`` messages whose array index is < N.
+    before_index=None > last ``limit`` messages (newest, bootstrap behaviour).
+    before_index=N    > ``limit`` messages whose array index is < N.
 
     Returns (messages_oldest_first, total, next_before_index).
-    next_before_index == 0  →  no more older messages exist.
+    next_before_index == 0  >  no more older messages exist.
     """
     result = await session.execute(
         select(Dialog).where(Dialog.id == dialog_id, Dialog.user_id == user_id)

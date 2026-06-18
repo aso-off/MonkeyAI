@@ -148,7 +148,7 @@ class TestFlaggedContent:
 
     @pytest.mark.unit
     async def test_score_above_default_threshold_flags(self, settings_enabled, mock_client, fake) -> None:
-        # Дефолтный threshold = 0.5, score = 0.8 → должен флагировать
+        # Дефолтный threshold = 0.5, score = 0.8 > должен флагировать
         response = _make_moderation_response(
             flagged=False,
             scores={"violence": 0.8},
@@ -162,7 +162,7 @@ class TestFlaggedContent:
     async def test_score_below_threshold_not_flagged(self, mock_client, fake) -> None:
         response = _make_moderation_response(
             flagged=False,
-            scores={"harassment": 0.7},  # 0.7 < 0.9 → не флаг
+            scores={"harassment": 0.7},  # 0.7 < 0.9 > не флаг
         )
         mock_client.moderations.create.return_value = response
         with patch("services.moderation.settings", types.SimpleNamespace(
@@ -176,7 +176,7 @@ class TestFlaggedContent:
     async def test_custom_threshold_respected(self, mock_client, fake) -> None:
         response = _make_moderation_response(
             flagged=False,
-            scores={"hate": 0.5},  # 0.5 > 0.3 → флаг
+            scores={"hate": 0.5},  # 0.5 > 0.3 > флаг
         )
         mock_client.moderations.create.return_value = response
         with patch("services.moderation.settings", types.SimpleNamespace(

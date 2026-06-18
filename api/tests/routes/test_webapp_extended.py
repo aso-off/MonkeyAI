@@ -2,8 +2,8 @@
 Расширенные тесты для api/src/routes/webapp.py.
 
 Покрываем недостающие ветки:
-- _require_user()          — redis cache hit, redis miss → DB, user not found
-- _require_whitelisted()   — cached False → 403, cached True, None → DB fallback
+- _require_user()          — redis cache hit, redis miss > DB, user not found
+- _require_whitelisted()   — cached False > 403, cached True, None > DB fallback
 - GET  /webapp/me          — not-whitelisted (синтетический профиль),
                              redis_prefs hit (overlaid on user)
 - PATCH /webapp/me         — пустое тело (ok=True без write),

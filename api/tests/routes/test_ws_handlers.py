@@ -3,7 +3,7 @@
 
 Покрываем:
 - _auth_handshake:   tma-prefix, missing user, malformed user field
-- _heartbeat:        send failure → return
+- _heartbeat:        send failure > return
 - _generation_keepalive: broadcast loop (один тик)
 - _handle_chat:      empty msg, guard, moderation flag/error, ChatGPT error,
                      stream error, success (с persist), dialog_id=None

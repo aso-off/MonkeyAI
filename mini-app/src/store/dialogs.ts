@@ -56,7 +56,7 @@ export const useDialogsStore = defineStore('dialogs', {
       }
     },
 
-    /** Ввод начался — «Ничего не найдено» не показываем, пока ответ не пришёл. */
+    /** Ввод начался - «Ничего не найдено» не показываем, пока ответ не пришёл. */
     markSearching() {
       this.searchSeq++
       this.searching = true
@@ -86,7 +86,7 @@ export const useDialogsStore = defineStore('dialogs', {
       }
     },
 
-    /** Pin/unpin бампит last_activity — диалог встаёт наверх свежим (как у Grok). */
+    /** Pin/unpin бампит last_activity - диалог встаёт наверх свежим (как у Grok). */
     async pin(dialogId: string) {
       await api.pinDialog(dialogId, true)
       const now = new Date().toISOString()
@@ -123,7 +123,7 @@ export const useDialogsStore = defineStore('dialogs', {
       }
     },
 
-    /** Сообщение отправлено — обновляем время и поднимаем диалог наверх (живое «Сегодня»). */
+    /** Сообщение отправлено - обновляем время и поднимаем диалог наверх (живое «Сегодня»). */
     touch(dialogId: string) {
       const now = new Date().toISOString()
       const p = this.pinned.find((x) => x.dialog_id === dialogId)

@@ -99,7 +99,7 @@ class TestReadUserIds:
 
         from src.bot.routers.admin.whitelist import _read_user_ids
         result = _read_user_ids()
-        # yaml.safe_load("") → None → None or {} → {} (пустой dict)
+        # yaml.safe_load("") > None > None or {} > {} (пустой dict)
         assert result.get("admin_user_ids", []) == []
         assert result.get("allowed_user_ids", []) == []
 
@@ -178,7 +178,7 @@ class TestRemoveUserLogic:
         uid = fake.random_int(min=100_000_000, max=999_999_999)
         allowed = [uid]
         admins = [uid]  # uid — и в admin, и в allowed
-        # Попытка удалить как user → должна быть отклонена
+        # Попытка удалить как user > должна быть отклонена
         should_reject = uid in admins
         assert should_reject is True
 
@@ -212,7 +212,7 @@ class TestAdminManagementLogic:
         uid = fake.random_int(min=100_000_000, max=999_999_999)
         allowed = [uid]
         admins: list[int] = []
-        # Пользователь в whitelist, не admin → можно добавить
+        # Пользователь в whitelist, не admin > можно добавить
         can_add = uid in allowed and uid not in admins
         assert can_add is True
         admins.append(uid)

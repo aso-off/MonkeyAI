@@ -25,10 +25,10 @@ _TITLE_PROMPT = (
     "Без кавычек, точки в конце, markdown и эмодзи. "
     "Не выдумывай факты и не расшифровывай сокращения.\n"
     "Примеры:\n"
-    "«напиши сказку про дракона» → Сказка про дракона\n"
-    "«помоги составить резюме» → Помощь с резюме\n"
-    "«what is the difference between tcp and udp» → TCP и UDP\n"
-    "«привет» → Приветствие\n"
+    "«напиши сказку про дракона» > Сказка про дракона\n"
+    "«помоги составить резюме» > Помощь с резюме\n"
+    "«what is the difference between tcp and udp» > TCP и UDP\n"
+    "«привет» > Приветствие\n"
     "В ответе только заголовок."
 )
 
@@ -44,7 +44,7 @@ def truncate_title(text: str, limit: int = _TITLE_LIMIT) -> str:
 
 
 # Отдельный клиент для заголовков — НЕ общий с генерацией бота.
-# wait_for-отмена общего клиента портила пул httpx → бот ловил incomplete chunked read.
+# wait_for-отмена общего клиента портила пул httpx > бот ловил incomplete chunked read.
 _title_openai_client = None
 
 

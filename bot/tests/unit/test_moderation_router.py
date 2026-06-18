@@ -5,7 +5,7 @@
 - _moderation_keyboard() — builders при enabled/disabled
 - _moderation_text()     — текст при enabled/disabled
 - cb_admin_moderation    — admin видит экран / non-admin заблокирован
-- cb_toggle_moderation   — toggle on→off, off→on / non-admin заблокирован
+- cb_toggle_moderation   — toggle on>off, off>on / non-admin заблокирован
 """
 
 import types

@@ -2,12 +2,12 @@
 Тесты для bot/src/bot/middleware/i18n.py.
 
 Покрываем:
-- нет user → resolve_lang(None), язык в data
-- db_user уже в data → используем db language (нет лишнего API-запроса)
-- db_user.language не поддерживается → fallback на resolve_lang(tg_lang)
-- нет db_user в data → api.get_user → берём язык из ответа
-- api.get_user возвращает None → resolve_lang(tg_lang)
-- api.get_user поднимает исключение → warning, язык из tg
+- нет user > resolve_lang(None), язык в data
+- db_user уже в data > используем db language (нет лишнего API-запроса)
+- db_user.language не поддерживается > fallback на resolve_lang(tg_lang)
+- нет db_user в data > api.get_user > берём язык из ответа
+- api.get_user возвращает None > resolve_lang(tg_lang)
+- api.get_user поднимает исключение > warning, язык из tg
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch

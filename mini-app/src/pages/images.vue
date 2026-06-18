@@ -147,9 +147,9 @@ function shareImage(url: string) {
 }
 
 /**
- * Системное сохранение — только диалог «куда сохранить»:
- *   1. showSaveFilePicker — нативное «Сохранить как» (ПК / tdesktop)
- *   2. navigator.share({files}) — системный share-лист (iOS / macOS)
+ * Системное сохранение - только диалог «куда сохранить»:
+ *   1. showSaveFilePicker - нативное «Сохранить как» (ПК / tdesktop)
+ *   2. navigator.share({files}) - системный share-лист (iOS / macOS)
  * Без молчаливого auto-download.
  */
 async function saveImage(url: string) {

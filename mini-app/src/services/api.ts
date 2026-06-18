@@ -1,5 +1,5 @@
 /**
- * Monkey AI — API client for the Telegram Mini App.
+ * Monkey AI - API client for the Telegram Mini App.
  */
 
 import { initData } from '@tma.js/sdk-vue';
@@ -143,7 +143,7 @@ export interface DialogMessage {
 }
 
 export interface DialogBootstrapResult {
-  dialog_id: string | null;  // null → активного диалога нет (черновик)
+  dialog_id: string | null;  // null > активного диалога нет (черновик)
   messages: DialogMessage[];
   /** Cursor for the next "Load more" call. 0 = no older messages. */
   next_before_index: number;
@@ -290,7 +290,7 @@ export const api = {
     );
   },
 
-  /** Пометить диалог активным — reload мини-аппа вернёт именно его. */
+  /** Пометить диалог активным - reload мини-аппа вернёт именно его. */
   activateDialog(dialogId: string): Promise<void> {
     return apiFetch<void>(
       `/webapp/dialogs/${dialogId}/activate`,
@@ -339,12 +339,10 @@ export const api = {
 
 };
 
-// ---------------------------------------------------------------------------
 // WebSocket client for the Telegram Mini App
-// ---------------------------------------------------------------------------
 
 function _wsUrl(): string {
-  // https://api.si881.ru  →  wss://api.si881.ru/webapp/ws
+  // https://api.si881.ru  >  wss://api.si881.ru/webapp/ws
   return BASE_URL.replace(/^http/, 'ws') + '/webapp/ws';
 }
 
@@ -354,13 +352,13 @@ export class WsClient {
   private _ws: WebSocket | null = null;
   private _authResolve: ((ok: boolean) => void) | null = null;
   private _connectPromise: Promise<boolean> | null = null;
-  /** id-based handlers: req_id → handler (originating device — promise resolution) */
+  /** id-based handlers: req_id > handler (originating device - promise resolution) */
   private _handlers = new Map<string, _WsMsgHandler>();
-  /** type-based handlers: msg.type → handler (multi-device broadcasts from other devices) */
+  /** type-based handlers: msg.type > handler (multi-device broadcasts from other devices) */
   private _typeHandlers = new Map<string, _WsMsgHandler>();
   /** Pending auto-reconnect timer. */
   private _reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  /** Client-side keepalive ping interval (25 s — prevents Cloudflare idle timeout). */
+  /** Client-side keepalive ping interval (25 s - prevents Cloudflare idle timeout). */
   private _keepaliveTimer: ReturnType<typeof setInterval> | null = null;
   /** Timestamp of the last message received from the server (used for zombie detection). */
   private _lastServerMsgAt = Date.now();
@@ -417,7 +415,7 @@ export class WsClient {
 
   /**
    * Open the WebSocket and perform the Telegram initData auth handshake.
-   * Safe to call multiple times — deduplicates concurrent calls.
+   * Safe to call multiple times - deduplicates concurrent calls.
    */
   async connect(): Promise<boolean> {
     if (this.connected) return true;
@@ -467,7 +465,7 @@ export class WsClient {
         this._typeHandlers.get('connection_lost')?.({ type: 'connection_lost' });
         // Auto-reconnect after a short delay.
         // 500 ms gives the server time to process the TCP close before we open a new
-        // connection — prevents a brief "devices=2" state from the same client.
+        // connection - prevents a brief "devices=2" state from the same client.
         if (!this._reconnectTimer) {
           this._reconnectTimer = setTimeout(() => {
             this._reconnectTimer = null;
@@ -505,8 +503,8 @@ export class WsClient {
     if (type === 'ping')            { this._ws?.send('{"type":"pong"}'); return; }
     if (type === 'connection_ack')  { this._typeHandlers.get('connection_ack')?.(msg); return; }
     // Smart routing:
-    //   Frame has a matching id-handler  → originating device (resolve the promise)
-    //   No matching id-handler           → broadcast to another device (use type-handler)
+    //   Frame has a matching id-handler  > originating device (resolve the promise)
+    //   No matching id-handler           > broadcast to another device (use type-handler)
     const id = msg.id as string | undefined;
     if (id && this._handlers.has(id)) {
       this._handlers.get(id)!(msg);

@@ -167,7 +167,7 @@
               class="msg-group"
               :class="msg.type === 'user' ? 'msg-group--user' : 'msg-group--bot'"
             >
-            <!-- Фото пользователя — отдельным блоком над пузырём, без фона -->
+            <!-- Фото пользователя - отдельным блоком над пузырём, без фона -->
             <div
               v-if="msg.type === 'user' && msg.imageUrl"
               class="user-photo"
@@ -188,7 +188,7 @@
               />
             </div>
 
-            <!-- Пузырь: бот всегда; пользователь — только если есть текст -->
+            <!-- Пузырь: бот всегда; пользователь - только если есть текст -->
             <div
               v-if="msg.type !== 'user' || msg.text"
               :class="[
@@ -232,7 +232,7 @@
                 />
                 <!-- Текст ответа -->
                 <div v-if="msg.text" class="md-body" v-html="index === streamingBotIdx ? streamHtml : formatMessage(msg.text)" @click="onContentClick"></div>
-                <!-- Кнопки: копировать / лайк / дизлайк / три точки — только когда генерация завершена -->
+                <!-- Кнопки: копировать / лайк / дизлайк / три точки - только когда генерация завершена -->
                 <div
                   v-if="index !== streamingBotIdx && msg.text"
                   class="copy-wrapper"
@@ -320,7 +320,7 @@
                       </svg>
                     </button>
                   </div>
-                  <!-- Три точки (экспорт) — только для ios/macos/tdesktop -->
+                  <!-- Три точки (экспорт) - только для ios/macos/tdesktop -->
                   <div v-if="canExport" class="btn-tip-wrap more-wrap">
                     <button
                       class="action-btn"
@@ -365,7 +365,7 @@
           </div>
           </template>
         </template>
-        <!-- Spacer: replaces padding-bottom — fixes iOS Safari not including padding in scrollHeight -->
+        <!-- Spacer: replaces padding-bottom - fixes iOS Safari not including padding in scrollHeight -->
         <div class="chat-end-spacer"></div>
       </div>
     </div>
@@ -397,7 +397,7 @@
       </button>
     </Transition>
     <footer>
-      <!-- Панель «+» (пока только Галерея; на будущее — файлы и т.д.) -->
+      <!-- Панель «+» (пока только Галерея; на будущее - файлы и т.д.) -->
       <Transition name="attach-panel">
         <div v-if="attachPanelOpen" class="attach-panel" @click.stop>
           <button
@@ -413,7 +413,7 @@
         </div>
       </Transition>
 
-      <!-- off-screen, не hidden — иначе iOS не открывает пикер -->
+      <!-- off-screen, не hidden - иначе iOS не открывает пикер -->
       <input
         ref="galleryInput"
         type="file"
@@ -427,7 +427,7 @@
           class="input__text null"
           :class="{ 'has-attach': !!attachment, 'composer--stacked': composerStacked }"
         >
-          <!-- Превью прикреплённого фото — над строкой ввода -->
+          <!-- Превью прикреплённого фото - над строкой ввода -->
           <div v-if="attachment" class="attach-preview">
             <div
               class="attach-thumb-wrap"
@@ -601,9 +601,9 @@ const pendingReconnectBotIdx = ref(-1);
 const pendingReconnectIsImage = ref(false);
 /** Set to true after the first loadChatHistory() completes. */
 const initialLoadDone = ref(false);
-/** True while a bootstrapDialog fetch is in-flight — prevents concurrent duplicate calls. */
+/** True while a bootstrapDialog fetch is in-flight - prevents concurrent duplicate calls. */
 let isLoadingHistory = false;
-/** True while the offline outbox is being flushed — prevents concurrent flushes. */
+/** True while the offline outbox is being flushed - prevents concurrent flushes. */
 let flushingOutbox = false;
 let copyTimeout: ReturnType<typeof setTimeout> | null = null;
 let suppressScrollEvents = false;
@@ -618,7 +618,7 @@ let smoothScrollWatchdog: ReturnType<typeof setTimeout> | null = null;
 
 /** True when the chat scroll is near the bottom (< 150px). Auto-scroll is only done here. */
 const isNearBottom = ref(true);
-/** True when user scrolled more than 100px from bottom — shows the scroll-to-bottom button. */
+/** True when user scrolled more than 100px from bottom - shows the scroll-to-bottom button. */
 const showScrollBtn = ref(false);
 /** True during first frame after returning from Settings to prevent stale button flash. */
 const isReturningFromSettings = ref(false);
@@ -626,7 +626,7 @@ const isReturningFromSettings = ref(false);
  * Last scroll position recorded on a real user scroll. Captured continuously
  * (NOT in onDeactivated) because KeepAlive detaches the chat DOM on navigation,
  * which resets scrollTop to 0 before onDeactivated runs. null = user never
- * scrolled → fall back to bottom on return from Settings.
+ * scrolled > fall back to bottom on return from Settings.
  */
 let savedScrollTop: number | null = null;
 /** True for platforms that support file export (iOS, macOS, tdesktop). */
@@ -649,10 +649,10 @@ const hasMoreToLoad = ref(false);
 /** Watchdog: interval ID for zombie-WS detection during generation. */
 let generationWatchdog: ReturnType<typeof setInterval> | null = null;
 
-/* === Просмотр изображений === */
+/* Просмотр изображений */
 const fullImageUrl = ref("");
 const showFullImage = ref(false);
-// Tracks which image URLs have finished loading — used to show/hide skeleton.
+// Tracks which image URLs have finished loading > used to show/hide skeleton.
 const loadedImages = reactive(new Set<string>());
 
 function openFullImage(url: string) {
@@ -667,7 +667,7 @@ function closeFullImage() {
   document.body.style.overflow = "auto";
 }
 
-/** Фиксированный бокс фото в ленте по сохранённым размерам — скелетон 1:1, без рывка. */
+/** Фиксированный бокс фото в ленте по сохранённым размерам - скелетон 1:1, без рывка. */
 function photoStyle(msg: ChatMessage): Record<string, string> {
   const w = msg.imageW;
   const h = msg.imageH;
@@ -676,7 +676,7 @@ function photoStyle(msg: ChatMessage): Record<string, string> {
   return { aspectRatio: `${w} / ${h}`, width: `${Math.round(displayW)}px` };
 }
 
-/* === Прикрепление фото (vision) === */
+/* Прикрепление фото (vision) */
 interface Attachment {
   preview: string;
   status: "uploading" | "ready" | "error";
@@ -689,7 +689,7 @@ const attachment = ref<Attachment | null>(null);
 const attachPanelOpen = ref(false);
 const galleryInput = ref<HTMLInputElement | null>(null);
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
-// текст занял >1 строки → кнопки уходят вниз (ChatGPT). Замер стабильный (фикс. ширина).
+// текст занял >1 строки > кнопки уходят вниз (ChatGPT). Замер стабильный (фикс. ширина).
 const composerStacked = ref(false);
 
 const isImageModel = computed(() => currentModelId.value === "gpt-image-1.5");
@@ -707,7 +707,7 @@ function toggleAttachPanel() {
 }
 
 function pickGallery() {
-  // синхронно в жесте — иначе iOS не откроет пикер
+  // синхронно в жесте - иначе iOS не откроет пикер
   galleryInput.value?.click();
   attachPanelOpen.value = false;
 }
@@ -754,7 +754,7 @@ async function onFileChange(e: Event) {
   const file = input.files?.[0];
   input.value = ""; // повторный выбор того же файла
   if (!file) return;
-  if (file.size > MAX_UPLOAD_BYTES) return; // >8 МБ — молча игнор
+  if (file.size > MAX_UPLOAD_BYTES) return; // >8 МБ - молча игнор
 
   let resized: { b64: string; dataUrl: string; w: number; h: number };
   try {
@@ -784,7 +784,7 @@ async function onFileChange(e: Event) {
   }
 }
 
-/* === Выбор модели === */
+/* Выбор модели */
 const models = computed<ModelOption[]>(() => [
   {
     id: "gpt-5.4-nano",
@@ -857,7 +857,7 @@ async function selectModel(model: ModelOption) {
   try {
     await store.setModel(model.id);
   } catch {
-    // DB save failed — rollback UI to previous selection.
+    // DB save failed - rollback UI to previous selection.
     currentModelId.value = prevId;
     selectedModel.value = prevName;
   }
@@ -876,7 +876,7 @@ function handleDocumentClick(e: MouseEvent) {
   attachPanelOpen.value = false;
 }
 
-/* === Чат === */
+/* Чат */
 const messageText = ref("");
 const chatMessages = ref<ChatMessage[]>(
   store.chatHistoryPrefetchOk ? [...store.chatHistory] : [],
@@ -885,7 +885,7 @@ const editableDiv = ref<HTMLElement | null>(null);
 const chatContent = ref<HTMLElement | null>(null);
 
 const isStreaming = computed(() => streamingBotIdx.value !== -1);
-// фото прикреплено, но ещё грузится / упало — отправку блокируем
+// фото прикреплено, но ещё грузится / упало - отправку блокируем
 const attachBlocking = computed(
   () => !!attachment.value && attachment.value.status !== "ready",
 );
@@ -895,13 +895,13 @@ const isSubmitDisabled = computed(
 );
 
 /**
- * Maps req_id → chatMessages index for bot responses initiated on ANOTHER device.
+ * Maps req_id > chatMessages index for bot responses initiated on ANOTHER device.
  * Used by multi-device type handlers to update the correct message slot.
  */
 const remoteBotSlots = new Map<string, number>();
 
-// Скрытое «зеркало» для замера высоты текста на ФИКСИРОВАННОЙ (инлайн) ширине —
-// решение «1 строка / много» не зависит от текущей раскладки → без флип-флопа.
+// Скрытое «зеркало» для замера высоты текста на ФИКСИРОВАННОЙ (инлайн) ширине -
+// решение «1 строка / много» не зависит от текущей раскладки > без флип-флопа.
 let composerMirror: HTMLDivElement | null = null;
 
 function updateComposerLayout() {
@@ -927,7 +927,7 @@ function updateComposerLayout() {
   const sendW = sendEl ? sendEl.offsetWidth : 0;
   const cs = getComputedStyle(editable);
   const editPad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) || 0;
-  // 3 колонки → всегда 2 гэпа, даже когда «+» отсутствует (gpt-image)
+  // 3 колонки > всегда 2 гэпа, даже когда «+» отсутствует (gpt-image)
   const textW = Math.max(20, rowInner - attachW - sendW - gap * 2 - editPad);
   const lh =
     cs.lineHeight === "normal"
@@ -949,7 +949,7 @@ function updateComposerLayout() {
   composerMirror.style.lineHeight = cs.lineHeight;
   composerMirror.textContent = txt;
 
-  // запас 0.5 строки — переключаемся ровно когда реально появляется 2-я строка
+  // запас 0.5 строки - переключаемся ровно когда реально появляется 2-я строка
   composerStacked.value = composerMirror.scrollHeight > lh * 1.5;
 }
 
@@ -960,7 +960,7 @@ function onInput(e: Event) {
 
 /**
  * Paste only plain text into contenteditable.
- * Uses Selection API (not deprecated execCommand) — works on iOS, Android, desktop.
+ * Uses Selection API (not deprecated execCommand) - works on iOS, Android, desktop.
  * Prevents rich-text / HTML from clipboard importing foreign font-size/family styles.
  */
 function onPaste(e: ClipboardEvent) {
@@ -982,7 +982,7 @@ function onPaste(e: ClipboardEvent) {
 }
 
 function scrollToBottom() {
-  // Hide the scroll button immediately — this is a programmatic autoscroll.
+  // Hide the scroll button immediately - this is a programmatic autoscroll.
   showScrollBtn.value = false;
   isNearBottom.value = true;
   // Do NOT set suppressScrollEvents here: on mobile/Telegram WebView, rAF can be
@@ -992,11 +992,11 @@ function scrollToBottom() {
   requestAnimationFrame(() => {
     const el = chatContent.value;
     if (!el) return;
-    // Check actual DOM position — the user may have scrolled up while this frame
+    // Check actual DOM position - the user may have scrolled up while this frame
     // was pending (isNearBottom is stale because events were not suppressed).
     const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     if (distFromBottom > 150) {
-      // User scrolled away — respect their position instead of overriding it.
+      // User scrolled away - respect their position instead of overriding it.
       isNearBottom.value = false;
       showScrollBtn.value = true;
       return;
@@ -1039,7 +1039,7 @@ function endSmoothScroll() {
 }
 
 /**
- * Smooth scroll to bottom — used by the scroll-to-bottom button.
+ * Smooth scroll to bottom - used by the scroll-to-bottom button.
  *
  * Instead of a fixed 600 ms timer (which fires mid-animation on long scrolls and makes
  * the button flicker back on), we keep the button hidden via smoothScrollActive and poll
@@ -1070,17 +1070,17 @@ function scrollToBottomSmooth() {
       return;
     }
     const dist = node.scrollHeight - node.scrollTop - node.clientHeight;
-    // Reached the bottom, or safety timeout — done.
+    // Reached the bottom, or safety timeout - done.
     if (dist < 4 || Date.now() - startedAt > 3000) {
       endSmoothScroll();
       return;
     }
-    // Moving AWAY from the bottom → the user grabbed the scroll. Respect them.
+    // Moving AWAY from the bottom > the user grabbed the scroll. Respect them.
     if (dist > lastDist + 8) {
       endSmoothScroll();
       return;
     }
-    // Position stopped changing but isn't exactly at the bottom (spacer/rounding) — settled.
+    // Position stopped changing but isn't exactly at the bottom (spacer/rounding) - settled.
     if (Math.abs(dist - lastDist) < 2) {
       if (++stable >= 3) {
         endSmoothScroll();
@@ -1100,14 +1100,14 @@ function scrollToBottomIfAtBottom() {
   if (isNearBottom.value) scrollToBottom();
 }
 
-/** Chat scroll event — tracks isNearBottom + triggers lazy-load when near top. */
+/** Chat scroll event - tracks isNearBottom + triggers lazy-load when near top. */
 function onChatScroll() {
   if (suppressScrollEvents) return;
   const el = chatContent.value;
   if (!el) return;
   const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
   isNearBottom.value = distFromBottom < 150;
-  // While a programmatic smooth scroll is animating, keep the button hidden — don't let
+  // While a programmatic smooth scroll is animating, keep the button hidden - don't let
   // intermediate frames toggle it back on (flicker fix). It's finalised in endSmoothScroll.
   if (!smoothScrollActive) {
     // Hysteresis: separate show (>120) and hide (<60) thresholds stop the button from
@@ -1119,7 +1119,7 @@ function onChatScroll() {
   savedScrollTop = el.scrollTop;
 }
 
-/* === Загрузка истории из API === */
+/* Загрузка истории из API */
 function seedReactions() {
   reactionMap.clear();
   chatMessages.value.forEach((m, i) => {
@@ -1166,7 +1166,7 @@ async function loadOlderMessages() {
     if (el) el.scrollTop = prevScrollTop + (el.scrollHeight - prevScrollHeight);
   } catch (e: unknown) {
     if (e instanceof DOMException && e.name === "AbortError") {
-      // HTTP/2 session teardown during WS reconnect — retry automatically after it settles.
+      // HTTP/2 session teardown during WS reconnect - retry automatically after it settles.
       isLoadingOlderMessages.value = false;
       await new Promise((r) => setTimeout(r, 800));
       if (hasMoreToLoad.value) loadOlderMessages();
@@ -1180,9 +1180,9 @@ async function loadOlderMessages() {
 }
 
 async function loadChatHistory(forceScroll = false) {
-  // черновик — нечего загружать, bootstrap создал бы лишний диалог
+  // черновик - нечего загружать, bootstrap создал бы лишний диалог
   if (route.params.dialogId === "new") return;
-  // Never overwrite an active stream — the spinner slots would be lost.
+  // Never overwrite an active stream - the spinner slots would be lost.
   if (streamingBotIdx.value !== -1) return;
   // If user has manually loaded older pages, skip reconnect refresh to preserve them.
   if (hasLoadedOlderPages.value && !forceScroll) return;
@@ -1191,7 +1191,7 @@ async function loadChatHistory(forceScroll = false) {
   isLoadingHistory = true;
 
   try {
-    // Уже подгружено на экране загрузки — не дублируем запросы (меньше abort / HTTP2).
+    // Уже подгружено на экране загрузки - не дублируем запросы (меньше abort / HTTP2).
     if (store.chatHistoryPrefetchOk && store.dialogId) {
       applyChatHistory([...store.chatHistory]);
       cursorIdx.value = store.chatHistoryNextCursor;
@@ -1219,11 +1219,11 @@ async function loadChatHistory(forceScroll = false) {
     if (streamingBotIdx.value === -1) {
       // Measure the REAL distance from bottom BEFORE swapping content. A background
       // refresh (e.g. first connection_ack after WS connect) must not yank a user who
-      // deliberately scrolled up even slightly — the 150px isNearBottom flag is too
+      // deliberately scrolled up even slightly - the 150px isNearBottom flag is too
       // lenient for that. Only re-pin to bottom on the initial load (forceScroll) or
       // when the user is genuinely pinned to the bottom (< 8px).
       const elBefore = chatContent.value;
-      // scrollHeight/clientHeight are 0 on a KeepAlive-detached element — treat as "not at bottom"
+      // scrollHeight/clientHeight are 0 on a KeepAlive-detached element - treat as "not at bottom"
       // to avoid spuriously scrolling the user down when they return from Settings.
       const attached = elBefore && elBefore.scrollHeight > 0;
       const wasAtBottom = attached
@@ -1244,13 +1244,13 @@ async function loadChatHistory(forceScroll = false) {
             setTimeout(() => onChatScroll(), 0);
           });
         } else {
-          // User scrolled up — preserve their position.
+          // User scrolled up - preserve their position.
           setTimeout(() => onChatScroll(), 0);
         }
       }
     }
   } catch (e: unknown) {
-    // AbortError is normal (tab navigation/close) — don't log it as an error.
+    // AbortError is normal (tab navigation/close) - don't log it as an error.
     if (e instanceof DOMException && e.name === "AbortError") return;
     console.error("Ошибка при загрузке истории чата:", e);
   } finally {
@@ -1258,7 +1258,7 @@ async function loadChatHistory(forceScroll = false) {
   }
 }
 
-/** True while switching to a known dialog — suppresses the empty "new chat" card flash. */
+/** True while switching to a known dialog - suppresses the empty "new chat" card flash. */
 const isDialogLoading = ref(false);
 
 /** Черновик: диалог не создан, появится в БД с первым сообщением. */
@@ -1278,7 +1278,7 @@ function openDraftChat() {
 async function loadDialogById(id: string) {
   if (isLoadingHistory) return;
   if (id === store.dialogId) {
-    // тот же диалог + идёт генерация — не перезагружаем
+    // тот же диалог + идёт генерация - не перезагружаем
     if (streamingBotIdx.value !== -1) return;
   } else {
     // переключение на другой диалог: бросаем незавершённую генерацию
@@ -1298,7 +1298,7 @@ async function loadDialogById(id: string) {
     cursorIdx.value = next_before_index;
     hasMoreToLoad.value = next_before_index > 0;
     hasLoadedOlderPages.value = false;
-    // активным становится открытый диалог — reload вернёт именно его
+    // активным становится открытый диалог - reload вернёт именно его
     api.activateDialog(id).catch(() => {});
     await nextTick();
     jumpToBottomSilent();
@@ -1322,7 +1322,7 @@ function maybeAutoGenerate() {
   }
 }
 
-/* === Отправка сообщения === */
+/* Отправка сообщения */
 async function sendMessage() {
   if (isStreaming.value) return;
   if (attachBlocking.value) return;
@@ -1349,7 +1349,7 @@ async function sendMessage() {
       return;
     }
   }
-  // генерация привязана к диалогу: если переключимся — UI этого диалога не трогаем
+  // генерация привязана к диалогу: если переключимся - UI этого диалога не трогаем
   const stillActive = () => store.dialogId === genDialogId;
 
   chatMessages.value.push({
@@ -1361,7 +1361,7 @@ async function sendMessage() {
     imageW: imageW ?? null,
     imageH: imageH ?? null,
   });
-  // фото уже у нас (localUrl) — скелетон не нужен (покажется только при перезагрузке истории)
+  // фото уже у нас (localUrl) - скелетон не нужен (покажется только при перезагрузке истории)
   if (imageUrl) loadedImages.add(imageUrl);
   attachment.value = null;
   attachPanelOpen.value = false;
@@ -1397,7 +1397,7 @@ async function sendMessage() {
 
   try {
     if (isImageModel) {
-      // Image generation over WebSocket: progress events → no polling, no HTTP/2 PING issue.
+      // Image generation over WebSocket: progress events > no polling, no HTTP/2 PING issue.
       const result = await wsClient.generateImage(text, store.dialogId, () => {
         // Keep the empty bot slot (spinner) during both moderation and generation.
       });
@@ -1451,9 +1451,9 @@ async function sendMessage() {
     const msg = e instanceof Error ? e.message : String(e);
     const reqId = (e as { reqId?: string }).reqId;
     if (!stillActive()) {
-      // переключились на другой диалог — результат досчитается на сервере, UI не трогаем
+      // переключились на другой диалог - результат досчитается на сервере, UI не трогаем
     } else if (msg === "network error" && reqId) {
-      // WS dropped mid-generation (text or image) — keep the spinner and wait for reconnect.
+      // WS dropped mid-generation (text or image) - keep the spinner and wait for reconnect.
       pendingReconnectReqId.value = reqId;
       pendingReconnectBotIdx.value = botIdx;
       pendingReconnectIsImage.value = isImageModel;
@@ -1510,7 +1510,7 @@ async function sendMessage() {
     clearInterval(myWatchdog);
     generationWatchdog = null;
   }
-  // дальнейшее — только для активного диалога (иначе затрём состояние другого чата)
+  // дальнейшее - только для активного диалога (иначе затрём состояние другого чата)
   if (!stillActive()) return;
   if (!pendingReconnectReqId.value) streamingBotIdx.value = -1;
   await nextTick();
@@ -1522,7 +1522,7 @@ async function sendMessage() {
 
 // последовательно: сервер допускает одну генерацию на диалог
 async function flushOutbox(): Promise<void> {
-  // не мешаем активной генерации — иначе серверный «already generating»
+  // не мешаем активной генерации - иначе серверный «already generating»
   if (flushingOutbox || !wsClient.connected || streamingBotIdx.value !== -1) return;
   if (outbox.size === 0) return;
   flushingOutbox = true;
@@ -1557,14 +1557,14 @@ async function flushOutbox(): Promise<void> {
         const m = e instanceof Error ? e.message : String(e);
         if (m === "network error") break;
         if (m === "already generating") {
-          // диалог занят — не теряем, повторим позже
+          // диалог занят - не теряем, повторим позже
           if (outbox.markAttempt(item.id) >= 8) {
             outbox.remove(item.id); // страховка от залипания
             if (open) touchedOpenDialog = true;
           }
           continue;
         }
-        // терминальная ошибка — не зацикливаемся
+        // терминальная ошибка - не зацикливаемся
         outbox.remove(item.id);
         if (open) touchedOpenDialog = true;
       }
@@ -1608,7 +1608,7 @@ watch(initialLoadDone, (done) => {
   if (done) injectPendingOutbox();
 });
 
-// markdown-стек грузится отдельным чанком (обычно уже в AppLoading) — здесь подстраховка
+// markdown-стек грузится отдельным чанком (обычно уже в AppLoading) - здесь подстраховка
 preloadMarkdown();
 
 function fallbackMd(text: string): string {
@@ -1624,10 +1624,10 @@ function renderRaw(text: string): string {
   return r !== null ? r : fallbackMd(text);
 }
 
-// кэш готовых сообщений — formatMessage не пере-парсит статичные ответы на каждый рендер
+// кэш готовых сообщений - formatMessage не пере-парсит статичные ответы на каждый рендер
 const mdCache = new Map<string, string>();
 function formatMessage(text: string): string {
-  void markdownReady.value; // реактивная зависимость — перерисовка после загрузки чанка
+  void markdownReady.value; // реактивная зависимость - перерисовка после загрузки чанка
   const hit = mdCache.get(text);
   if (hit !== undefined) return hit;
   const html = renderRaw(text);
@@ -1638,7 +1638,7 @@ function formatMessage(text: string): string {
   return html;
 }
 
-// троттлинг рендера активного стрима — тяжёлый markdown не гоняется на каждый чанк
+// троттлинг рендера активного стрима - тяжёлый markdown не гоняется на каждый чанк
 const STREAM_RENDER_MS = 70;
 const streamHtml = ref("");
 let streamRenderTs = 0;
@@ -1727,7 +1727,7 @@ function toggleMoreMenu(index: number, event: MouseEvent) {
 
 function onReaction(index: number, reaction: "like" | "dislike") {
   if (reactionMap.get(index) === reaction) {
-    reactionMap.delete(index); // toggle off — снять реакцию
+    reactionMap.delete(index); // toggle off - снять реакцию
     return;
   }
   reactionMap.set(index, reaction);
@@ -1742,13 +1742,13 @@ function onReaction(index: number, reaction: "like" | "dislike") {
 }
 
 /**
- * Universal file save — cascade of 4 strategies:
- * 1. showSaveFilePicker  → native "Save As" dialog (Chromium desktop / tdesktop)
- * 2a. navigator.share({files}) → system share sheet (iOS, Android, macOS)
+ * Universal file save - cascade of 4 strategies:
+ * 1. showSaveFilePicker  > native "Save As" dialog (Chromium desktop / tdesktop)
+ * 2a. navigator.share({files}) > system share sheet (iOS, Android, macOS)
  *     – canShare() guard removed: it returns false on Android even when share works
- * 2b. navigator.share({text}) → text-only share fallback for TXT on Android
- * 3. window.open(_blank)  → opens blob in browser tab; escapes iframe sandbox (Telegram Web)
- * 4. a.download           → traditional auto-download (emergency fallback)
+ * 2b. navigator.share({text}) > text-only share fallback for TXT on Android
+ * 3. window.open(_blank)  > opens blob in browser tab; escapes iframe sandbox (Telegram Web)
+ * 4. a.download           > traditional auto-download (emergency fallback)
  */
 
 // Minimal typings for the File System Access API (not in lib.dom.d.ts yet in all TS versions)
@@ -1767,12 +1767,12 @@ type ShowSaveFilePicker = (opts: {
 /**
  * Platform-aware universal file save.
  * Order for ALL platforms:
- *   1. showSaveFilePicker — native “Save As” dialog (Chromium: tdesktop, Chrome desktop)
- *   2. navigator.share({files}) — system share sheet (iOS, Android, macOS, Chrome Win/Mac)
- *   3. navigator.share({text}) — text-only fallback for TXT when file share is unavailable
- *   4. a.download — last resort (tdesktop fallback, some Android WebViews)
+ *   1. showSaveFilePicker - native “Save As” dialog (Chromium: tdesktop, Chrome desktop)
+ *   2. navigator.share({files}) - system share sheet (iOS, Android, macOS, Chrome Win/Mac)
+ *   3. navigator.share({text}) - text-only fallback for TXT when file share is unavailable
+ *   4. a.download - last resort (tdesktop fallback, some Android WebViews)
  *
- * window.open(blob) is intentionally NOT used — opens a raw blob URL in browser, which
+ * window.open(blob) is intentionally NOT used - opens a raw blob URL in browser, which
  * is meaningless on macOS/Android and confusing everywhere else.
  * AbortError (user dismissed) always stops the cascade immediately.
  */
@@ -1780,10 +1780,10 @@ async function saveBlob(
   blob: Blob,
   filename: string,
   pickerTypes: { description: string; accept: Record<string, string[]> }[],
-  /** Plain text — enables share({text}) fallback for TXT */
+  /** Plain text - enables share({text}) fallback for TXT */
   plainText?: string,
 ): Promise<void> {
-  // ── 1. Save As dialog (Chromium desktop, tdesktop)
+  // 1. Save As dialog (Chromium desktop, tdesktop)
   const filePicker = (
     window as Window & { showSaveFilePicker?: ShowSaveFilePicker }
   ).showSaveFilePicker;
@@ -1799,12 +1799,12 @@ async function saveBlob(
       return;
     } catch (err: unknown) {
       if ((err as Error)?.name === "AbortError") return;
-      // SecurityError (sandboxed iframe) or NotAllowedError (no gesture) — fall through
+      // SecurityError (sandboxed iframe) or NotAllowedError (no gesture) - fall through
     }
   }
 
-  // ── 2. Web Share API with files (iOS, Android, macOS, Chrome on Windows/macOS) ─────
-  // No canShare() guard — it returns false on some Android WebViews even when
+  // 2. Web Share API with files (iOS, Android, macOS, Chrome on Windows/macOS)
+  // No canShare() guard - it returns false on some Android WebViews even when
   // navigator.share({files}) actually succeeds.
   if (typeof navigator.share === "function") {
     const file = new File([blob], filename, { type: blob.type });
@@ -1813,10 +1813,10 @@ async function saveBlob(
       return;
     } catch (err: unknown) {
       if ((err as Error)?.name === "AbortError") return;
-      // TypeError / NotAllowedError: file sharing not supported — try text
+      // TypeError / NotAllowedError: file sharing not supported - try text
     }
 
-    // ── 3. Text-only share — TXT fallback (Android when file share unavailable) ───
+    // 3. Text-only share - TXT fallback (Android when file share unavailable)
     if (plainText) {
       try {
         await navigator.share({ title: filename, text: plainText });
@@ -1827,9 +1827,9 @@ async function saveBlob(
     }
   }
 
-  // ── 4. a.download — last resort
+  // 4. a.download - last resort
   // Works in tdesktop (shows Downloads panel), some Android WebViews.
-  // Blocked in sandboxed iframes (Telegram Web in browser) — acceptable
+  // Blocked in sandboxed iframes (Telegram Web in browser) - acceptable
   // since those platforms should be handled by share API above.
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1857,7 +1857,7 @@ async function exportPdf(html: string) {
   moreMenuIndex.value = null;
   const text = stripHtml(html);
 
-  // Render plain text via hidden div — all Unicode works, no HTML tags
+  // Render plain text via hidden div - all Unicode works, no HTML tags
   const el = document.createElement("div");
   el.style.cssText = [
     "position:fixed",
@@ -1982,14 +1982,14 @@ function copyToClipboard(text: string, index: number) {
   });
 }
 
-/* === Случайная обезьянка для пустого чата === */
+/* Случайная обезьянка для пустого чата */
 const emptyCardImage = ref("");
 
 let footerResizeObs: ResizeObserver | null = null;
 /** Unsubscribe callbacks for Telegram viewport signal subscriptions. */
 const viewportUnsub: Array<() => void> = [];
 
-// iOS: touch-triggered tooltip — briefly shows tooltip on tap, then removes it
+// iOS: touch-triggered tooltip - briefly shows tooltip on tap, then removes it
 let tipActiveTimer: ReturnType<typeof setTimeout> | null = null;
 function handleTipTouch(e: TouchEvent) {
   if (!document.body.classList.contains("ios-gpt")) return;
@@ -2003,27 +2003,13 @@ function handleTipTouch(e: TouchEvent) {
     .forEach((el) => el.classList.remove("tip-active"));
   if (tipActiveTimer) clearTimeout(tipActiveTimer);
   wrap.classList.add("tip-active");
-  // Remove after 700ms — enough to read, gone before next interaction
+  // Remove after 700ms - enough to read, gone before next interaction
   tipActiveTimer = setTimeout(() => {
     wrap.classList.remove("tip-active");
     tipActiveTimer = null;
   }, 700);
 }
 
-/**
- * Recompose the chat scroll layer after the Mini App is reopened from the Telegram dock.
- *
- * Root cause: on initial load we set the scroll position to the bottom PROGRAMMATICALLY
- * (jumpToBottomSilent). Telegram's mobile WebView keeps the accelerated scroll layer
- * (-webkit-overflow-scrolling: touch) "uncommitted" until a REAL scroll happens, so when
- * the app is minimised to the dock it snapshots a stale layer — reopening overlaps/stacks
- * the messages. A genuine scroll fixes it (hence: no bug once the user has scrolled).
- *
- * Fix: imitate a real scroll with a 1px nudge + forced layout, then restore the exact
- * position. All synchronous within one frame, so no intermediate paint is visible. We also
- * nudge opacity to clear any leftover stale colour tiles. Targets .chat-content only, which
- * is not an ancestor of the fixed header/footer, so nothing shifts.
- */
 function recomposeScrollLayer() {
   const node = chatContent.value;
   if (!node) return;
@@ -2042,7 +2028,7 @@ function scheduleRecompose() {
   setTimeout(recomposeScrollLayer, 250);
 }
 
-/** OS-level background→foreground (belt-and-suspenders alongside the viewport-expand hook). */
+/** OS-level background>foreground (belt-and-suspenders alongside the viewport-expand hook). */
 function handleResumeRepaint() {
   if (document.visibilityState !== "visible") return;
   scheduleRecompose();
@@ -2070,7 +2056,7 @@ onMounted(async () => {
       // While MainPage is KeepAlive-deactivated (Settings open) the footer is detached.
       // getBoundingClientRect() then returns 0, which would set --footer-height: 0px,
       // collapse the .chat-end-spacer and shrink scrollHeight by ~footer-height. On return
-      // the browser clamps the restored scrollTop to the (now lower) bottom — yanking the
+      // the browser clamps the restored scrollTop to the (now lower) bottom - yanking the
       // user down and hiding the scroll button when they were within ~spacer-height of the
       // bottom. Skip the measurement until the footer is reattached.
       if (!footerEl.isConnected) return;
@@ -2097,12 +2083,12 @@ onMounted(async () => {
 
     // The ResizeObserver only fires when the footer ELEMENT resizes. The launch gap is
     // caused by the Telegram viewport / bottom safe-area settling AFTER mount, which does
-    // not resize the footer — so the layout used to fix itself only "over time". Recompute
+    // not resize the footer - so the layout used to fix itself only "over time". Recompute
     // as soon as the stable height or bottom inset actually changes.
     try {
       viewportUnsub.push(viewport.stableHeight.sub(updateFooterHeight));
       viewportUnsub.push(viewport.safeAreaInsetBottom.sub(updateFooterHeight));
-      // Reopened from the Telegram dock → the viewport expands (isExpanded flips to true).
+      // Reopened from the Telegram dock > the viewport expands (isExpanded flips to true).
       // This is the reliable signal for dock-reopen (visibilitychange may not fire), so
       // recompose the scroll layer here to kill the stale-snapshot overlap.
       viewportUnsub.push(
@@ -2117,7 +2103,7 @@ onMounted(async () => {
         }),
       );
     } catch {
-      // Non-TMA / desktop mock env — viewport signals unavailable; ignore.
+      // Non-TMA / desktop mock env - viewport signals unavailable; ignore.
     }
   }
 
@@ -2128,10 +2114,10 @@ onMounted(async () => {
   // Proactively open WebSocket so the first message feels instant.
   wsClient.connect().catch(() => {});
 
-  // ── Multi-device sync: type handlers
+  // Multi-device sync: type handlers
   // These fire when a broadcast arrives from ANOTHER device (no matching id-handler).
 
-  // Another device sent a user message → add it + an empty bot slot.
+  // Another device sent a user message > add it + an empty bot slot.
   wsClient.setTypeHandler("user_message", (msg) => {
     // только если это сообщение из открытого сейчас диалога (иначе чужой чат)
     if ((msg.dialog_id ?? null) !== (store.dialogId ?? null)) return;
@@ -2158,16 +2144,16 @@ onMounted(async () => {
     nextTick().then(scrollToBottomIfAtBottom);
   });
 
-  // Generation is starting on another device → show loading state.
+  // Generation is starting on another device > show loading state.
   wsClient.setTypeHandler("generation_start", (msg) => {
     const botIdx = remoteBotSlots.get(msg.id as string);
     if (botIdx !== undefined) {
-      // Slot was created by user_message handler — just ensure streaming is marked.
+      // Slot was created by user_message handler - just ensure streaming is marked.
       streamingBotIdx.value = botIdx;
     }
   });
 
-  // Стрим-дельта генерации с другого устройства — живой текст в слоте.
+  // Стрим-дельта генерации с другого устройства - живой текст в слоте.
   wsClient.setTypeHandler("chat_delta", (msg) => {
     const botIdx = remoteBotSlots.get(msg.id as string);
     if (botIdx === undefined) return;
@@ -2214,7 +2200,7 @@ onMounted(async () => {
     store.setChatHistory(chatMessages.value);
   });
 
-  // Another device's image progress — keep spinner (no text change).
+  // Another device's image progress - keep spinner (no text change).
   wsClient.setTypeHandler("image_progress", () => {});
 
   // Another device's image finished.
@@ -2254,7 +2240,7 @@ onMounted(async () => {
     store.setChatHistory(chatMessages.value);
   });
 
-  // Connection lost (WebSocket closed) — reset streaming state.
+  // Connection lost (WebSocket closed) - reset streaming state.
   wsClient.setTypeHandler("connection_lost", () => {
     remoteBotSlots.clear();
     streamingBotIdx.value = -1;
@@ -2268,13 +2254,13 @@ onMounted(async () => {
     const genId = msg.generating_id as string | undefined;
     if (msg.is_generating) {
       if (genId && genId === pendingReconnectReqId.value) {
-        // Our own image generation survived the disconnect — restore the spinner slot.
+        // Our own image generation survived the disconnect - restore the spinner slot.
         remoteBotSlots.set(genId, pendingReconnectBotIdx.value);
         streamingBotIdx.value = pendingReconnectBotIdx.value;
         pendingReconnectReqId.value = null;
         pendingReconnectBotIdx.value = -1;
       } else if (streamingBotIdx.value === -1) {
-        // Another device's generation — check for an existing slot first.
+        // Another device's generation - check for an existing slot first.
         // user_message handler may have already added the pair before a WS disconnect;
         // connection_lost clears remoteBotSlots but chatMessages is still intact.
         const text = (msg.generating_text as string) ?? "";
@@ -2286,11 +2272,11 @@ onMounted(async () => {
           (!text || chatMessages.value[n - 2]?.text === text);
 
         if (existingSlot) {
-          // Reuse the existing bot slot — just restore streaming state.
+          // Reuse the existing bot slot - just restore streaming state.
           if (genId) remoteBotSlots.set(genId, n - 1);
           streamingBotIdx.value = n - 1;
         } else {
-          // First time seeing this generation — show prior history, then add slot.
+          // First time seeing this generation - show prior history, then add slot.
           if (!chatMessages.value.length && store.chatHistory.length) {
             chatMessages.value = [...store.chatHistory];
           }
@@ -2309,8 +2295,8 @@ onMounted(async () => {
     } else if (pendingReconnectReqId.value) {
       // Server says nothing is generating, but we were waiting for an image.
       // Two outcomes are possible:
-      //   A) Image was generated and saved to DB while WS was down → show from history.
-      //   B) Generation failed / never reached server        → auto-retry the request.
+      //   A) Image was generated and saved to DB while WS was down > show from history.
+      //   B) Generation failed / never reached server > auto-retry the request.
       const savedBotIdx = pendingReconnectBotIdx.value;
       // Capture the user's original prompt before clearing state (needed for retry).
       const savedText =
@@ -2335,7 +2321,7 @@ onMounted(async () => {
         store.setDialogId(dialog_id);
         const freshHistory = dialogMessagesToChat(messages ?? []);
         if (hasLoadedOlderPages.value) {
-          // User had loaded older messages — preserve them.
+          // User had loaded older messages - preserve them.
           // Keep the head of chatMessages that extends beyond the bootstrap window,
           // then replace the tail with fresh data (which contains the new exchange).
           const olderCount = Math.max(
@@ -2366,20 +2352,20 @@ onMounted(async () => {
               }
               return false;
             })
-          : true; // no prompt captured → don't retry
+          : true; // no prompt captured > don't retry
         if (!responseArrived && savedText) {
-          // Generation was lost (not in DB) — re-submit the request automatically.
+          // Generation was lost (not in DB) - re-submit the request automatically.
           messageText.value = savedText;
           if (editableDiv.value) editableDiv.value.innerText = savedText;
           sendMessage();
         }
       } catch {
-        // Network error during bootstrap — use loadChatHistory WITHOUT forceScroll so
+        // Network error during bootstrap - use loadChatHistory WITHOUT forceScroll so
         // hasLoadedOlderPages guard is respected (older messages are preserved).
         loadChatHistory();
       }
     } else if (initialLoadDone.value) {
-      // Reconnected while idle — refresh history to pick up messages from other devices.
+      // Reconnected while idle - refresh history to pick up messages from other devices.
       store.chatHistoryPrefetchOk = false;
       loadChatHistory();
     }
@@ -2392,7 +2378,7 @@ onMounted(async () => {
     return;
   }
   if (typeof routeDialogId === "string" && routeDialogId) {
-    // префетч уже загрузил этот же диалог — НЕ перезагружаем (без мерцания фото/двойной загрузки)
+    // префетч уже загрузил этот же диалог - НЕ перезагружаем (без мерцания фото/двойной загрузки)
     if (store.chatHistoryPrefetchOk && store.dialogId === routeDialogId) {
       applyChatHistory([...store.chatHistory]);
       cursorIdx.value = store.chatHistoryNextCursor;
@@ -2423,7 +2409,7 @@ watch(
   () => route.params.dialogId,
   (id) => {
     if (id === "new") {
-      // повторное «новый чат» из активного диалога — чистый черновик
+      // повторное «новый чат» из активного диалога - чистый черновик
       if (store.dialogId !== null || chatMessages.value.length) openDraftChat();
       return;
     }
@@ -2437,14 +2423,14 @@ let wasOnChat = false;
 
 onActivated(() => {
   if (!wasOnChat) return;
-  // Snapshot the target now — onChatScroll could overwrite savedScrollTop mid-restore.
+  // Snapshot the target now - onChatScroll could overwrite savedScrollTop mid-restore.
   const target = savedScrollTop;
   isReturningFromSettings.value = true;
   const restore = () => {
     const el = chatContent.value;
     if (!el) return;
     suppressScrollEvents = true;
-    // null = user never scrolled this session → land at the bottom.
+    // null = user never scrolled this session > land at the bottom.
     el.scrollTop = target ?? el.scrollHeight;
     suppressScrollEvents = false;
   };
@@ -2453,7 +2439,7 @@ onActivated(() => {
     // Re-apply after reattach paint: KeepAlive can reset scrollTop to 0 post-restore.
     requestAnimationFrame(() => {
       restore();
-      // Recalculate scroll state directly — onChatScroll's hysteresis would leave
+      // Recalculate scroll state directly - onChatScroll's hysteresis would leave
       // showScrollBtn=false (set by onDeactivated) when restoring into the 60–120px zone.
       const el = chatContent.value;
       if (el) {
@@ -2469,7 +2455,7 @@ onActivated(() => {
 
 onDeactivated(() => {
   wasOnChat = true;
-  // NOTE: do NOT read scrollTop here — KeepAlive has already detached the DOM and
+  // NOTE: do NOT read scrollTop here - KeepAlive has already detached the DOM and
   // reset it to 0. The real position is captured live in onChatScroll (savedScrollTop).
   // Hide cached scroll button before KeepAlive stores the inactive DOM snapshot.
   showScrollBtn.value = false;
@@ -2615,13 +2601,13 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
-/* === Композер (адаптив ChatGPT: инлайн → многострочие переносит кнопки вниз) === */
-/* убираем нижнюю «полку» — кнопки живут в grid */
+/* Композер (адаптив ChatGPT: инлайн > многострочие переносит кнопки вниз) */
+/* убираем нижнюю «полку» - кнопки живут в grid */
 footer .footer__input .input__text {
   padding-bottom: 0;
 }
 
-/* инлайн: [+] · текст · [↑]. minmax(0,1fr) — иначе длинный текст растягивает трек и не переносится */
+/* инлайн: [+] · текст · [↑]. minmax(0,1fr) - иначе длинный текст растягивает трек и не переносится */
 .composer-row {
   display: grid;
   grid-template-areas: "plus text send";
@@ -2646,7 +2632,7 @@ footer .footer__input .input__text {
   min-width: 0;
 }
 
-/* «+» — плоская svg, статична в grid; специфичность выше footer .footer__input button{display:none} */
+/* «+» - плоская svg, статична в grid; специфичность выше footer .footer__input button{display:none} */
 footer .footer__input .input__attach {
   grid-area: plus;
   position: static;
@@ -2670,20 +2656,20 @@ footer .footer__input .input__attach.disabled {
   pointer-events: none;
 }
 
-/* «отправить» — статична в grid справа (перебиваем глобальный absolute) */
+/* «отправить» - статична в grid справа (перебиваем глобальный absolute) */
 footer .footer__input .input__submit {
   grid-area: send;
   position: static;
   justify-self: end;
 }
 
-/* плейсхолдер — в потоке текстовой зоны, не перекрывает превью */
+/* плейсхолдер - в потоке текстовой зоны, не перекрывает превью */
 footer .input__text .input__text-placeholder {
   top: 8px;
   left: 8px;
 }
 
-/* off-screen инпут — не display:none/hidden, иначе iOS не открывает пикер */
+/* off-screen инпут - не display:none/hidden, иначе iOS не открывает пикер */
 .composer-file-input {
   position: absolute;
   width: 1px;
@@ -2825,7 +2811,7 @@ footer .input__text .input__text-placeholder {
   fill: #1c1c1c;
 }
 
-/* группа сообщения: фото + пузырь рядом (gap 4px), между группами — gap чата (18px) */
+/* группа сообщения: фото + пузырь рядом (gap 4px), между группами - gap чата (18px) */
 .msg-group {
   display: flex;
   flex-direction: column;
@@ -2840,7 +2826,7 @@ footer .input__text .input__text-placeholder {
   align-items: flex-start;
 }
 
-/* фото пользователя в ленте — целиком, без пузыря, над текстом */
+/* фото пользователя в ленте - целиком, без пузыря, над текстом */
 .user-photo {
   position: relative;
   border-radius: 14px;
@@ -2861,7 +2847,7 @@ footer .input__text .input__text-placeholder {
   cursor: pointer;
 }
 
-/* размеры известны → бокс фиксирован, картинка заполняет 1:1 (аспект совпадает — без кропа) */
+/* размеры известны > бокс фиксирован, картинка заполняет 1:1 (аспект совпадает - без кропа) */
 .user-photo--sized .user-photo-img {
   width: 100%;
   height: 100%;
@@ -2899,7 +2885,7 @@ body.dark .user-photo-skeleton {
   padding: 0;
   transition: background-color 0.15s ease;
   /* Force own GPU compositing layer so border-radius is applied from the very
-     first frame — prevents the brief "square" rendering artifact on Android. */
+     first frame - prevents the brief "square" rendering artifact on Android. */
   transform: translateZ(0);
 }
 
@@ -2932,7 +2918,7 @@ body:not(.dark) .scroll-to-bottom-btn:hover {
   transform: translateY(6px);
 }
 
-/* Bottom spacer — replaces padding-bottom on .chat-content.
+/* Bottom spacer - replaces padding-bottom on .chat-content.
    Fixes iOS Safari flex+overflow not scrolling into CSS padding area. */
 .chat-end-spacer {
   flex-shrink: 0;

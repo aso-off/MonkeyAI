@@ -34,7 +34,7 @@ class TestGetRandom:
 
     @pytest.mark.unit
     def test_none_emotion_returns_happy(self, stickers) -> None:
-        # None → happy по умолчанию
+        # None > happy по умолчанию
         result = stickers.get_random(None)
         assert result in stickers.STICKERS["happy"]
 

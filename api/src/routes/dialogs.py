@@ -99,7 +99,7 @@ async def append_exchange(
     session: AsyncSession = Depends(get_session),
     _: None = Depends(verify_service_token),
 ) -> dict:
-    """Сохраняет готовый обмен user→bot (бот-художник: промпт + URL картинки)."""
+    """Сохраняет готовый обмен user>bot (бот-художник: промпт + URL картинки)."""
     dialog_id = body.dialog_id
     if not dialog_id:
         dialog_id = await dialog_repo.ensure_active_dialog(session, user_id)

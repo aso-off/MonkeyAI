@@ -3,8 +3,8 @@
 
 Покрываем:
 - __init__: без пароля Redis, с паролем, кастомный rate
-- __call__: нет user, admin → пропуск, redis allowed → пропуск,
-            redis throttled → None, ключ содержит user_id
+- __call__: нет user, admin > пропуск, redis allowed > пропуск,
+            redis throttled > None, ключ содержит user_id
 """
 
 from typing import cast

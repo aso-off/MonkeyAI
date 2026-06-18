@@ -18,10 +18,10 @@ def resolve_lang(tg_lang: str | None) -> str:
     """Map a Telegram language_code to one of the 8 supported interface languages.
 
     Strategy:
-      1. Strip region suffix: "es-MX" → "es", "pt-BR" → "pt"
-      2. CIS languages (ru/uk/be/kk/uz/ky/tg/tk/hy/az/mo) → "ru"
-      3. Directly supported (en/de/es/fr/pl/pt/tr) → themselves
-      4. Anything else → "en"
+      1. Strip region suffix: "es-MX" > "es", "pt-BR" > "pt"
+      2. CIS languages (ru/uk/be/kk/uz/ky/tg/tk/hy/az/mo) > "ru"
+      3. Directly supported (en/de/es/fr/pl/pt/tr) > themselves
+      4. Anything else > "en"
     """
     if tg_lang:
         base = tg_lang.split("-")[0].lower()

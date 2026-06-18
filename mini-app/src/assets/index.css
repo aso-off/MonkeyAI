@@ -62,7 +62,7 @@ html.theme-anim *::after {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* iOS: :hover sticks after touch — disable it, use .tip-active instead */
+/* iOS: :hover sticks after touch - disable it, use .tip-active instead */
 .ios-gpt .btn-tip-wrap[data-tip]:hover::after {
   display: none;
 }
@@ -1019,7 +1019,7 @@ footer .input__text .input__text-placeholder.active {
   width: 100%;
   display: flex;
   flex-direction: column;
-  /* разделитель — зазор с фоном страницы, как в списке чатов */
+  /* разделитель - зазор с фоном страницы, как в списке чатов */
   gap: 2px;
 }
 
@@ -1229,7 +1229,7 @@ footer .input__text .input__text-placeholder.active {
   background-color: var(--second-bg-color)
 }
 
-/* зазор-разделитель как в списке чатов; legal-документы — сплошная карточка */
+/* зазор-разделитель как в списке чатов; legal-документы - сплошная карточка */
 .settingschange-wrapper .settingschange-container .settingschange-select:not(.legal-section) {
   background-color: transparent;
   gap: 2px;
@@ -1311,7 +1311,7 @@ a {
 
 /* Root-level background so the <html> element itself is always painted with the
    theme colour. CSS variables defined on <body> do NOT inherit up to <html>, so
-   without this the html element is transparent — and during Telegram's resume/expand
+   without this the html element is transparent - and during Telegram's resume/expand
    animation (when body's height:100% briefly doesn't cover the growing viewport) the
    transparent strip flashes the native background. Defining it here removes that flicker.
    The `dark` class is mirrored onto <html> in useTheme.applyClass(). */
@@ -2299,7 +2299,7 @@ body:not(.dark) .md-body .hljs-strong { color: #24292f; font-weight: 700; }
 body:not(.dark) .md-body .hljs-addition { color: #116329; background-color: #dafbe1; }
 body:not(.dark) .md-body .hljs-deletion { color: #82071e; background-color: #ffebe9; }
 
-/* Незакрытый блок во время стрима — обычный текст */
+/* Незакрытый блок во время стрима - обычный текст */
 .md-body .md-stream-tail { display: block; white-space: pre-wrap; word-break: break-word; }
 
 /* GitHub-callouts */

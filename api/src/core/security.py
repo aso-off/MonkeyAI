@@ -16,7 +16,7 @@ _bearer_scheme = HTTPBearer(
     auto_error=False,
     scheme_name="ServiceToken",
     description=(
-        "Internal bot→API token. Click **Authorize** and paste the value of "
+        "Internal bot>API token. Click **Authorize** and paste the value of "
         "`API_SERVICE_TOKEN` (without the `Bearer ` prefix — Swagger adds it)."
     ),
 )
@@ -25,7 +25,7 @@ _bearer_scheme = HTTPBearer(
 async def verify_service_token(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
 ) -> None:
-    """Bot → API internal calls. Authorization: Bearer <API_SERVICE_TOKEN>."""
+    """Bot > API internal calls. Authorization: Bearer <API_SERVICE_TOKEN>."""
     if not _SERVICE_TOKEN:
         return
     token = credentials.credentials if credentials else None

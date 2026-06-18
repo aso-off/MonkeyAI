@@ -251,7 +251,7 @@ class TestSettingsYamlValues:
         """admin_ids могут приходить из env как CSV-строка."""
         module, env, *_ = cfg
         uid = fake.random_int(min=100_000_000, max=999_999_999)
-        # parse_admin_ids вызывается ДО model_validator → проверяем напрямую
+        # parse_admin_ids вызывается ДО model_validator > проверяем напрямую
         result = module.Settings.parse_admin_ids(str(uid))
         assert uid in result
 
