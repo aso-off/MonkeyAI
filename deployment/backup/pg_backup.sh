@@ -40,7 +40,7 @@ if [ -n "$R2_KEY" ] && [ -n "$R2_SECRET" ]; then
     --endpoint-url "$R2_ENDPOINT" --only-show-errors || fail "R2 upload failed"
   log INFO "uploaded to R2: ${R2_BUCKET}/${NAME}.sql.gz"
 else
-  log WARN "R2 credentials missing — offsite upload skipped"
+  log WARN "R2 credentials missing - offsite upload skipped"
 fi
 
 log INFO "completed in $(( $(date +%s) - START ))s"
