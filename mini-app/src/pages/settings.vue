@@ -215,7 +215,7 @@ import termsSvg from '@/components/img/terms.svg';
 defineOptions({ name: 'SettingsPage' });
 
 const rootEl = ref<HTMLElement | null>(null);
-// Captured live on every scroll — NOT in onDeactivated, because KeepAlive detaches
+// Captured live on every scroll - NOT in onDeactivated, because KeepAlive detaches
 // the DOM and resets scrollTop to 0 before onDeactivated runs (same as MainPage).
 let savedScroll = 0;
 
@@ -316,7 +316,7 @@ onUnmounted(() => {
   if (copyTimer) clearTimeout(copyTimer);
 });
 
-// Шеринг через openTelegramLink — открывает t.me-ссылки внутри Telegram
+// Шеринг через openTelegramLink - открывает t.me-ссылки внутри Telegram
 const shareApp = () => {
   const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_LINKS.bot)}`;
   openTelegramLink(shareUrl);

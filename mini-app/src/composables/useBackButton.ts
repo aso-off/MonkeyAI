@@ -2,7 +2,7 @@ import { backButton } from '@tma.js/sdk-vue';
 import { watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-/** Map each route to its explicit parent — works correctly even after a hard reload. */
+/** Map each route to its explicit parent - works correctly even after a hard reload. */
 const PARENT_ROUTE: Record<string, string> = {
   chat: 'index',
   images: 'index',
@@ -13,10 +13,10 @@ const PARENT_ROUTE: Record<string, string> = {
   terms: 'settings',
 };
 
-/** Поддерево настроек — заходы изнутри него не перетирают origin. */
+/** Поддерево настроек - заходы изнутри него не перетирают origin. */
 const SETTINGS_SUBTREE = new Set(['settings', 'language', 'theme', 'privacy', 'terms']);
 
-/** Полный путь, откуда вошли в настройки — чтобы «назад» вернул в тот же чат (с dialogId), а не в меню. */
+/** Полный путь, откуда вошли в настройки - чтобы «назад» вернул в тот же чат (с dialogId), а не в меню. */
 let settingsOrigin: string | null = null;
 let guardRegistered = false;
 
@@ -52,7 +52,7 @@ export function useBackButton() {
   }, { immediate: true });
 
   async function onBackButtonClick(): Promise<void> {
-    // из настроек — возвращаемся туда, откуда вошли (чат с dialogId или меню)
+    // из настроек - возвращаемся туда, откуда вошли (чат с dialogId или меню)
     if (route.name === 'settings' && settingsOrigin) {
       const target = settingsOrigin;
       settingsOrigin = null;

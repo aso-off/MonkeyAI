@@ -3,7 +3,7 @@
 
 Покрываем:
 - _admin_panel_keyboard()  — builder с 5 строками кнопок
-- cmd_admin()              — admin → показывает панель, non-admin → ignore
+- cmd_admin()              — admin > показывает панель, non-admin > ignore
 - cb_admin_panel()         — callback_query "admin_panel"
 
 Faker: user IDs, language.

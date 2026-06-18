@@ -11,7 +11,7 @@ try {
   platform = lp.tgWebAppPlatform ?? 'android';
   isDark = bgColor && isRGB(bgColor) ? isColorDark(bgColor) : false;
 } catch {
-  // not in Telegram — defaults above
+  // not in Telegram - defaults above
 }
 
 const isIOS = ['macos', 'ios'].includes(platform);

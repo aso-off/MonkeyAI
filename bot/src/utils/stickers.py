@@ -53,7 +53,7 @@ class MonkeyStickers:
     }
 
     def __init__(self) -> None:
-        # chat_id → message_id промежуточного стикера
+        # chat_id > message_id промежуточного стикера
         self._processing: dict[int, int] = {}
 
     def get_random(self, emotion: str | None = None) -> str:

@@ -88,3 +88,52 @@ jobs:
           name: coverage-report-unit
           path: coverage.xml
           retention-days: 14
+
+  # Job 4: E2E (real Postgres) + Alembic migration drift check
+  e2e:
+    name: E2E + Alembic check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: monkey_test
+          POSTGRES_PASSWORD: monkey_test
+          POSTGRES_DB: monkey_test
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U monkey_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MONKEY_CONFIGS_DIR: ${{ github.workspace }}/configs
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: monkey_test
+      POSTGRES_USER: monkey_test
+      POSTGRES_PASSWORD: monkey_test
+      OPENAI_API_KEY: sk-e2e
+      TELEGRAM_TOKEN: "123456:e2e-token"
+      API_SERVICE_TOKEN: e2e-service-token
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --extra api --extra bot --group dev --no-install-project
+
+      - name: Alembic upgrade (migrations apply from scratch)
+        run: .venv/bin/alembic -c api/alembic.ini upgrade head
+
+      - name: Alembic check (no model/migration drift)
+        run: .venv/bin/alembic -c api/alembic.ini check
+
+      - name: E2E tests
+        run: .venv/bin/python -m pytest e2e/ -m e2e -q

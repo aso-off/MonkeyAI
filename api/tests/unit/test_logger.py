@@ -28,8 +28,8 @@ _LOGGER_FILE = _API_SRC / "core" / "logger.py"
 def logger_module():
     """
     Загружаем реальный logger.py, блокируя:
-    - Path.mkdir            → не создаём /app/logs
-    - TimedRotatingFileHandler → не открываем файл логов
+    - Path.mkdir            > не создаём /app/logs
+    - TimedRotatingFileHandler > не открываем файл логов
     Собираем ссылки на добавленные хэндлеры, чтобы очистить их после.
     """
     added_handlers: list[logging.Handler] = []
@@ -175,7 +175,7 @@ class TestHandleUnhandled:
         mock_hook.assert_called_once()
 
     def test_regular_exception_logs_critical(self, logger_module) -> None:
-        """Обычное исключение → logger.critical()."""
+        """Обычное исключение > logger.critical()."""
         with mock.patch.object(logger_module.logger, "critical") as mock_critical:
             try:
                 raise ValueError(fake.sentence())

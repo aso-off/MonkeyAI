@@ -42,7 +42,7 @@ function setupVisibilityListener() {
   visibilityListenerAdded = true;
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      // Foregrounded — re-establish WebSocket if it dropped while backgrounded.
+      // Foregrounded - re-establish WebSocket if it dropped while backgrounded.
       wsClient.connect().catch(() => {});
     }
   });
@@ -81,7 +81,7 @@ function onLoadingDone() {
 </template>
 
 <style scoped>
-/* Loading screen fade-out — kept very short so it's imperceptible */
+/* Loading screen fade-out - kept very short so it's imperceptible */
 .loading-fade-leave-active {
   transition: opacity 80ms ease;
   pointer-events: none;

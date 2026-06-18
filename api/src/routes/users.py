@@ -41,7 +41,7 @@ async def _redis_write_user(user: UserRead) -> None:
 
 
 _WEBAPP_PREFS_KEY_TTL = 86_400  # 24 h — mirrors webapp.py
-# Mapping from /users PATCH field names → webapp:user_prefs hash field names
+# Mapping from /users PATCH field names > webapp:user_prefs hash field names
 _BOT_TO_WEBAPP_PREFS: dict[str, str] = {
     "language": "language",
     "current_model": "current_model",
@@ -216,7 +216,7 @@ async def update_user(
     if not updates:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nothing to update")
 
-    # Get current state (Redis → DB) to build the updated object without a DB round-trip.
+    # Get current state (Redis > DB) to build the updated object without a DB round-trip.
     user = await _get_user_cached(user_id, session)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

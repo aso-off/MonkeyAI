@@ -2,7 +2,7 @@
   <div id="root" class="swipe-y-off">
     <div class="swipe-y-on scroll-area" ref="rootEl" @scroll="onScroll">
       <div class="home">
-        <!-- Шапка: аватар + имя → настройки (без фона) -->
+        <!-- Шапка: аватар + имя > настройки (без фона) -->
         <div v-ripple class="home__header interactive" @click="router.push('/settings')">
           <div class="home__avatar">
             <div v-if="!avatarLoaded" class="home__avatar-skel"></div>
@@ -30,7 +30,7 @@
           </div>
         </div>
 
-        <!-- Список: pinned + даты в одном TransitionGroup — FLIP, строки не пересоздаются -->
+        <!-- Список: pinned + даты в одном TransitionGroup - FLIP, строки не пересоздаются -->
         <template v-if="dialogs.loading && dialogs.list.length === 0 && dialogs.pinned.length === 0">
           <div class="home__skel">
             <div v-for="n in skeletonCount" :key="n" class="rec-skeleton-row">
@@ -201,7 +201,7 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString(lc, { month: 'short', day: '2-digit' });
 }
 
-// Один плоский список (заголовки + строки) — единый TransitionGroup, FLIP между секциями.
+// Один плоский список (заголовки + строки) - единый TransitionGroup, FLIP между секциями.
 type FlatRow =
   | { kind: 'header'; key: string; label: string }
   | { kind: 'dialog'; key: string; d: DialogListItem; roundTop: boolean; roundBottom: boolean };
@@ -255,7 +255,7 @@ function openChat(id: string) {
 }
 
 function newChat() {
-  // новый чат — текстовый: сбрасываем залипшую image-модель (оптимистично, не блокируем)
+  // новый чат - текстовый: сбрасываем залипшую image-модель (оптимистично, не блокируем)
   if ((IMAGE_MODELS as readonly string[]).includes(store.currentModel)) {
     store.setModel('gpt-5.4-nano').catch(() => {});
   }
@@ -263,7 +263,7 @@ function newChat() {
   router.push({ name: 'chat', params: { dialogId: 'new' } });
 }
 
-/* === Action-sheet / rename / delete / pin === */
+/* Action-sheet / rename / delete / pin */
 const sheetId = ref<string | null>(null);
 const confirmId = ref<string | null>(null);
 const editingId = ref<string | null>(null);
@@ -316,7 +316,7 @@ function startRename() {
   const id = sheetId.value;
   sheetId.value = null;
   editingId.value = id;
-  // безымянный чат — подставляем отображаемое имя (и выделяем), чтобы не начинать с 0
+  // безымянный чат - подставляем отображаемое имя (и выделяем), чтобы не начинать с 0
   const d = [...dialogs.pinned, ...dialogs.list, ...dialogs.searchResults].find(
     (x) => x.dialog_id === id,
   );
@@ -361,7 +361,7 @@ async function confirmDelete() {
 
 function onScroll() {
   const el = rootEl.value;
-  // подгружаем старые только когда не идёт активный поиск (пустой фокус — можно)
+  // подгружаем старые только когда не идёт активный поиск (пустой фокус - можно)
   if (!el || searchQuery.value.trim()) return;
   if (el.scrollHeight - el.scrollTop - el.clientHeight < 300) {
     dialogs.loadMore().catch(() => {});
@@ -449,7 +449,7 @@ onBeforeUnmount(() => {
   padding: env(safe-area-inset-top) 14px 0;
 }
 
-/* Шапка — без фона */
+/* Шапка - без фона */
 .home__header {
   display: flex;
   align-items: center;
@@ -583,7 +583,7 @@ onBeforeUnmount(() => {
   border-radius: 0;
   transition: border-radius 180ms ease;
 }
-/* разделитель — зазор с фоном страницы, без border (давал шов) */
+/* разделитель - зазор с фоном страницы, без border (давал шов) */
 .rec-row:not(.round-top) {
   margin-top: 2px;
 }
@@ -672,7 +672,7 @@ onBeforeUnmount(() => {
   width: 32%;
   height: 12px;
 }
-/* FLIP: соседи плавно съезжают, уходящая строка — под ними (absolute + z-index -1) */
+/* FLIP: соседи плавно съезжают, уходящая строка - под ними (absolute + z-index -1) */
 .rec-move {
   transition: transform 220ms ease;
 }
@@ -707,7 +707,7 @@ onBeforeUnmount(() => {
   user-select: none;
   -webkit-user-drag: none;
 }
-/* Images — полный контраст, как иконка модели в выборе */
+/* Images - полный контраст, как иконка модели в выборе */
 .icon-strong {
   filter: none;
   pointer-events: none;

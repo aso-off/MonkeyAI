@@ -1,4 +1,4 @@
-// id == WS req-id запроса — для дедупликации повторной отправки
+// id == WS req-id запроса - для дедупликации повторной отправки
 import type { ChatBody } from '@/services/api'
 
 export interface OutboxItem {
@@ -36,7 +36,7 @@ export class Outbox {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items))
     } catch {
-      // приватный режим / переполнение — очередь остаётся в памяти
+      // приватный режим / переполнение - очередь остаётся в памяти
     }
     const snapshot = this.all()
     for (const fn of this.listeners) fn(snapshot)

@@ -232,7 +232,7 @@ class _DialogIdResponse(BaseModel):
 
 
 class _BootstrapResponse(BaseModel):
-    dialog_id: str | None = None  # null → активного диалога нет, фронт показывает черновик
+    dialog_id: str | None = None  # null > активного диалога нет, фронт показывает черновик
     messages: list
     next_before_index: int = 0
 
@@ -412,7 +412,7 @@ async def get_messages_page(
 ) -> _PagedMessagesResponse:
     """Return a paginated slice of dialog messages using cursor-based pagination.
 
-    before_index=N → return up to ``limit`` messages whose array index is < N.
+    before_index=N > return up to ``limit`` messages whose array index is < N.
     Response includes ``next_before_index`` (0 = no more messages).
     """
     tg = _extract_tg_user(init_data)

@@ -221,7 +221,7 @@ services:
     volumes:
       - pg_backups:/backups
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 128m
     mem_reservation: 64m
     cpus: "0.2"
     networks:

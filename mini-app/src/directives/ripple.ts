@@ -6,7 +6,7 @@ const FADE_DURATION = 100;
 const RELEASE_RATE = 2;
 // запас, чтобы волна перекрывала края кнопки без зазоров
 const RADIUS_BUFFER = 12;
-// множитель радиуса — больше круг = площе (ровнее) дуга
+// множитель радиуса - больше круг = площе (ровнее) дуга
 const RADIUS_SCALE = 1.4;
 // страховка: не держим переход дольше, чем волна реально играет
 const CLICK_AWAIT_TIMEOUT = 500;
@@ -58,7 +58,7 @@ function spawnWave(
 function releaseWave(h: WaveHandle, waves: Set<WaveHandle>): void {
   if (h.released) return;
   h.released = true;
-  // быстрый клик — досхлопнуть расширение, затем гасить
+  // быстрый клик - досхлопнуть расширение, затем гасить
   h.expand.playbackRate = RELEASE_RATE;
 
   const remove = () => {
@@ -81,7 +81,7 @@ export const ripple: Directive<RippleEl> = {
   mounted(el) {
     if (getComputedStyle(el).position === "static")
       el.style.position = "relative";
-    // отдельный контекст наложения — волна уходит под контент (z-index: -1)
+    // отдельный контекст наложения - волна уходит под контент (z-index: -1)
     el.style.isolation = "isolate";
 
     const wrapper = document.createElement("span");
@@ -95,7 +95,7 @@ export const ripple: Directive<RippleEl> = {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      // радиус до самого дальнего угла, увеличенный — круг расходится во все стороны,
+      // радиус до самого дальнего угла, увеличенный - круг расходится во все стороны,
       // дуга площе (ровнее) на низкой кнопке
       const radius =
         (Math.max(
@@ -106,12 +106,12 @@ export const ripple: Directive<RippleEl> = {
         ) +
           RADIUS_BUFFER) *
         RADIUS_SCALE;
-      // новое нажатие гасит предыдущие волны — без стакания
+      // новое нажатие гасит предыдущие волны - без стакания
       waves.forEach((h) => releaseWave(h, waves));
       el._rippleLastWave = spawnWave(wrapper, x, y, (radius * 2) / WAVE_BASE, waves);
     };
 
-    // отпускание / клик / уход — гасим волну
+    // отпускание / клик / уход - гасим волну
     const onUp = () => {
       waves.forEach((h) => releaseWave(h, waves));
     };
@@ -124,7 +124,7 @@ export const ripple: Directive<RippleEl> = {
       }
       const handle = el._rippleLastWave;
       el._rippleLastWave = null;
-      if (!handle) return; // клик без свежей волны (клавиатура/синтетика) — пропускаем
+      if (!handle) return; // клик без свежей волны (клавиатура/синтетика) - пропуск
       if (performance.now() - handle.created > WAVE_STALE_MS) return; // висящая волна long-press
       e.preventDefault();
       e.stopImmediatePropagation();

@@ -110,7 +110,7 @@ class TestChatComplete:
 
     @pytest.mark.api
     def test_skip_moderation_bypasses_flag(self, api_client) -> None:
-        """skip_moderation=True → flagged content всё равно обрабатывается."""
+        """skip_moderation=True > flagged content всё равно обрабатывается."""
         answer = fake.paragraph()
         gpt_cls = _mock_chatgpt(answer)
 
@@ -126,7 +126,7 @@ class TestChatComplete:
 
     @pytest.mark.api
     def test_invalid_base64_image_returns_400(self, api_client) -> None:
-        # "a" — 1 символ без правильного padding → binascii.Error даже при validate=False
+        # "a" — 1 символ без правильного padding > binascii.Error даже при validate=False
         body = _chat_body(image_b64="a")
         resp = api_client.post("/chat/complete", json=body)
         assert resp.status_code == 400
@@ -266,7 +266,7 @@ class TestChatStream:
 
     @pytest.mark.api
     def test_stream_invalid_b64_image_returns_error_event(self, api_client) -> None:
-        # "a" — некорректный padding → binascii.Error
+        # "a" — некорректный padding > binascii.Error
         body = _chat_body(image_b64="a")
         resp = api_client.post("/chat/stream", json=body)
 

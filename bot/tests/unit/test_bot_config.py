@@ -2,9 +2,9 @@
 Тесты для bot/src/core/config.py.
 
 Стратегия: загружаем РЕАЛЬНЫЙ модуль через importlib, патча:
-- builtins.open          → возвращаем yaml-контент по имени файла
-- Path.glob              → для LOCALES_DIR возвращаем список yaml-путей
-- Path.exists            → возвращаем True для локальных путей
+- builtins.open          > возвращаем yaml-контент по имени файла
+- Path.glob              > для LOCALES_DIR возвращаем список yaml-путей
+- Path.exists            > возвращаем True для локальных путей
 """
 
 import importlib.util

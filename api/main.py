@@ -180,11 +180,11 @@ def create_app() -> FastAPI:
         )
 
     # Prometheus — pure ASGI, no BaseHTTPMiddleware interference.
-    # Added first → will be innermost (outermost = CORS below).
+    # Added first > will be innermost (outermost = CORS below).
     app.add_middleware(PrometheusMiddleware)
 
-    # CORS — added last → becomes outermost middleware layer.
-    # Auth is via HMAC-signed Telegram initData, not cookies → allow_origins="*" is safe.
+    # CORS — added last > becomes outermost middleware layer.
+    # Auth is via HMAC-signed Telegram initData, not cookies > allow_origins="*" is safe.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

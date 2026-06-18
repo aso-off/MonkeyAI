@@ -1,7 +1,7 @@
 """
 Image post-processing service.
 
-Converts OpenAI base64 PNG → optimised WebP in memory, then uploads to ImgBB
+Converts OpenAI base64 PNG > optimised WebP in memory, then uploads to ImgBB
 for permanent CDN hosting.  The Mini App receives a short HTTPS URL rather than
 a large inline base64 blob, which avoids Cloudflare Tunnel dropping oversized
 WebSocket frames.

@@ -7,7 +7,7 @@
     settings = get_settings()   # bot/src/core/config.py, module level
 
 попытается прочитать /app/.env и /app/configs/*.yml — файлы,
-которых нет в локальном окружении → ValidationError → ImportError.
+которых нет в локальном окружении > ValidationError > ImportError.
 """
 
 import logging
