@@ -53,7 +53,6 @@
   "lang_tr": "Türkçe",
   "message_flagged": "Mesaj moderasyon tarafından engellendi",
   "error_response": "Yanıt alınırken hata oluştu",
-  "queued_offline": "⏳ Bağlantı yok - tekrar çevrimiçi olduğunda gönderilecek",
   "not_whitelisted_title": "Erişim kısıtlı",
   "loading_init_tg": "Telegram başlatılıyor...",
   "loading_check_user": "Kullanıcı kontrol ediliyor...",
