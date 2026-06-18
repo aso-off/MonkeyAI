@@ -82,8 +82,8 @@ async def _truncate_all() -> None:
 
 
 @pytest_asyncio.fixture
-async def client(monkeypatch):
-    """Поднимает реальный API (lifespan + миграции на тестовой БД), Redis → fakeredis, OpenAI замокан."""
+async def app(monkeypatch):
+    """Реальный API: lifespan + миграции на тестовой БД, Redis → fakeredis, OpenAI замокан, чистые таблицы."""
     import core.redis as core_redis
     import fakeredis.aioredis
 
@@ -116,20 +116,26 @@ async def client(monkeypatch):
     monkeypatch.setattr(chat_routes, "ChatGPT", _FakeChatGPT)
     monkeypatch.setattr(chat_routes, "moderate_content", _no_moderation)
 
-    import httpx
     from asgi_lifespan import LifespanManager
     from main import create_app
 
-    app = create_app()
-    async with LifespanManager(app):
+    application = create_app()
+    async with LifespanManager(application):
         await _truncate_all()
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(
-            transport=transport,
-            base_url="http://e2e",
-            headers={"Authorization": f"Bearer {_SERVICE_TOKEN}"},
-        ) as http_client:
-            yield http_client
+        yield application
+
+
+@pytest_asyncio.fixture
+async def client(app):
+    import httpx
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport,
+        base_url="http://e2e",
+        headers={"Authorization": f"Bearer {_SERVICE_TOKEN}"},
+    ) as http_client:
+        yield http_client
 
 
 @pytest.fixture

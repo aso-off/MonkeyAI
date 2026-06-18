@@ -220,6 +220,17 @@ class TestUpdateUser:
             result = await ac.update_user(uid, language="en")
         assert result.language == "en"
 
+    @pytest.mark.asyncio
+    async def test_invalidates_user_cache(self) -> None:
+        from src.core import user_cache
+        from src.services import api_client as ac
+        uid = _uid()
+        user_cache.put(uid, object(), 60)
+        data = _fake_user_dict(uid)
+        with _patch_request(_resp(data)):
+            await ac.update_user(uid, current_model="gpt-4o")
+        assert user_cache.get(uid) is None
+
 # Dialogs
 
 class TestStartNewDialog:

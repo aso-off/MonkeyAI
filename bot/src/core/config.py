@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     whitelist_mode: bool = True
     allowed_user_ids: list[int] = []
     n_chat_modes_per_page: int = 5
+    user_cache_ttl_seconds: int = 45
     enable_message_streaming: bool = True
     enable_content_moderation: bool = True
     dialog_context_limit: int = 20
@@ -110,6 +111,7 @@ class Settings(BaseSettings):
         if "admin_user_ids" in user_ids_cfg:
             self.admin_ids = [int(x) for x in user_ids_cfg.get("admin_user_ids", [])]
         self.n_chat_modes_per_page       = cfg.get("n_chat_modes_per_page", self.n_chat_modes_per_page)
+        self.user_cache_ttl_seconds      = cfg.get("user_cache_ttl_seconds", self.user_cache_ttl_seconds)
         self.enable_message_streaming    = cfg.get("enable_message_streaming", self.enable_message_streaming)
         self.enable_content_moderation   = cfg.get("enable_content_moderation", self.enable_content_moderation)
         self.dialog_context_limit        = cfg.get("dialog_context_limit", self.dialog_context_limit)
