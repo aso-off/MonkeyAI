@@ -9,6 +9,7 @@ from io import BytesIO
 import httpx
 import msgspec
 
+from src.core import user_cache
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -165,6 +166,7 @@ async def get_user(user_id: int) -> UserResponse | None:
 async def update_user(user_id: int, **kwargs) -> UserResponse:
     r = await _request("PATCH", f"/users/{user_id}", json=kwargs)
     r.raise_for_status()
+    user_cache.invalidate(user_id)  # профиль изменился — кэш бота сбросить
     return _decode(r.content, UserResponse)
 
 

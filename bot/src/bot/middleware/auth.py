@@ -4,7 +4,7 @@ from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Update, User
-from src.core import auth_state
+from src.core import auth_state, user_cache
 from src.core.config import settings
 from src.services import api_client as api
 
@@ -41,18 +41,22 @@ class AuthMiddleware(BaseMiddleware):
                 logger.debug("Access denied: user_id=%d username=@%s", user.id, user.username)
                 return None
 
-        try:
-            db_user = await api.get_or_create_user(
-                user_id=user.id,
-                chat_id=_chat_id_for_user(event, user.id),
-                username=user.username or "",
-                first_name=user.first_name or "",
-                last_name=user.last_name or "",
-                language="system",
-            )
-        except Exception:
-            logger.warning("Auth: could not fetch/create user %d", user.id, exc_info=True)
-            db_user = None
+        db_user = user_cache.get(user.id)
+        if db_user is None:
+            try:
+                db_user = await api.get_or_create_user(
+                    user_id=user.id,
+                    chat_id=_chat_id_for_user(event, user.id),
+                    username=user.username or "",
+                    first_name=user.first_name or "",
+                    last_name=user.last_name or "",
+                    language="system",
+                )
+            except Exception:
+                logger.warning("Auth: could not fetch/create user %d", user.id, exc_info=True)
+                db_user = None
+            if db_user is not None:
+                user_cache.put(user.id, db_user, settings.user_cache_ttl_seconds)
 
         data["db_user"] = db_user
         return await handler(event, data)
