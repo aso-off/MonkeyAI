@@ -7,7 +7,7 @@ import pytest
 
 pytestmark = pytest.mark.e2e
 
-_BOT_DIR = str(Path(__file__).resolve().parents[1] / "bot")
+_BOT_DIR = str(Path(__file__).resolve().parents[2] / "bot")
 
 
 def _load_api_client():
