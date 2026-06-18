@@ -37,7 +37,7 @@ _TABLES = "users, user_states, user_statistics, dialogs, reactions, generated_im
 
 
 def _db_reachable() -> bool:
-    # реальное подключение тестовыми кредами к тестовой БД — TCP-проверки мало
+    # реальное подключение тестовыми кредами к тестовой БД - TCP-проверки мало
     import asyncpg
 
     async def _check() -> bool:

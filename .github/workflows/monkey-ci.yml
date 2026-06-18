@@ -241,10 +241,10 @@ jobs:
               f"**pip-audit:** {badge(not pkgs, 'clean', f'{total} advisories')}  ·  "
               f"**gitleaks:** {badge(leaks == 0, 'clean', f'{leaks} findings')}"
           )
-          out += ["", "## 🛡️ Bandit — static analysis", "", "| Severity | Count |", "|:--|--:|",
+          out += ["", "## 🛡️ Bandit - static analysis", "", "| Severity | Count |", "|:--|--:|",
                   f"| 🔴 High | {high} |", f"| 🟠 Medium | {med} |", f"| 🟡 Low | {low} |", ""]
 
-          out += ["## 📦 pip-audit — dependency advisories", ""]
+          out += ["## 📦 pip-audit - dependency advisories", ""]
           if pkgs:
               out += ["| Package | Current | CVEs | Upgrade to |", "|:--|:--|--:|:--|"]
               for name in sorted(pkgs, key=lambda n: (-len(pkgs[n]["ids"]), n)):
@@ -254,7 +254,7 @@ jobs:
               out.append("✅ No known vulnerabilities.")
           out.append("")
 
-          out += ["## 🔑 gitleaks — secret scan", "",
+          out += ["## 🔑 gitleaks - secret scan", "",
                   ("✅ No secrets detected" if leaks == 0 else f"⚠️ {leaks} potential secrets")
                   + " _(report-only)_", ""]
 

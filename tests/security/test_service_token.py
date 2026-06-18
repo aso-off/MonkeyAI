@@ -36,6 +36,6 @@ async def test_health_is_public(client):
 
 
 async def test_valid_token_passes(svc_client):
-    # 404 — это бизнес-логика, не отказ авторизации
+    # 404 - это бизнес-логика, не отказ авторизации
     r = await svc_client.get("/users/424242")
     assert r.status_code == 404

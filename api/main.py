@@ -39,7 +39,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 class PrometheusMiddleware:
-    """Pure ASGI middleware for Prometheus metrics — avoids BaseHTTPMiddleware overhead."""
+    """Pure ASGI middleware for Prometheus metrics - avoids BaseHTTPMiddleware overhead."""
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -87,7 +87,7 @@ class PrometheusMiddleware:
 async def lifespan(app: FastAPI):
     import os
     if not os.environ.get("API_SERVICE_TOKEN"):
-        raise RuntimeError("API_SERVICE_TOKEN is not set — refusing to start")
+        raise RuntimeError("API_SERVICE_TOKEN is not set - refusing to start")
 
     logger.info("API starting...")
     await init_db()
@@ -179,11 +179,11 @@ def create_app() -> FastAPI:
             headers={"Content-Length": str(len(content)), "Cache-Control": "no-store"},
         )
 
-    # Prometheus — pure ASGI, no BaseHTTPMiddleware interference.
+    # Prometheus - pure ASGI, no BaseHTTPMiddleware interference.
     # Added first > will be innermost (outermost = CORS below).
     app.add_middleware(PrometheusMiddleware)
 
-    # CORS — added last > becomes outermost middleware layer.
+    # CORS - added last > becomes outermost middleware layer.
     # Auth is via HMAC-signed Telegram initData, not cookies > allow_origins="*" is safe.
     app.add_middleware(
         CORSMiddleware,
