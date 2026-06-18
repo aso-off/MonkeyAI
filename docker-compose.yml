@@ -204,6 +204,29 @@ services:
     networks:
       - monkey_network
 
+  pg_backup:
+    build:
+      context: ./deployment/backup
+      dockerfile: Dockerfile
+    container_name: monkey_pg_backup
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+      - secrets.env
+    environment:
+      - TZ=Europe/Kaliningrad
+      - POSTGRES_HOST=postgres
+    volumes:
+      - pg_backups:/backups
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 64m
+    cpus: "0.2"
+    networks:
+      - monkey_network
+
   bot:
     image: ${DOCKERHUB_USERNAME}/monkey-bot:${BACKEND_IMAGE_TAG:-latest}
     build:
@@ -402,6 +425,7 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  pg_backups:
   prometheus_data:
   grafana_data:
   loki_data:

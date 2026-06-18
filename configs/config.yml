@@ -68,6 +68,7 @@ container_names:
   - monkey_api
   - monkey_bot
   - monkey_postgres
+  - monkey_pg_backup
   - monkey_redis
   - monkey_cloudflared
   - monkey_prometheus
