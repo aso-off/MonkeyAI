@@ -104,7 +104,7 @@ class TestSetup:
         assert logging.getLogger().level == logging.DEBUG
 
     def test_noisy_loggers_silenced(self, logger_module) -> None:
-        """openai, httpx, asyncio, sqlalchemy — должны быть WARNING или выше."""
+        """openai, httpx, asyncio, sqlalchemy - должны быть WARNING или выше."""
         for name in ("openai", "httpx", "asyncio", "sqlalchemy.engine"):
             assert logging.getLogger(name).level == logging.WARNING
 

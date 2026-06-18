@@ -36,7 +36,7 @@ _BOT_FILE = _BOT_SRC / "core" / "bot.py"
 def bot_module():
     """
     Загружаем реальный bot/src/core/bot.py через importlib.
-    Всё что может обращаться к Telegram/Redis — мокируем.
+    Всё что может обращаться к Telegram/Redis - мокируем.
     """
     import sys
 
@@ -202,7 +202,7 @@ class TestErrorHandler:
         event = MagicMock(spec=ErrorEvent)
         event.exception = exc
         event.update = MagicMock()
-        event.update.message = None  # не личный чат — пропускаем ответ
+        event.update.message = None  # не личный чат - пропускаем ответ
 
         with patch.object(bot_module.logger, "error") as mock_err:
             await bot_module.error_handler(event)

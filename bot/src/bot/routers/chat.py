@@ -23,15 +23,15 @@ from src.utils.stickers import monkey
 logger = logging.getLogger(__name__)
 router = Router()
 
-# отмена — только в своём воркере
+# отмена - только в своём воркере
 user_tasks: dict[int, asyncio.Task] = {}
 
 # распределённый лок «занят»
 _BUSY_LOCK_PREFIX = "chat:busy:"
 
-# id последнего ответа — для редактирования при /retry
+# id последнего ответа - для редактирования при /retry
 _LAST_ANSWER_PREFIX = "chat:last_answer:"
-_LAST_ANSWER_TTL = 172800  # 48ч — лимит редактирования Telegram
+_LAST_ANSWER_TTL = 172800  # 48ч - лимит редактирования Telegram
 
 _PARSE_MODE_MAP = {"html": "HTML", "markdown": "Markdown", "markdown_v2": "MarkdownV2"}
 
@@ -279,7 +279,7 @@ async def generate_image(
             reply_parameters=_reply_to(message),
         )
 
-    # чтобы работал /retry; ImgBB-URL — для галереи
+    # чтобы работал /retry; ImgBB-URL - для галереи
     saved_url = next((u for u in imgbb_urls if u), "[generated_image]")
     try:
         ensure = await api.ensure_dialog(user_id)
@@ -347,7 +347,7 @@ async def _handle_text_or_vision(
                 and rich.is_reasoning_model(current_model, settings.models)
             )
 
-            # индикатор сразу — у reasoning есть латентность, а сводка может и не прийти
+            # индикатор сразу - у reasoning есть латентность, а сводка может и не прийти
             if show_thinking:
                 try:
                     await bot.send_rich_message_draft(
@@ -474,7 +474,7 @@ async def _run_handle(
 ) -> None:
     """Acquire the distributed busy lock, store task ref, run core handler."""
     lock_key = f"{_BUSY_LOCK_PREFIX}{user_id}"
-    # TTL — страховка от зависания
+    # TTL - страховка от зависания
     acquired = await _redis().set(lock_key, "1", nx=True, ex=settings.busy_lock_ttl_seconds)
     if not acquired:
         await _reply(message, t("wait_for_previous", language))

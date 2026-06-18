@@ -2,9 +2,9 @@
 Тесты для bot/src/bot/routers/profile/settings.py.
 
 Покрываем:
-- _settings_keyboard() — структура клавиатуры
-- cmd_settings         — Message handler
-- cb_profile_settings  — CallbackQuery handler
+- _settings_keyboard() - структура клавиатуры
+- cmd_settings         - Message handler
+- cb_profile_settings  - CallbackQuery handler
 """
 
 import pytest

@@ -278,7 +278,7 @@ class TestSshBranch:
             assert settings.ssh_connection.get("hostname") == settings.ssh_hostname
 
     def test_ssh_connection_empty_without_hostname(self, bot_cfg) -> None:
-        """Без SSH_HOSTNAME — ssh_connection пустой словарь."""
+        """Без SSH_HOSTNAME - ssh_connection пустой словарь."""
         module, *_ = bot_cfg
         if not module.settings.ssh_hostname:
             assert module.settings.ssh_connection == {}

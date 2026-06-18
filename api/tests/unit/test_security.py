@@ -1,4 +1,4 @@
-"""Юнит-тесты для api/src/core/security.py — функция _verify_init_data.
+"""Юнит-тесты для api/src/core/security.py - функция _verify_init_data.
 
 Загружаем РЕАЛЬНЫЙ модуль через importlib (не stub из conftest).
 """

@@ -7,10 +7,10 @@ from aiogram.types import InputRichMessage
 _LATEX_DISPLAY_RE = re.compile(r"\\\[(.+?)\\\]", re.DOTALL)
 _LATEX_INLINE_RE = re.compile(r"\\\((.+?)\\\)", re.DOTALL)
 
-# fenced + inline код — нормализацию не трогать
+# fenced + inline код - нормализацию не трогать
 _CODE_SPAN_RE = re.compile(r"```.*?```|`[^`\n]+`", re.DOTALL)
 
-# markdown-маркеры в reasoning — показываем как обычный текст
+# markdown-маркеры в reasoning - показываем как обычный текст
 _RM_MARKDOWN_RE = re.compile(r"\*\*|__|~~|`|^\s{0,3}#{1,6}\s+", re.MULTILINE)
 
 

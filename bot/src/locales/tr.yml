@@ -19,7 +19,7 @@ tr:
     help: "❓ Yardım"
     open_mini_app: "Mini-App'i aç"
     welcome_description: "Sorularını yanıtlamak ve çeşitli görevlerde sana yardımcı olmak için oluşturulmuş akıllı bir asistanım."
-    welcome_instruction: "Gezinmek için aşağıdaki düğmeleri kullan veya bana bir mesaj gönder — yardımcı olmaya çalışacağım!"
+    welcome_instruction: "Gezinmek için aşağıdaki düğmeleri kullan veya bana bir mesaj gönder - yardımcı olmaya çalışacağım!"
     language_prompt: "Dil seç:"
     language_system: "Sistem"
     profile_error: "Profil hatası"
@@ -83,7 +83,7 @@ tr:
     artist_name: "🐒🎨 Sanatçı Monkey"
     artist_welcome: "🎨 Merhaba, ben <b>sanatsal becerilere sahip bir Monkey</b>'yim. Bana yazdığın her şeyi çizeceğim (örneğin <i>Times Square'de selfie çeken bir maymun, illüstrasyon</i>)"
     text_improver_name: "🙈📝 Copywriter Monkey"
-    text_improver_welcome: "📝 Merhaba, ben <b>metin yazarlığı becerilerine sahip bir Monkey</b>'yim. Bana herhangi bir metin gönder — geliştiririm ve tüm hataları düzeltirim."
+    text_improver_welcome: "📝 Merhaba, ben <b>metin yazarlığı becerilerine sahip bir Monkey</b>'yim. Bana herhangi bir metin gönder - geliştiririm ve tüm hataları düzeltirim."
     error_message: "Bir hata oluştu: {}"
     error_response: "Bağlantı kesildi. Lütfen tekrar dene."
 

@@ -1,4 +1,4 @@
-"""In-memory TTL-кэш профиля пользователя — срезает HTTP к API на частых сообщениях."""
+"""In-memory TTL-кэш профиля пользователя - срезает HTTP к API на частых сообщениях."""
 import time
 
 _store: dict[int, tuple[float, object]] = {}

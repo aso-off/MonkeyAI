@@ -2,10 +2,10 @@
 Тесты для bot/src/bot/routers/help.py.
 
 Покрываем:
-- _help_text()           — обычный пользователь + администратор
-- cmd_help               — Message handler
-- cb_help                — CallbackQuery handler
-- cmd_help_group_chat    — приватный чат (видео есть / нет), не-приватный чат
+- _help_text()           - обычный пользователь + администратор
+- cmd_help               - Message handler
+- cb_help                - CallbackQuery handler
+- cmd_help_group_chat    - приватный чат (видео есть / нет), не-приватный чат
 """
 
 import types

@@ -3,7 +3,7 @@
 
 Стратегия: патчим src.services.api_client._request на уровне модуля,
 возвращая mock httpx.Response с нужными status_code и content.
-Для chat_stream — мокируем get_client().stream() как async context manager.
+Для chat_stream - мокируем get_client().stream() как async context manager.
 
 Faker: user_id, имена, сообщения, model, URL, prompt, ответы.
 """

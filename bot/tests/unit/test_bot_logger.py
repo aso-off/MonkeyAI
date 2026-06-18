@@ -2,11 +2,10 @@
 Тесты для bot/src/core/logger.py.
 
 Покрываем:
-- _setup()             — настройка логгера, уровни, фильтры
-- _NoiseFilter.filter  — /webhook, /health фильтруются
-- _handle_unhandled    — KeyboardInterrupt vs обычные исключения
-- Async-функции        — log_user_action, log_api_call, log_system_event,
-                          log_exception, log_performance
+- _setup()             - настройка логгера, уровни, фильтры
+- _NoiseFilter.filter  - /webhook, /health фильтруются
+- _handle_unhandled    - KeyboardInterrupt vs обычные исключения
+- Async-функции        - log_user_action, log_api_call, log_system_event, log_exception, log_performance
 """
 
 import importlib.util

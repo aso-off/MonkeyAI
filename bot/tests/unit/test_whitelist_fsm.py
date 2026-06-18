@@ -2,9 +2,9 @@
 FSM-флоу тесты для bot/src/bot/routers/admin/whitelist.py.
 
 Покрываем строки 148-276 (ранее не покрытые):
-- cb_user_action        — все действия + суперадмин-проверка + view_list
-- cb_cancel_user_operation — сброс состояния
-- msg_user_id_input     — невалидный ID, add/remove user/admin (все ветки)
+- cb_user_action        - все действия + суперадмин-проверка + view_list
+- cb_cancel_user_operation - сброс состояния
+- msg_user_id_input     - невалидный ID, add/remove user/admin (все ветки)
 """
 
 import types
@@ -159,15 +159,15 @@ class TestCbCancelUserOperation:
             await cb_cancel_user_operation(cb, state=state, language=lang)
             state.clear.assert_awaited_once()
 
-# msg_user_id_input — невалидные ID
+# msg_user_id_input - невалидные ID
 
 class TestMsgUserIdInputValidation:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("bad_input", [
         "abc",
-        "1234567",       # 7 цифр — мало
-        "12345678901234",# 14 цифр — много
+        "1234567",       # 7 цифр - мало
+        "12345678901234",# 14 цифр - много
         "",
         "12 34567890",
     ])
@@ -179,7 +179,7 @@ class TestMsgUserIdInputValidation:
         msg.answer.assert_awaited_once()
         state.clear.assert_not_awaited()
 
-# msg_user_id_input — add_user
+# msg_user_id_input - add_user
 
 class TestMsgAddUser:
 
@@ -212,7 +212,7 @@ class TestMsgAddUser:
             await msg_user_id_input(msg, state=state, language="ru")
         msg.answer.assert_awaited_once()
 
-# msg_user_id_input — remove_user
+# msg_user_id_input - remove_user
 
 class TestMsgRemoveUser:
 
@@ -279,7 +279,7 @@ class TestMsgRemoveUser:
             await msg_user_id_input(msg, state=state, language="ru")
         msg.answer.assert_awaited_once()
 
-# msg_user_id_input — add_admin
+# msg_user_id_input - add_admin
 
 class TestMsgAddAdmin:
 
@@ -326,7 +326,7 @@ class TestMsgAddAdmin:
         msg.answer.assert_awaited_once()
         assert cfg["admin_user_ids"].count(uid) == 1
 
-# msg_user_id_input — remove_admin
+# msg_user_id_input - remove_admin
 
 class TestMsgRemoveAdmin:
 

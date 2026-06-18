@@ -60,7 +60,7 @@ async def get_or_create_user(
     try:
         await session.commit()
     except IntegrityError:
-        # Another concurrent request already inserted this user — roll back and fetch.
+        # Another concurrent request already inserted this user - roll back and fetch.
         await session.rollback()
         user = await get_user(session, user_id)
         if user is None:

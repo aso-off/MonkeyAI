@@ -31,8 +31,8 @@ def process_generated_image(b64_data: str, quality: int = 82) -> dict:
     Returns
     -------
     dict
-        ``data``    — base64-encoded WebP bytes (ASCII, no data-URI prefix),
-        ``size_kb`` — compressed size in kilobytes.
+        ``data``    - base64-encoded WebP bytes (ASCII, no data-URI prefix),
+        ``size_kb`` - compressed size in kilobytes.
     """
     if "," in b64_data:
         b64_data = b64_data.split(",", 1)[1]

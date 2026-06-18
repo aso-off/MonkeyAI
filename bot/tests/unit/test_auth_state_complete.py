@@ -2,10 +2,10 @@
 Расширенные тесты для bot/src/core/auth_state.py.
 
 Покрываем:
-- reload_sync()       — читает YAML, заполняет _admin_ids/_allowed_ids
-- reload_sync()       — обработка исключений (файл отсутствует)
-- reload()            — вызывает asyncio.to_thread(reload_sync)
-- is_allowed_cached() — Redis sismember, exists, ошибка Redis
+- reload_sync()       - читает YAML, заполняет _admin_ids/_allowed_ids
+- reload_sync()       - обработка исключений (файл отсутствует)
+- reload()            - вызывает asyncio.to_thread(reload_sync)
+- is_allowed_cached() - Redis sismember, exists, ошибка Redis
 
 Faker: user IDs, YAML-контент.
 """

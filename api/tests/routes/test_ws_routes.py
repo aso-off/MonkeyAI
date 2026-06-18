@@ -2,12 +2,12 @@
 Тесты для api/src/routes/ws.py.
 
 Покрываем:
-- GET /webapp/images/{image_id}  — image из памяти, из Redis, 404
-- _store_image()                 — декодирование, кэш памяти, Redis
-- _spawn()                       — создание background task
-- _send()                        — отправка JSON-фрейма
-- WebSocket auth flow            — auth_ok, auth_error
-- WebSocket ping/pong            — клиент отвечает на ping
+- GET /webapp/images/{image_id}  - image из памяти, из Redis, 404
+- _store_image()                 - декодирование, кэш памяти, Redis
+- _spawn()                       - создание background task
+- _send()                        - отправка JSON-фрейма
+- WebSocket auth flow            - auth_ok, auth_error
+- WebSocket ping/pong            - клиент отвечает на ping
 
 Faker: image_id, binary content, user IDs, bot tokens.
 """

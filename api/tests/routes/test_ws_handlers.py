@@ -1,5 +1,5 @@
 """
-Тесты для api/src/routes/ws.py — ранее не покрытые строки 217-529.
+Тесты для api/src/routes/ws.py - ранее не покрытые строки 217-529.
 
 Покрываем:
 - _auth_handshake:   tma-prefix, missing user, malformed user field
@@ -43,7 +43,7 @@ def _mock_session_cm():
 
     return _cm, session
 
-# _auth_handshake — edge cases
+# _auth_handshake - edge cases
 
 class TestAuthHandshakeEdgeCases:
 
@@ -120,7 +120,7 @@ class TestHeartbeat:
         ws.send_text = AsyncMock(side_effect=Exception("connection broken"))
         with patch("routes.ws._PING_INTERVAL", 0):
             await ws_mod._heartbeat(ws)
-        # Не упало — вернулось без исключения
+        # Не упало - вернулось без исключения
 
 # _generation_keepalive
 

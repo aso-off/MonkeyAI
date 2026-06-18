@@ -2,10 +2,10 @@
 Расширенные тесты для api/src/core/security.py.
 
 Покрываем:
-- verify_service_token — с токеном (match/no match), без токена
-- _verify_init_data    — valid HMAC, missing hash, missing auth_date,
+- verify_service_token - с токеном (match/no match), без токена
+- _verify_init_data    - valid HMAC, missing hash, missing auth_date,
                          expired auth_date, invalid hash
-- verify_webapp_init_data — через importlib (реальный модуль), tma prefix,
+- verify_webapp_init_data - через importlib (реальный модуль), tma prefix,
                             missing prefix, invalid initData
 
 Faker: bot_token (sha256), auth_date, user ID, произвольные строки.
@@ -60,7 +60,7 @@ class TestVerifyServiceToken:
 
     @pytest.mark.asyncio
     async def test_no_service_token_allows_all(self) -> None:
-        """Если _SERVICE_TOKEN пустой — любой запрос проходит."""
+        """Если _SERVICE_TOKEN пустой - любой запрос проходит."""
         from unittest.mock import MagicMock
 
         # Загружаем реальный модуль с пустым токеном

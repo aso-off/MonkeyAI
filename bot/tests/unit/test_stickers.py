@@ -1,4 +1,4 @@
-"""Юнит-тесты для bot/src/utils/stickers.py — класс MonkeyStickers."""
+"""Юнит-тесты для bot/src/utils/stickers.py - класс MonkeyStickers."""
 
 from unittest.mock import AsyncMock, MagicMock
 
@@ -51,7 +51,7 @@ class TestGetRandom:
 
     @pytest.mark.unit
     def test_randomness(self, stickers) -> None:
-        # happy имеет 4 стикера — за 50 вызовов должны встретиться как минимум 2 разных
+        # happy имеет 4 стикера - за 50 вызовов должны встретиться как минимум 2 разных
         results = {stickers.get_random("happy") for _ in range(50)}
         assert len(results) >= 2
 

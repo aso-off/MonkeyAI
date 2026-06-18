@@ -2,11 +2,9 @@
 Тесты для bot/src/bot/routers/admin/restart.py.
 
 Покрываем:
-- _do_restart()    — SSH успех (returncode 0), ошибка returncode, SSH exception
-- cmd_restart()    — не admin, нет SSH hostname, лок занят,
-                     нормальный флоу, ошибка сохранения в Redis
-- cb_admin_restart() — не admin, нет hostname, лок занят,
-                       нормальный флоу, ошибка edit_text (логируется)
+- _do_restart()      - SSH успех (returncode 0), ошибка returncode, SSH exception
+- cmd_restart()      - не admin, нет SSH hostname, лок занят, нормальный флоу, ошибка сохранения в Redis
+- cb_admin_restart() - не admin, нет hostname, лок занят, нормальный флоу, ошибка edit_text (логируется)
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -174,7 +172,7 @@ class TestCmdRestart:
         uid = 999_000_000
         msg = _fake_message(uid=uid)
         redis = _fake_redis()
-        # первый setex (restart_in_progress) проходит, второй (restart:chat_id) — нет
+        # первый setex (restart_in_progress) проходит, второй (restart:chat_id) - нет
         call_count = [0]
         async def _setex(*a, **kw):
             call_count[0] += 1

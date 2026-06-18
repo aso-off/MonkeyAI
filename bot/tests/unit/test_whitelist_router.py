@@ -2,12 +2,12 @@
 Тесты для bot/src/bot/routers/admin/whitelist.py.
 
 Покрываем:
-- _whitelist_keyboard(), _manage_users_keyboard(), _cancel_keyboard() — builders
-- _whitelist_text()           — формирует текст с данными YAML
-- _read_user_ids / _write_user_ids — вспомогательные функции
-- cb_admin_whitelist()        — главная точка входа whitelist
-- cb_set_access_mode()        — переключение whitelist/open
-- cb_manage_users()           — экран управления пользователями
+- _whitelist_keyboard(), _manage_users_keyboard(), _cancel_keyboard() - builders
+- _whitelist_text()           - формирует текст с данными YAML
+- _read_user_ids / _write_user_ids - вспомогательные функции
+- cb_admin_whitelist()        - главная точка входа whitelist
+- cb_set_access_mode()        - переключение whitelist/open
+- cb_manage_users()           - экран управления пользователями
 - Keyboard builders are called, callbacks answer and edit_text
 
 Faker: user IDs, language.

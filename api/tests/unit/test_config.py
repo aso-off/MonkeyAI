@@ -38,7 +38,7 @@ _BASE_YAML: dict[str, str] = {
 # Helpers
 
 def _open_mock(yaml_map: dict):
-    """builtins.open, который для .yml возвращает StringIO, иначе — реальный open."""
+    """builtins.open, который для .yml возвращает StringIO, иначе - реальный open."""
     real_open = open
 
     def _impl(path, *args, **kwargs):

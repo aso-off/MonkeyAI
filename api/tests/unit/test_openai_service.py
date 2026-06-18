@@ -1,4 +1,4 @@
-"""Юнит-тесты для api/src/services/openai.py — класс ChatGPT.
+"""Юнит-тесты для api/src/services/openai.py - класс ChatGPT.
 
 AsyncOpenAI заменён AsyncMock.
 Тестируем чистую логику: _options, _validate_mode, _build_messages.
@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-# Импортируем только то, что нужно — init_redis и реальный клиент не трогаем
+# Импортируем только то, что нужно - init_redis и реальный клиент не трогаем
 from services.openai import BASE_OPTIONS, ChatGPT, _encode_image
 
 _TEST_MODELS = {
@@ -114,7 +114,7 @@ class TestValidateMode:
 
     @pytest.mark.unit
     def test_system_prompt_key_not_a_mode(self, mock_openai, mocker) -> None:
-        # "system_prompt" — специальный ключ, не режим — должен вызывать ошибку
+        # "system_prompt" - специальный ключ, не режим - должен вызывать ошибку
         settings = types.SimpleNamespace(
             openai_api_key=types.SimpleNamespace(get_secret_value=lambda: "sk"),
             openai_api_base=None,

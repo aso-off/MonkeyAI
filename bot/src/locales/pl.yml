@@ -184,7 +184,7 @@ pl:
 
     about: "O bocie"
     about_title: "<tg-emoji emoji-id=\"5359305370709811251\">✊</tg-emoji> O bocie Monkey AI"
-    about_description: "Monkey AI to potężny asystent AI, który może ci pomóc w różnych zadaniach — od odpowiadania na pytania po generowanie obrazów i przetwarzanie tekstu."
+    about_description: "Monkey AI to potężny asystent AI, który może ci pomóc w różnych zadaniach - od odpowiadania na pytania po generowanie obrazów i przetwarzanie tekstu."
     about_capabilities: "🔹 <b>Możliwości</b>:\n• Interakcja multimodalna\n• Wysokiej jakości generowanie obrazów\n• Rozpoznawanie mowy\n• Szczegółowa analiza obrazów\n• Strumieniowe przesyłanie wiadomości w czasie rzeczywistym\n• Monitorowanie salda i zasobów\n• Spersonalizowany profil i ustawienia modeli"
     cmd_about: "Informacje o bocie i jego możliwościach"
 

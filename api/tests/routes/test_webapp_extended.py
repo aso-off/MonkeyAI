@@ -2,16 +2,16 @@
 Расширенные тесты для api/src/routes/webapp.py.
 
 Покрываем недостающие ветки:
-- _require_user()          — redis cache hit, redis miss > DB, user not found
-- _require_whitelisted()   — cached False > 403, cached True, None > DB fallback
-- GET  /webapp/me          — not-whitelisted (синтетический профиль),
+- _require_user()          - redis cache hit, redis miss > DB, user not found
+- _require_whitelisted()   - cached False > 403, cached True, None > DB fallback
+- GET  /webapp/me          - not-whitelisted (синтетический профиль),
                              redis_prefs hit (overlaid on user)
-- PATCH /webapp/me         — пустое тело (ok=True без write),
+- PATCH /webapp/me         - пустое тело (ok=True без write),
                              only model update
-- POST /webapp/chat        — image_b64 decode, image model, moderation flagged,
+- POST /webapp/chat        - image_b64 decode, image model, moderation flagged,
                              chat OK
-- POST /webapp/reactions   — success, invalid reaction
-- GET  /webapp/dialogs/messages — by dialog_id, by chat_mode, no params (by_mode)
+- POST /webapp/reactions   - success, invalid reaction
+- GET  /webapp/dialogs/messages - by dialog_id, by chat_mode, no params (by_mode)
 """
 
 import base64
@@ -166,7 +166,7 @@ class TestRequireWhitelisted:
                 await _require_whitelisted(session, fake.random_int(min=100_000, max=999_999_999))
         assert exc_info.value.status_code == 403
 
-# GET /webapp/me — дополнительные ветки
+# GET /webapp/me - дополнительные ветки
 
 class TestGetMeExtended:
 
@@ -202,7 +202,7 @@ class TestGetMeExtended:
             resp = client.get("/webapp/me")
         assert resp.status_code == 200
 
-# PATCH /webapp/me — дополнительные ветки
+# PATCH /webapp/me - дополнительные ветки
 
 class TestUpdateMeExtended:
 
@@ -356,7 +356,7 @@ class TestWebappReactions:
     @pytest.mark.api
     def test_like_reaction_returns_204(self, webapp_client, fake) -> None:
         client, tg = webapp_client
-        # Reaction импортируется внутри функции — патчим на уровне модуля
+        # Reaction импортируется внутри функции - патчим на уровне модуля
         mock_reaction_cls = MagicMock(return_value=MagicMock())
         with patch("db.models.user.Reaction", mock_reaction_cls):
             resp = client.post("/webapp/reactions", json={

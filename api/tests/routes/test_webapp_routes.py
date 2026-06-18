@@ -5,8 +5,8 @@
 В тестах подменяем эту зависимость через api_app.dependency_overrides.
 
 Покрываем:
-- GET  /webapp/me     — новый/существующий пользователь, redis-prefs, not-whitelisted
-- PATCH /webapp/me    — обновление language, model, theme, пустое тело
+- GET  /webapp/me     - новый/существующий пользователь, redis-prefs, not-whitelisted
+- PATCH /webapp/me    - обновление language, model, theme, пустое тело
 - POST /webapp/dialogs/new, /ensure, /bootstrap
 - GET  /webapp/dialogs/messages/page, /messages
 - POST /webapp/chat
@@ -346,7 +346,7 @@ class TestWebappDialogsNew:
         from fastapi import HTTPException
         client, _ = webapp_client
 
-        exc = HTTPException(status_code=403, detail="Access restricted — account not whitelisted")
+        exc = HTTPException(status_code=403, detail="Access restricted - account not whitelisted")
         with patch("routes.webapp._require_whitelisted", new=AsyncMock(side_effect=exc)):
             resp = client.post("/webapp/dialogs/new")
 

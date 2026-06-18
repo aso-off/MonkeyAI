@@ -37,7 +37,7 @@ def _setup() -> logging.Logger:
         def filter(self, record: logging.LogRecord) -> bool:
             return "/health" not in record.getMessage()
 
-    # Применяем и к root, и к uvicorn.access — uvicorn может добавить хэндлеры позже
+    # Применяем и к root, и к uvicorn.access - uvicorn может добавить хэндлеры позже
     root.addFilter(_NoHealthFilter())
     logging.getLogger("uvicorn.access").addFilter(_NoHealthFilter())
 

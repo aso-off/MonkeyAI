@@ -1,4 +1,4 @@
-"""Юнит-тесты для bot/src/utils/formatting.py — чистые функции, нет внешних зависимостей."""
+"""Юнит-тесты для bot/src/utils/formatting.py - чистые функции, нет внешних зависимостей."""
 
 from datetime import datetime
 

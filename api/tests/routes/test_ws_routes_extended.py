@@ -2,11 +2,11 @@
 Расширенные тесты для api/src/routes/ws.py.
 
 Покрываем недостающие ветки:
-- _store_image()        — eviction просроченных записей
-- get_image()           — Redis exception при memory miss
-- _broadcast()          — пустой пул, с подключениями, exclude
-- _auth_handshake()     — timeout, invalid JSON, неверный тип фрейма, успех
-- _spawn()              — задача с exception вызывает _log_exc
+- _store_image()        - eviction просроченных записей
+- get_image()           - Redis exception при memory miss
+- _broadcast()          - пустой пул, с подключениями, exclude
+- _auth_handshake()     - timeout, invalid JSON, неверный тип фрейма, успех
+- _spawn()              - задача с exception вызывает _log_exc
 """
 
 import asyncio
@@ -24,7 +24,7 @@ Faker.seed(42)
 def _fake_image_b64() -> str:
     return f"data:image/png;base64,{base64.b64encode(fake.binary(length=32)).decode()}"
 
-# _store_image — eviction
+# _store_image - eviction
 
 class TestStoreImageEviction:
 
@@ -50,7 +50,7 @@ class TestStoreImageEviction:
         ws_mod._IMAGE_STORE.pop(new_id, None)
         ws_mod._IMAGE_TS.pop(new_id, None)
 
-# get_image — Redis exception
+# get_image - Redis exception
 
 class TestGetImageRedisException:
 
@@ -181,7 +181,7 @@ class TestAuthHandshake:
     async def test_valid_auth_returns_user_id(self) -> None:
         import routes.ws as ws_mod
         uid = fake.random_int(min=100_000, max=999_999_999)
-        # _auth_handshake возвращает user_id — auth_ok отправляет сам endpoint
+        # _auth_handshake возвращает user_id - auth_ok отправляет сам endpoint
         parsed = {"user": json.dumps({"id": uid})}
         ws = AsyncMock()
         ws.receive_text = AsyncMock(return_value=json.dumps({
@@ -195,7 +195,7 @@ class TestAuthHandshake:
         # Успешный handshake не отправляет ничего сам по себе
         ws.send_text.assert_not_awaited()
 
-# _spawn — exception callback
+# _spawn - exception callback
 
 class TestSpawnException:
 
@@ -212,5 +212,5 @@ class TestSpawnException:
             # Ждём завершения задачи
             await asyncio.sleep(0.05)
 
-        # Задача завершилась с исключением — logger.exception был вызван
+        # Задача завершилась с исключением - logger.exception был вызван
         assert mock_logger.exception.called or task.done()

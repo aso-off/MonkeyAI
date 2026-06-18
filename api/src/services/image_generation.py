@@ -41,7 +41,7 @@ async def generate_image_b64(
 ) -> str:
     """
     Generate one image and return a base64 data URI (data:image/png;base64,...).
-    Used by the WebSocket endpoint — result never expires, safe to store in DB.
+    Used by the WebSocket endpoint - result never expires, safe to store in DB.
     If the model returns a URL instead of raw bytes, the image is downloaded and encoded.
     """
     client = make_client()
