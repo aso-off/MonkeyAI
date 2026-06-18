@@ -136,4 +136,4 @@ jobs:
         run: .venv/bin/alembic -c api/alembic.ini check
 
       - name: E2E tests
-        run: .venv/bin/python -m pytest e2e/ -m e2e -q
+        run: .venv/bin/python -m pytest tests/e2e/ -m e2e -q

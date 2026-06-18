@@ -54,6 +54,20 @@ dev = [
     "pytest-mock==3.14.0",
     "ruff==0.15.6",
 ]
+load = [
+    "locust==2.44.3",
+]
+security = [
+    "bandit==1.9.4",
+    "pip-audit==2.10.1",
+]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.bandit]
+exclude_dirs = [".venv", "mini-app", "api/tests", "bot/tests", "tests"]
+skips = ["B101"]
 
 [tool.coverage.run]
 branch = true
