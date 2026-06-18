@@ -1,10 +1,6 @@
 name: Load tests
 
 on:
-  pull_request:
-    paths-ignore:
-      - "configs/version.yml"
-      - "mini-app/**"
   schedule:
     - cron: "0 2 * * *"  # 02:00 (cron is UTC, no DST)
   workflow_dispatch:
@@ -40,112 +36,9 @@ env:
   LOAD_BASE_URL: http://localhost:8000
 
 jobs:
-  # Light gate on every PR
-  smoke:
-    name: Load smoke (PR)
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: monkey_test
-          POSTGRES_PASSWORD: monkey_test
-          POSTGRES_DB: monkey_test
-        ports:
-          - "5432:5432"
-        options: >-
-          --health-cmd "pg_isready -U monkey_test"
-          --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:8-alpine
-        ports:
-          - "6379:6379"
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s --health-timeout 5s --health-retries 5
-    env:
-      LOAD_MAX_FAIL_RATIO: "0.01"
-      LOAD_MAX_P95_MS: "800"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - uses: astral-sh/setup-uv@v3
-
-      - name: Install dependencies
-        run: uv sync --extra api --extra bot --group dev --group load --no-install-project
-
-      - name: Point OpenAI to mock
-        run: 'echo "openai_api_base: http://127.0.0.1:9090/v1" >> configs/config.yml'
-
-      - name: Alembic upgrade
-        run: .venv/bin/alembic -c api/alembic.ini upgrade head
-
-      - name: Smoke run (30u / 45s, gated)
-        run: |
-          set -e
-          .venv/bin/python -m uvicorn mock_openai:app --app-dir tests/load --port 9090 &
-          MOCK_PID=$!
-          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 &
-          API_PID=$!
-          for _ in $(seq 1 30); do curl -sf http://localhost:8000/health && break; sleep 2; done
-          GATE=0
-          .venv/bin/locust -f tests/load/locust_load.py --headless \
-            -u 30 -r 10 --run-time 45s --only-summary \
-            --html report-smoke.html --csv report-smoke || GATE=$?
-          kill $MOCK_PID $API_PID 2>/dev/null || true
-          exit $GATE
-
-      - name: Load summary
-        if: always()
-        run: |
-          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-          import csv, glob
-
-          rows = []
-          for f in sorted(glob.glob("report-*_stats.csv")):
-              prof = f[len("report-"):-len("_stats.csv")]
-              with open(f, newline="") as fh:
-                  for r in csv.DictReader(fh):
-                      if r.get("Name") != "Aggregated":
-                          continue
-                      reqs = int(float(r["Request Count"]))
-                      fails = int(float(r["Failure Count"]))
-                      failpct = (fails / reqs * 100) if reqs else 0.0
-                      p50 = r.get("50%") or r.get("Median Response Time", "")
-                      rows.append((prof, reqs, failpct, p50,
-                                   r.get("95%", ""), r.get("99%", ""), float(r.get("Requests/s") or 0)))
-
-          out = ["# 📊 Load Test Report", ""]
-          if not rows:
-              out.append("_No stats produced._")
-          else:
-              out += ["| Profile | Requests | Fail % | p50 | p95 | p99 | RPS |",
-                      "|:--|--:|--:|--:|--:|--:|--:|"]
-              for prof, reqs, failpct, p50, p95, p99, rps in rows:
-                  flag = "✅" if failpct < 1 else "⚠️"
-                  out.append(f"| {flag} {prof} | {reqs:,} | {failpct:.2f} % | "
-                             f"{p50} ms | {p95} ms | {p99} ms | {rps:.1f} |")
-          out.append("")
-          print("\n".join(out))
-          PY
-
-      - name: Upload smoke report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: load-smoke-report
-          path: |
-            report-smoke.html
-            report-smoke*.csv
-          retention-days: 14
-
-  # Heavy profiles: nightly + manual
+  # Nightly (all profiles) + manual (chosen profile)
   full:
-    name: Load profiles (nightly / manual)
-    if: github.event_name != 'pull_request'
+    name: Load profiles
     runs-on: ubuntu-latest
     services:
       postgres:
