@@ -1489,7 +1489,7 @@ async function sendMessage() {
       chatMessages.value[botIdx] = {
         type: "bot",
         contentType: "text",
-        text: t("queued_offline"),
+        text: "",
       };
     } else if (msg === "flagged") {
       chatMessages.value[botIdx] = {
@@ -1595,7 +1595,7 @@ function injectPendingOutbox(): void {
       imageUrl: item.body.image_url ?? null,
       localUrl: item.localUrl ?? null,
     });
-    chatMessages.value.push({ type: "bot", contentType: "text", text: t("queued_offline") });
+    chatMessages.value.push({ type: "bot", contentType: "text", text: "" });
     added = true;
   }
   if (added) {
