@@ -191,7 +191,7 @@ jobs:
       - name: Security summary
         if: always()
         run: |
-          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          .venv/bin/python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json, pathlib
 
           def load(p):
@@ -199,6 +199,16 @@ jobs:
                   return json.loads(pathlib.Path(p).read_text())
               except Exception:
                   return None
+
+          def best_fix(fixes):
+              vals = [f for f in fixes if f]
+              if not vals:
+                  return "-"
+              try:
+                  from packaging.version import parse
+                  return max(vals, key=parse)
+              except Exception:
+                  return " / ".join(sorted(vals))
 
           b, pa, g = load("bandit.json"), load("pip-audit.json"), load("gitleaks.sarif")
 
@@ -215,9 +225,10 @@ jobs:
               vs = d.get("vulns", [])
               if not vs:
                   continue
-              p = pkgs.setdefault(d["name"], {"version": d["version"], "ids": set()})
+              p = pkgs.setdefault(d["name"], {"version": d["version"], "ids": set(), "fixes": set()})
               for v in vs:
                   p["ids"].add(v["id"])
+                  p["fixes"].update(v.get("fix_versions") or [])
           total = sum(len(p["ids"]) for p in pkgs.values())
           leaks = len(g.get("runs", [{}])[0].get("results", [])) if g else 0
 
@@ -235,10 +246,10 @@ jobs:
 
           out += ["## 📦 pip-audit — dependency advisories", ""]
           if pkgs:
-              out += ["| Package | Current | CVEs |", "|:--|:--|--:|"]
+              out += ["| Package | Current | CVEs | Upgrade to |", "|:--|:--|--:|:--|"]
               for name in sorted(pkgs, key=lambda n: (-len(pkgs[n]["ids"]), n)):
                   p = pkgs[name]
-                  out.append(f"| `{name}` | {p['version']} | {len(p['ids'])} |")
+                  out.append(f"| `{name}` | {p['version']} | {len(p['ids'])} | {best_fix(p['fixes'])} |")
           else:
               out.append("✅ No known vulnerabilities.")
           out.append("")
