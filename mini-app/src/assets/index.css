@@ -1898,7 +1898,10 @@ body {
 }
 
 @media (max-width: 600px) {
-  .message {
+  .bot-message {
+    max-width: 100%;
+  }
+  .user-message {
     max-width: 80%;
   }
 }
