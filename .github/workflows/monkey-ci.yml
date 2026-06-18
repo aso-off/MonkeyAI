@@ -137,3 +137,126 @@ jobs:
 
       - name: E2E tests
         run: .venv/bin/python -m pytest tests/e2e/ -m e2e -q
+
+      - name: Security tests (auth / IDOR / leaks)
+        run: .venv/bin/python -m pytest tests/security/ -m security -q --junitxml=security-junit.xml
+
+      - name: Upload security test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-tests-junit
+          path: security-junit.xml
+          retention-days: 14
+
+  # Job 5: SAST + dependency audit
+  security:
+    name: SAST (Bandit + pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --extra api --extra bot --group dev --group security --no-install-project
+
+      - name: Bandit report
+        run: .venv/bin/bandit -r api/src bot/src -c pyproject.toml -f json -o bandit.json || true
+
+      - name: Bandit gate (fail on HIGH)
+        run: .venv/bin/bandit -r api/src bot/src -c pyproject.toml --severity-level high
+
+      - name: Export dependencies
+        run: >-
+          uv export --frozen --no-emit-project --no-hashes
+          --extra api --extra bot
+          --format requirements-txt -o requirements-audit.txt
+
+      - name: pip-audit (report-only)
+        run: |
+          .venv/bin/pip-audit -r requirements-audit.txt -f json -o pip-audit.json || true
+          .venv/bin/pip-audit -r requirements-audit.txt || true
+
+      - name: gitleaks secret scan (report-only)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest detect \
+            --source /repo --redact --no-banner \
+            --report-format sarif --report-path /repo/gitleaks.sarif --exit-code 0
+
+      - name: Security summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+
+          def load(p):
+              try:
+                  return json.loads(pathlib.Path(p).read_text())
+              except Exception:
+                  return None
+
+          b, pa, g = load("bandit.json"), load("pip-audit.json"), load("gitleaks.sarif")
+
+          high = med = low = 0
+          if b:
+              t = b.get("metrics", {}).get("_totals", {})
+              high = int(t.get("SEVERITY.HIGH", 0))
+              med = int(t.get("SEVERITY.MEDIUM", 0))
+              low = int(t.get("SEVERITY.LOW", 0))
+
+          deps = pa.get("dependencies", []) if isinstance(pa, dict) else (pa or [])
+          pkgs = {}
+          for d in deps:
+              vs = d.get("vulns", [])
+              if not vs:
+                  continue
+              p = pkgs.setdefault(d["name"], {"version": d["version"], "ids": set()})
+              for v in vs:
+                  p["ids"].add(v["id"])
+          total = sum(len(p["ids"]) for p in pkgs.values())
+          leaks = len(g.get("runs", [{}])[0].get("results", [])) if g else 0
+
+          def badge(ok, ok_txt, bad_txt):
+              return f"✅ {ok_txt}" if ok else f"⚠️ {bad_txt}"
+
+          out = ["# 🔒 Security Report", ""]
+          out.append(
+              f"**Bandit:** {badge(high == 0, 'no HIGH', f'{high} HIGH')}  ·  "
+              f"**pip-audit:** {badge(not pkgs, 'clean', f'{total} advisories')}  ·  "
+              f"**gitleaks:** {badge(leaks == 0, 'clean', f'{leaks} findings')}"
+          )
+          out += ["", "## 🛡️ Bandit — static analysis", "", "| Severity | Count |", "|:--|--:|",
+                  f"| 🔴 High | {high} |", f"| 🟠 Medium | {med} |", f"| 🟡 Low | {low} |", ""]
+
+          out += ["## 📦 pip-audit — dependency advisories", ""]
+          if pkgs:
+              out += ["| Package | Current | CVEs |", "|:--|:--|--:|"]
+              for name in sorted(pkgs, key=lambda n: (-len(pkgs[n]["ids"]), n)):
+                  p = pkgs[name]
+                  out.append(f"| `{name}` | {p['version']} | {len(p['ids'])} |")
+          else:
+              out.append("✅ No known vulnerabilities.")
+          out.append("")
+
+          out += ["## 🔑 gitleaks — secret scan", "",
+                  ("✅ No secrets detected" if leaks == 0 else f"⚠️ {leaks} potential secrets")
+                  + " _(report-only)_", ""]
+
+          print("\n".join(out))
+          PY
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            bandit.json
+            pip-audit.json
+            gitleaks.sarif
+          retention-days: 14
