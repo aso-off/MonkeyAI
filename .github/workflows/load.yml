@@ -85,7 +85,7 @@ jobs:
           mkdir -p logs
           .venv/bin/python -m uvicorn mock_openai:app --app-dir tests/load --port 9090 > logs/mock.log 2>&1 &
           MOCK_PID=$!
-          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 > logs/api-server.log 2>&1 &
+          PYTHONPATH=api/src .venv/bin/python -u -m uvicorn main:app --app-dir api --port 8000 > logs/api-server.log 2>&1 &
           API_PID=$!
           UP=0
           for _ in $(seq 1 30); do curl -sf http://localhost:8000/health >/dev/null && { UP=1; break; }; sleep 2; done
@@ -100,8 +100,10 @@ jobs:
             -H "Authorization: Bearer ${API_SERVICE_TOKEN}" -H "Content-Type: application/json" \
             -d '{"user_id":12345,"message":"hi","model":"gpt-5.4-nano","chat_mode":"assistant"}' \
             -w '\nHTTP_CODE=%{http_code}\n'
-          echo "--- api.log (app logger — has traceback) ---"
+          echo "--- api.log ---"
           cat logs/api.log 2>/dev/null || true
+          echo "--- api-server.log (uvicorn stderr, unbuffered — traceback here) ---"
+          cat logs/api-server.log 2>/dev/null || true
           echo "::endgroup::"
 
           if [ "${{ github.event.inputs.profile }}" = "all" ]; then
