@@ -9,6 +9,9 @@ concurrency:
   group: mini-app-deploy-${{ github.ref_name }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest

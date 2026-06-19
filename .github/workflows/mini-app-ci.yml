@@ -13,6 +13,9 @@ concurrency:
   group: mini-app-ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Type-check · Lint · Test · Build
