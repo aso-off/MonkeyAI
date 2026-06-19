@@ -3,7 +3,7 @@
 
 Покрываем:
 - _whitelist_keyboard(), _manage_users_keyboard(), _cancel_keyboard() - builders
-- _whitelist_text()           - формирует текст с данными YAML
+- _whitelist_md()           - формирует текст с данными YAML
 - _read_user_ids / _write_user_ids - вспомогательные функции
 - cb_admin_whitelist()        - главная точка входа whitelist
 - cb_set_access_mode()        - переключение whitelist/open
@@ -79,34 +79,34 @@ class TestKeyboardBuilders:
             assert _manage_users_keyboard(lang) is not None
             assert _cancel_keyboard(lang) is not None
 
-# _whitelist_text
+# _whitelist_md
 
 class TestWhitelistText:
 
     @pytest.mark.asyncio
     async def test_returns_non_empty_string(self) -> None:
-        from src.bot.routers.admin.whitelist import _whitelist_text
+        from src.bot.routers.admin.whitelist import _whitelist_md
         yaml_data = _mock_yaml_data(admin_ids=[_uid()], allowed_ids=[_uid()])
 
         with patch("src.bot.routers.admin.whitelist._load_user_ids",
                    new=AsyncMock(return_value=yaml_data)), \
              patch("src.bot.routers.admin.whitelist.settings") as mock_settings:
             mock_settings.whitelist_mode = True
-            text = await _whitelist_text("ru")
+            text = await _whitelist_md("ru")
 
         assert isinstance(text, str)
         assert len(text) > 0
 
     @pytest.mark.asyncio
     async def test_shows_open_mode_text_when_open(self) -> None:
-        from src.bot.routers.admin.whitelist import _whitelist_text
+        from src.bot.routers.admin.whitelist import _whitelist_md
         yaml_data = _mock_yaml_data()
 
         with patch("src.bot.routers.admin.whitelist._load_user_ids",
                    new=AsyncMock(return_value=yaml_data)), \
              patch("src.bot.routers.admin.whitelist.settings") as mock_settings:
             mock_settings.whitelist_mode = False
-            text = await _whitelist_text("en")
+            text = await _whitelist_md("en")
 
         assert isinstance(text, str)
 
@@ -157,7 +157,7 @@ class TestCbAdminWhitelist:
 
         with patch("src.bot.routers.admin.whitelist.require_admin",
                    new=AsyncMock(return_value=True)), \
-             patch("src.bot.routers.admin.whitelist._whitelist_text",
+             patch("src.bot.routers.admin.whitelist._whitelist_md",
                    new=AsyncMock(return_value="whitelist text")), \
              patch("src.bot.routers.admin.whitelist.settings") as mock_settings:
             mock_settings.whitelist_mode = True
@@ -191,7 +191,7 @@ class TestCbSetAccessMode:
 
         with patch("src.bot.routers.admin.whitelist.require_admin",
                    new=AsyncMock(return_value=True)), \
-             patch("src.bot.routers.admin.whitelist._whitelist_text",
+             patch("src.bot.routers.admin.whitelist._whitelist_md",
                    new=AsyncMock(return_value="text")), \
              patch("src.bot.routers.admin.whitelist.settings") as mock_settings:
             mock_settings.whitelist_mode = False
@@ -207,7 +207,7 @@ class TestCbSetAccessMode:
 
         with patch("src.bot.routers.admin.whitelist.require_admin",
                    new=AsyncMock(return_value=True)), \
-             patch("src.bot.routers.admin.whitelist._whitelist_text",
+             patch("src.bot.routers.admin.whitelist._whitelist_md",
                    new=AsyncMock(return_value="text")), \
              patch("src.bot.routers.admin.whitelist.settings") as mock_settings:
             mock_settings.whitelist_mode = True

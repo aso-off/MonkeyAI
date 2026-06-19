@@ -3,7 +3,7 @@
 
 Покрываем:
 - _model_keyboard()   - пустые модели, с моделями, текущая модель отмечена ✅
-- _model_text()       - со scores, без scores
+- _model_md()       - со scores, без scores
 - cmd_model()         - db_user=None, модель в списке, модель не в списке
 - cb_profile_model()  - те же ветки через callback
 - cb_set_model()      - модель недоступна, db_user=None, та же модель, смена модели
@@ -103,12 +103,12 @@ class TestModelKeyboard:
         labels = [btn.text for row in kb.inline_keyboard for btn in row]
         assert not any("unknown" in l.lower() for l in labels)
 
-# _model_text
+# _model_md
 
 class TestModelText:
 
     def test_with_scores_builds_star_lines(self) -> None:
-        from src.bot.routers.profile.model import _model_text
+        from src.bot.routers.profile.model import _model_md
         with patch("src.bot.routers.profile.model.settings") as mock_s, \
              patch("src.bot.routers.profile.model.t", return_value=""):
             mock_s.models = {
@@ -118,15 +118,15 @@ class TestModelText:
                     }
                 }
             }
-            text = _model_text("ru", "gpt-4o")
+            text = _model_md("ru", "gpt-4o")
         assert "🟢" in text
 
     def test_without_scores_returns_text_without_stars(self) -> None:
-        from src.bot.routers.profile.model import _model_text
+        from src.bot.routers.profile.model import _model_md
         with patch("src.bot.routers.profile.model.settings") as mock_s, \
              patch("src.bot.routers.profile.model.t", return_value=""):
             mock_s.models = {"info": {"gpt-4o": {}}}
-            text = _model_text("ru", "gpt-4o")
+            text = _model_md("ru", "gpt-4o")
         assert "🟢" not in text
 
 # cmd_model

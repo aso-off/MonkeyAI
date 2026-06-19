@@ -43,6 +43,8 @@ def _make_fake_settings() -> types.SimpleNamespace:
         user_cache_ttl_seconds=45,
         enable_message_streaming=True,
         enable_content_moderation=True,
+        enable_rich_messages=False,
+        rich_message_max_length=32768,
         dialog_context_limit=20,
         message_max_length=4096,
         draft_throttle_seconds=0.4,

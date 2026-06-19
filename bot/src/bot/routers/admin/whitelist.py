@@ -12,6 +12,7 @@ from src.bot.states.admin import WhitelistStates
 from src.core import auth_state
 from src.core.config import settings
 from src.services import api_client as api
+from src.utils import rich_panel as rp
 from src.utils.admin import require_admin
 from src.utils.localization import t
 
@@ -22,6 +23,7 @@ USER_IDS_PATH = Path("/app/configs/user-ids.yml")
 _SUPERADMIN_ID = settings.admin_ids[0] if settings.admin_ids else None
 
 # Async file helpers (run in thread to avoid blocking the event loop)
+
 
 def _read_user_ids() -> dict:
     if USER_IDS_PATH.exists():
@@ -43,64 +45,131 @@ async def _load_user_ids() -> dict:
 async def _save_user_ids(data: dict) -> None:
     await asyncio.to_thread(_write_user_ids, data)
 
+
 # Keyboard / text builders
 
+
 def _whitelist_keyboard(lang: str, wl: bool) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-            text=t("whitelist_mode", lang) + (" ✅" if wl else ""),
-            callback_data="set_access_mode|whitelist",
-            icon_custom_emoji_id="5778570255555105942",
-        )],
-        [InlineKeyboardButton(
-            text=t("open_mode", lang) + (" ✅" if not wl else ""),
-            callback_data="set_access_mode|open",
-            icon_custom_emoji_id="6037496202990194718",
-        )],
-        [InlineKeyboardButton(text=t("manage_users", lang), callback_data="manage_users", style="primary", icon_custom_emoji_id="6032609071373226027")],
-        [InlineKeyboardButton(text=t("back_to_admin", lang), callback_data="admin_panel", icon_custom_emoji_id="5960671702059848143")],
-    ])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=t("whitelist_mode", lang) + (" ✅" if wl else ""),
+                    callback_data="set_access_mode|whitelist",
+                    icon_custom_emoji_id="5778570255555105942",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("open_mode", lang) + (" ✅" if not wl else ""),
+                    callback_data="set_access_mode|open",
+                    icon_custom_emoji_id="6037496202990194718",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("manage_users", lang),
+                    callback_data="manage_users",
+                    style="primary",
+                    icon_custom_emoji_id="6032609071373226027",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("back_to_admin", lang),
+                    callback_data="admin_panel",
+                    icon_custom_emoji_id="5960671702059848143",
+                )
+            ],
+        ]
+    )
 
 
-async def _whitelist_text(lang: str) -> str:
+async def _whitelist_md(lang: str) -> str:
     data = await _load_user_ids()
     admin_count = len(data.get("admin_user_ids", []))
     allowed_count = len(data.get("allowed_user_ids", []))
     wl = settings.whitelist_mode
     current_mode = t("mode_whitelist", lang) if wl else t("mode_open", lang)
     description = t("whitelist_mode_description" if wl else "open_mode_description", lang)
-    return (
-        f"{t('whitelist_management_title', lang)}\n\n"
-        f"{t('current_access_mode', lang)} {current_mode}\n\n"
-        f"{t('whitelist_stats', lang).format(admin_count, allowed_count)}\n\n"
-        f"{description}"
+    return rp.join(
+        rp.heading(t("whitelist_management_title", lang), 2),
+        rp.kv(t("current_access_mode", lang), rp.bold(current_mode)),
+        t("whitelist_stats", lang).format(admin_count, allowed_count),
+        rp.divider(),
+        description,
     )
 
 
 def _manage_users_keyboard(lang: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text=t("add_allowed_user", lang), callback_data="user_action|add_user", style="primary", icon_custom_emoji_id="5774022692642492953"),
-            InlineKeyboardButton(text=t("remove_allowed_user", lang), callback_data="user_action|remove_user", style="primary", icon_custom_emoji_id="5774077015388852135"),
-        ],
-        [
-            InlineKeyboardButton(text=t("add_admin", lang), callback_data="user_action|add_admin", style="primary", icon_custom_emoji_id="6033108709213736873"),
-            InlineKeyboardButton(text=t("remove_admin", lang), callback_data="user_action|remove_admin", style="primary", icon_custom_emoji_id="6039522349517115015"),
-        ],
-        [InlineKeyboardButton(text=t("view_users_list", lang), callback_data="user_action|view_list", style="primary", icon_custom_emoji_id="6034969813032374911")],
-        [InlineKeyboardButton(text=t("back_to_whitelist", lang), callback_data="admin_whitelist", icon_custom_emoji_id="5960671702059848143")],
-    ])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=t("add_allowed_user", lang),
+                    callback_data="user_action|add_user",
+                    style="primary",
+                    icon_custom_emoji_id="5774022692642492953",
+                ),
+                InlineKeyboardButton(
+                    text=t("remove_allowed_user", lang),
+                    callback_data="user_action|remove_user",
+                    style="primary",
+                    icon_custom_emoji_id="5774077015388852135",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("add_admin", lang),
+                    callback_data="user_action|add_admin",
+                    style="primary",
+                    icon_custom_emoji_id="6033108709213736873",
+                ),
+                InlineKeyboardButton(
+                    text=t("remove_admin", lang),
+                    callback_data="user_action|remove_admin",
+                    style="primary",
+                    icon_custom_emoji_id="6039522349517115015",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("view_users_list", lang),
+                    callback_data="user_action|view_list",
+                    style="primary",
+                    icon_custom_emoji_id="6034969813032374911",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("back_to_whitelist", lang),
+                    callback_data="admin_whitelist",
+                    icon_custom_emoji_id="5960671702059848143",
+                )
+            ],
+        ]
+    )
 
 
 def _cancel_keyboard(lang: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=t("cancel_operation", lang), callback_data="cancel_user_operation", style="danger", icon_custom_emoji_id="5774077015388852135")]
-    ])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=t("cancel_operation", lang),
+                    callback_data="cancel_user_operation",
+                    style="danger",
+                    icon_custom_emoji_id="5774077015388852135",
+                )
+            ]
+        ]
+    )
 
 
 # ---------------------------------------------------------------------------
 # Callbacks
 # ---------------------------------------------------------------------------
+
 
 @router.callback_query(F.data == "admin_whitelist", StateFilter("*"))
 async def cb_admin_whitelist(query: CallbackQuery, state: FSMContext, language: str, db_user=None) -> None:
@@ -110,8 +179,8 @@ async def cb_admin_whitelist(query: CallbackQuery, state: FSMContext, language: 
     await query.answer()
     if not isinstance(query.message, Message):
         return
-    text = await _whitelist_text(language)
-    await query.message.edit_text(text, reply_markup=_whitelist_keyboard(language, settings.whitelist_mode))
+    md = await _whitelist_md(language)
+    await rp.edit_panel(query.message, md, reply_markup=_whitelist_keyboard(language, settings.whitelist_mode))
 
 
 @router.callback_query(F.data.startswith("set_access_mode|"), StateFilter("*"))
@@ -128,8 +197,8 @@ async def cb_set_access_mode(query: CallbackQuery, language: str, db_user=None) 
 
     mode_text = t("mode_whitelist" if is_whitelist else "mode_open", language)
     await query.answer(t("access_mode_changed", language).format(mode_text), show_alert=True)
-    text = await _whitelist_text(language)
-    await query.message.edit_text(text, reply_markup=_whitelist_keyboard(language, is_whitelist))
+    md = await _whitelist_md(language)
+    await rp.edit_panel(query.message, md, reply_markup=_whitelist_keyboard(language, is_whitelist))
 
 
 @router.callback_query(F.data == "manage_users", StateFilter("*"))
@@ -140,7 +209,11 @@ async def cb_manage_users(query: CallbackQuery, state: FSMContext, language: str
     await query.answer()
     if not isinstance(query.message, Message):
         return
-    await query.message.edit_text(t("user_management_title", language), reply_markup=_manage_users_keyboard(language))
+    await rp.edit_panel(
+        query.message,
+        rp.heading(t("user_management_title", language), 2),
+        reply_markup=_manage_users_keyboard(language),
+    )
 
 
 @router.callback_query(F.data.startswith("user_action|"), StateFilter("*"))
@@ -160,18 +233,28 @@ async def cb_user_action(query: CallbackQuery, state: FSMContext, language: str,
         data = await _load_user_ids()
         admins = data.get("admin_user_ids", [])
         allowed = data.get("allowed_user_ids", [])
-        admin_list = "\n".join(f"• {i}" for i in admins) or t("no_admins", language)
-        allowed_list = "\n".join(f"• {i}" for i in allowed) or t("no_allowed_users", language)
-        text = (
-            f"{t('users_list_title', language)}\n\n"
-            f"🔐 {t('admins_list', language)}\n{admin_list}\n\n"
-            f"✅ {t('allowed_users_list', language)}\n{allowed_list}"
+        admins_md = rp.ul(rp.code(i) for i in admins) if admins else t("no_admins", language)
+        allowed_md = rp.ul(rp.code(i) for i in allowed) if allowed else t("no_allowed_users", language)
+        md = rp.join(
+            rp.heading(t("users_list_title", language), 2),
+            rp.heading(f"🔐 {t('admins_list', language)}", 3),
+            admins_md,
+            rp.heading(f"✅ {t('allowed_users_list', language)}", 3),
+            allowed_md,
         )
-        back_kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=t("back_to_user_management", language), callback_data="manage_users", icon_custom_emoji_id="5960671702059848143")]
-        ])
+        back_kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=t("back_to_user_management", language),
+                        callback_data="manage_users",
+                        icon_custom_emoji_id="5960671702059848143",
+                    )
+                ]
+            ]
+        )
         await query.answer()
-        await query.message.edit_text(text, reply_markup=back_kb)
+        await rp.edit_panel(query.message, md, reply_markup=back_kb)
         return
 
     prompts = {
@@ -183,7 +266,9 @@ async def cb_user_action(query: CallbackQuery, state: FSMContext, language: str,
     await state.set_state(WhitelistStates.waiting_for_user_id)
     await state.update_data(action=action)
     await query.answer()
-    await query.message.edit_text(t(prompts[action], language), reply_markup=_cancel_keyboard(language))
+    await rp.edit_panel(
+        query.message, rp.heading(t(prompts[action], language), 2), reply_markup=_cancel_keyboard(language)
+    )
 
 
 @router.callback_query(F.data == "cancel_user_operation", StateFilter("*"))
@@ -192,7 +277,11 @@ async def cb_cancel_user_operation(query: CallbackQuery, state: FSMContext, lang
     await query.answer(t("operation_cancelled", language))
     if not isinstance(query.message, Message):
         return
-    await query.message.edit_text(t("user_management_title", language), reply_markup=_manage_users_keyboard(language))
+    await rp.edit_panel(
+        query.message,
+        rp.heading(t("user_management_title", language), 2),
+        reply_markup=_manage_users_keyboard(language),
+    )
 
 
 @router.message(WhitelistStates.waiting_for_user_id)

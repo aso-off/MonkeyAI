@@ -3,7 +3,7 @@
 
 Покрываем:
 - _status_keyboard()     - структура клавиатуры
-- _build_status_text()   - uptime из Redis / без, api_ping OK/None,
+- _build_status_md()   - uptime из Redis / без, api_ping OK/None,
                            stats OK/exception, openai OK/нет, invalid creation_date
 - cmd_status()           - require_admin False, True
 - cb_admin_status()      - require_admin False, True
@@ -63,7 +63,7 @@ class TestStatusKeyboard:
         assert len(kb.inline_keyboard) == 1
         assert kb.inline_keyboard[0][0].callback_data == "admin_panel"
 
-# _build_status_text
+# _build_status_md
 
 class TestBuildStatusText:
 
@@ -71,7 +71,7 @@ class TestBuildStatusText:
     async def test_with_start_time_shows_uptime(self) -> None:
         import time
 
-        from src.bot.routers.admin.status import _build_status_text
+        from src.bot.routers.admin.status import _build_status_md
         start = str(time.time() - 3600)
         redis = _fake_redis(start_time=start)
         mock_dp = MagicMock()
@@ -85,13 +85,13 @@ class TestBuildStatusText:
              patch("src.bot.routers.admin.status.format_date", return_value="2025-01-01"):
             mock_api.api_health_check = AsyncMock(return_value=42)
             mock_api.get_users_stats = AsyncMock(return_value=stats)
-            text = await _build_status_text("ru")
+            text = await _build_status_md("ru")
         assert isinstance(text, str)
         assert "1h" in text
 
     @pytest.mark.asyncio
     async def test_without_start_time_shows_dash(self) -> None:
-        from src.bot.routers.admin.status import _build_status_text
+        from src.bot.routers.admin.status import _build_status_md
         redis = _fake_redis(start_time=None)
         mock_dp = MagicMock()
         mock_dp.storage.redis = redis
@@ -103,12 +103,12 @@ class TestBuildStatusText:
              patch("src.bot.routers.admin.status.format_date", return_value=""):
             mock_api.api_health_check = AsyncMock(return_value=None)
             mock_api.get_users_stats = AsyncMock(return_value=stats)
-            text = await _build_status_text("en")
+            text = await _build_status_md("en")
         assert "—" in text
 
     @pytest.mark.asyncio
     async def test_api_ping_none_shows_inactive(self) -> None:
-        from src.bot.routers.admin.status import _build_status_text
+        from src.bot.routers.admin.status import _build_status_md
         redis = _fake_redis()
         mock_dp = MagicMock()
         mock_dp.storage.redis = redis
@@ -120,12 +120,12 @@ class TestBuildStatusText:
              patch("src.bot.routers.admin.status.format_date", return_value=""):
             mock_api.api_health_check = AsyncMock(return_value=None)
             mock_api.get_users_stats = AsyncMock(return_value=stats)
-            text = await _build_status_text("ru")
+            text = await _build_status_md("ru")
         assert isinstance(text, str)
 
     @pytest.mark.asyncio
     async def test_stats_exception_marks_db_inactive(self) -> None:
-        from src.bot.routers.admin.status import _build_status_text
+        from src.bot.routers.admin.status import _build_status_md
         redis = _fake_redis()
         mock_dp = MagicMock()
         mock_dp.storage.redis = redis
@@ -136,12 +136,12 @@ class TestBuildStatusText:
              patch("src.bot.routers.admin.status.format_date", return_value=""):
             mock_api.api_health_check = AsyncMock(return_value=10)
             mock_api.get_users_stats = AsyncMock(side_effect=RuntimeError("db down"))
-            text = await _build_status_text("en")
+            text = await _build_status_md("en")
         assert isinstance(text, str)
 
     @pytest.mark.asyncio
     async def test_invalid_creation_date_sets_none(self) -> None:
-        from src.bot.routers.admin.status import _build_status_text
+        from src.bot.routers.admin.status import _build_status_md
         redis = _fake_redis()
         mock_dp = MagicMock()
         mock_dp.storage.redis = redis
@@ -154,12 +154,12 @@ class TestBuildStatusText:
              patch("src.bot.routers.admin.status.format_date", return_value="") as mock_fmt:
             mock_api.api_health_check = AsyncMock(return_value=5)
             mock_api.get_users_stats = AsyncMock(return_value=stats)
-            await _build_status_text("ru")
+            await _build_status_md("ru")
         mock_fmt.assert_called_once_with(None, "ru")
 
     @pytest.mark.asyncio
     async def test_openai_key_falsy_marks_inactive(self) -> None:
-        from src.bot.routers.admin.status import _build_status_text
+        from src.bot.routers.admin.status import _build_status_md
         redis = _fake_redis()
         mock_dp = MagicMock()
         mock_dp.storage.redis = redis
@@ -173,7 +173,7 @@ class TestBuildStatusText:
              patch("src.bot.routers.admin.status.format_date", return_value=""):
             mock_api.api_health_check = AsyncMock(return_value=1)
             mock_api.get_users_stats = AsyncMock(return_value=stats)
-            text = await _build_status_text("ru")
+            text = await _build_status_md("ru")
         assert isinstance(text, str)
 
 # cmd_status
@@ -186,7 +186,7 @@ class TestCmdStatus:
         msg = _fake_message()
         with patch("src.bot.routers.admin.status.require_admin",
                    AsyncMock(return_value=False)), \
-             patch("src.bot.routers.admin.status._build_status_text",
+             patch("src.bot.routers.admin.status._build_status_md",
                    AsyncMock()) as mock_build:
             await cmd_status(msg, language="ru", db_user=None)
         mock_build.assert_not_awaited()
@@ -201,7 +201,7 @@ class TestCmdStatus:
         status_text = fake.paragraph()
         with patch("src.bot.routers.admin.status.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.bot.routers.admin.status._build_status_text",
+             patch("src.bot.routers.admin.status._build_status_md",
                    AsyncMock(return_value=status_text)), \
              patch("src.bot.routers.admin.status.t", return_value="checking"):
             await cmd_status(msg, language="ru", db_user=MagicMock())
@@ -218,7 +218,7 @@ class TestCbAdminStatus:
         cb = _fake_callback()
         with patch("src.bot.routers.admin.status.require_admin",
                    AsyncMock(return_value=False)), \
-             patch("src.bot.routers.admin.status._build_status_text",
+             patch("src.bot.routers.admin.status._build_status_md",
                    AsyncMock()) as mock_build:
             await cb_admin_status(cb, language="ru", db_user=None)
         mock_build.assert_not_awaited()
@@ -230,7 +230,7 @@ class TestCbAdminStatus:
         status_text = fake.paragraph()
         with patch("src.bot.routers.admin.status.require_admin",
                    AsyncMock(return_value=True)), \
-             patch("src.bot.routers.admin.status._build_status_text",
+             patch("src.bot.routers.admin.status._build_status_md",
                    AsyncMock(return_value=status_text)), \
              patch("src.bot.routers.admin.status.t", return_value="checking"):
             await cb_admin_status(cb, language="ru", db_user=MagicMock())

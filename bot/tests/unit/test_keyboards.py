@@ -247,7 +247,7 @@ class TestProfileKeyboard:
         all_data = {btn.callback_data for row in _profile_keyboard("ru").inline_keyboard for btn in row if btn.callback_data}
         assert "back_to_start" in all_data
 
-# profile/profile.py - _build_profile_text
+# profile/profile.py - _build_profile_md
 
 class TestBuildProfileText:
     @pytest.fixture(autouse=True)
@@ -259,33 +259,33 @@ class TestBuildProfileText:
 
     @pytest.mark.unit
     def test_none_user_returns_error_text(self) -> None:
-        from src.bot.routers.profile.profile import _build_profile_text
-        result = _build_profile_text(None, "ru")
+        from src.bot.routers.profile.profile import _build_profile_md
+        result = _build_profile_md(None, "ru")
         assert isinstance(result, str) and len(result) > 0
 
     @pytest.mark.unit
     def test_regular_user_profile(self, fake) -> None:
         from datetime import datetime
 
-        from src.bot.routers.profile.profile import _build_profile_text
+        from src.bot.routers.profile.profile import _build_profile_md
         user = types.SimpleNamespace(
             id=fake.random_int(min=100_000, max=999_999_999),
             language="ru",
             first_seen=datetime.now(UTC),
         )
-        result = _build_profile_text(user, "ru")
+        result = _build_profile_md(user, "ru")
         assert isinstance(result, str)
 
     @pytest.mark.unit
     def test_admin_user_has_admin_status(self, fake) -> None:
         from datetime import datetime
 
-        from src.bot.routers.profile.profile import _build_profile_text
+        from src.bot.routers.profile.profile import _build_profile_md
         admin_id = 999
         user = types.SimpleNamespace(
             id=admin_id,
             language="ru",
             first_seen=datetime.now(UTC),
         )
-        result = _build_profile_text(user, "ru")
+        result = _build_profile_md(user, "ru")
         assert isinstance(result, str)

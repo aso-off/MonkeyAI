@@ -2,7 +2,7 @@
 Тесты для bot/src/bot/routers/help.py.
 
 Покрываем:
-- _help_text()           - обычный пользователь + администратор
+- _help_md()           - обычный пользователь + администратор
 - cmd_help               - Message handler
 - cb_help                - CallbackQuery handler
 - cmd_help_group_chat    - приватный чат (видео есть / нет), не-приватный чат
@@ -13,11 +13,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from faker import Faker
+from src.utils import rich_panel as rp
 
 fake = Faker()
 Faker.seed(1)
 
 _ADMIN_ID = 123456789
+
 
 @pytest.fixture(autouse=True)
 def patch_settings():
@@ -25,44 +27,51 @@ def patch_settings():
     with patch("src.bot.routers.help.settings", ns):
         yield ns
 
+
 # _help_text
 
-class TestHelpText:
 
+class TestHelpText:
     def test_regular_user_no_admin_section(self) -> None:
-        from src.bot.routers.help import _help_text
-        text = _help_text(is_admin=False, lang="ru")
+        from src.bot.routers.help import _help_md
+
+        text = _help_md(is_admin=False, lang="ru")
         assert isinstance(text, str)
         assert len(text) > 0
 
     def test_admin_includes_admin_commands(self) -> None:
-        from src.bot.routers.help import _help_text
-        text = _help_text(is_admin=True, lang="ru")
+        from src.bot.routers.help import _help_md
+
+        text = _help_md(is_admin=True, lang="ru")
         assert isinstance(text, str)
         # Текст для админа длиннее, чем для пользователя
-        user_text = _help_text(is_admin=False, lang="ru")
+        user_text = _help_md(is_admin=False, lang="ru")
         assert len(text) > len(user_text)
 
     def test_all_supported_languages(self) -> None:
-        from src.bot.routers.help import _help_text
+        from src.bot.routers.help import _help_md
+
         for lang in ["ru", "en", "de", "es", "fr", "pl", "pt", "tr"]:
-            text = _help_text(is_admin=False, lang=lang)
+            text = _help_md(is_admin=False, lang=lang)
             assert isinstance(text, str) and len(text) > 0
 
     def test_admin_text_all_langs(self) -> None:
-        from src.bot.routers.help import _help_text
+        from src.bot.routers.help import _help_md
+
         for lang in ["ru", "en"]:
-            admin_text = _help_text(is_admin=True, lang=lang)
-            user_text = _help_text(is_admin=False, lang=lang)
+            admin_text = _help_md(is_admin=True, lang=lang)
+            user_text = _help_md(is_admin=False, lang=lang)
             assert len(admin_text) > len(user_text)
+
 
 # cmd_help
 
-class TestCmdHelp:
 
+class TestCmdHelp:
     @pytest.mark.asyncio
     async def test_regular_user_gets_help(self, fake_message) -> None:
         from src.bot.routers.help import cmd_help
+
         msg = fake_message(user_id=fake.random_int(min=200_000_000, max=999_999_999))
         db_user = MagicMock()
         db_user.is_admin = False
@@ -72,6 +81,7 @@ class TestCmdHelp:
     @pytest.mark.asyncio
     async def test_admin_by_db_flag_gets_admin_section(self, fake_message) -> None:
         from src.bot.routers.help import cmd_help
+
         msg = fake_message(user_id=fake.random_int(min=200_000_000, max=999_999_999))
         db_user = MagicMock()
         db_user.is_admin = True
@@ -80,35 +90,42 @@ class TestCmdHelp:
         called_text = msg.answer.call_args[0][0]
         user_text = msg.answer.call_args[0][0]
         # Верификация: текст для is_admin=True длиннее
-        from src.bot.routers.help import _help_text
-        assert called_text == _help_text(is_admin=True, lang="ru")
+        from src.bot.routers.help import _help_md
+
+        assert called_text == rp.to_legacy_html(_help_md(is_admin=True, lang="ru"))
 
     @pytest.mark.asyncio
     async def test_admin_by_settings_ids_gets_admin_section(self, fake_message) -> None:
         from src.bot.routers.help import cmd_help
+
         msg = fake_message(user_id=_ADMIN_ID)
         await cmd_help(msg, language="en", db_user=None)
         msg.answer.assert_awaited_once()
         called_text = msg.answer.call_args[0][0]
-        from src.bot.routers.help import _help_text
-        assert called_text == _help_text(is_admin=True, lang="en")
+        from src.bot.routers.help import _help_md
+
+        assert called_text == rp.to_legacy_html(_help_md(is_admin=True, lang="en"))
 
     @pytest.mark.asyncio
     async def test_no_db_user_non_admin(self, fake_message) -> None:
         from src.bot.routers.help import cmd_help
+
         msg = fake_message(user_id=fake.random_int(min=200_000_000, max=999_999_999))
         await cmd_help(msg, language="ru", db_user=None)
         msg.answer.assert_awaited_once()
-        from src.bot.routers.help import _help_text
-        assert msg.answer.call_args[0][0] == _help_text(is_admin=False, lang="ru")
+        from src.bot.routers.help import _help_md
+
+        assert msg.answer.call_args[0][0] == rp.to_legacy_html(_help_md(is_admin=False, lang="ru"))
+
 
 # cb_help
 
-class TestCbHelp:
 
+class TestCbHelp:
     @pytest.mark.asyncio
     async def test_regular_user_callback(self, fake_callback) -> None:
         from src.bot.routers.help import cb_help
+
         cb = fake_callback(data="help", user_id=fake.random_int(min=200_000_000, max=999_999_999))
         db_user = MagicMock()
         db_user.is_admin = False
@@ -119,31 +136,35 @@ class TestCbHelp:
     @pytest.mark.asyncio
     async def test_admin_callback_sends_admin_section(self, fake_callback) -> None:
         from src.bot.routers.help import cb_help
+
         cb = fake_callback(data="help", user_id=_ADMIN_ID)
         await cb_help(cb, language="ru", db_user=None)
         cb.answer.assert_awaited_once()
         cb.message.edit_text.assert_awaited_once()
-        from src.bot.routers.help import _help_text
+        from src.bot.routers.help import _help_md
+
         called_text = cb.message.edit_text.call_args[0][0]
-        assert called_text == _help_text(is_admin=True, lang="ru")
+        assert called_text == rp.to_legacy_html(_help_md(is_admin=True, lang="ru"))
 
     @pytest.mark.asyncio
     async def test_admin_by_db_flag_callback(self, fake_callback) -> None:
         from src.bot.routers.help import cb_help
-        cb = fake_callback(data="help",
-                           user_id=fake.random_int(min=200_000_000, max=999_999_999))
+
+        cb = fake_callback(data="help", user_id=fake.random_int(min=200_000_000, max=999_999_999))
         db_user = MagicMock()
         db_user.is_admin = True
         await cb_help(cb, language="en", db_user=db_user)
         cb.message.edit_text.assert_awaited_once()
-        from src.bot.routers.help import _help_text
+        from src.bot.routers.help import _help_md
+
         called_text = cb.message.edit_text.call_args[0][0]
-        assert called_text == _help_text(is_admin=True, lang="en")
+        assert called_text == rp.to_legacy_html(_help_md(is_admin=True, lang="en"))
+
 
 # cmd_help_group_chat
 
-class TestCmdHelpGroupChat:
 
+class TestCmdHelpGroupChat:
     def _make_private_msg(self, user_id: int | None = None) -> MagicMock:
         msg = MagicMock()
         msg.from_user = MagicMock()
@@ -164,6 +185,7 @@ class TestCmdHelpGroupChat:
     @pytest.mark.asyncio
     async def test_private_chat_with_video(self, fake_message) -> None:
         from src.bot.routers.help import cmd_help_group_chat
+
         msg = self._make_private_msg()
         bot = self._make_bot()
         with patch("src.bot.routers.help._VIDEO_PATH") as mock_path:
@@ -175,6 +197,7 @@ class TestCmdHelpGroupChat:
     @pytest.mark.asyncio
     async def test_private_chat_video_missing(self, fake_message) -> None:
         from src.bot.routers.help import cmd_help_group_chat
+
         msg = self._make_private_msg()
         bot = self._make_bot()
         with patch("src.bot.routers.help._VIDEO_PATH") as mock_path:
@@ -186,6 +209,7 @@ class TestCmdHelpGroupChat:
     @pytest.mark.asyncio
     async def test_non_private_chat_returns_silently(self) -> None:
         from src.bot.routers.help import cmd_help_group_chat
+
         msg = self._make_private_msg()
         msg.chat.type = "supergroup"
         bot = self._make_bot()
@@ -196,6 +220,7 @@ class TestCmdHelpGroupChat:
     @pytest.mark.asyncio
     async def test_bot_get_me_is_called(self) -> None:
         from src.bot.routers.help import cmd_help_group_chat
+
         msg = self._make_private_msg()
         bot = self._make_bot(username="monkey_bot")
         with patch("src.bot.routers.help._VIDEO_PATH") as mock_path:

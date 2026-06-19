@@ -3,7 +3,7 @@
 
 Покрываем:
 - _balance_keyboard()    - структура клавиатуры
-- _build_balance_text()  - user=None, пустые токены, с токенами, с изображениями, с голосом
+- _build_balance_md()  - user=None, пустые токены, с токенами, с изображениями, с голосом
 - cmd_balance()          - без db_user, с db_user
 - cb_show_balance()      - без db_user, с db_user
 """
@@ -71,33 +71,33 @@ class TestBalanceKeyboard:
         assert len(kb.inline_keyboard) == 1
         assert kb.inline_keyboard[0][0].callback_data == "profile"
 
-# _build_balance_text
+# _build_balance_md
 
 class TestBuildBalanceText:
 
     def test_user_none_returns_error_text(self) -> None:
-        from src.bot.routers.profile.balance import _build_balance_text
+        from src.bot.routers.profile.balance import _build_balance_md
         with patch("src.bot.routers.profile.balance.settings") as mock_s:
             mock_s.models = _MODELS_SETTINGS
             mock_s.chatgpt_price_per_1000_tokens = 0.002
             mock_s.whisper_price_per_1_min = 0.006
-            result = _build_balance_text(None, "ru")
+            result = _build_balance_md(None, "ru")
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_empty_usage_returns_text(self) -> None:
-        from src.bot.routers.profile.balance import _build_balance_text
+        from src.bot.routers.profile.balance import _build_balance_md
         db_user = _fake_db_user()
         with patch("src.bot.routers.profile.balance.settings") as mock_s, \
              patch("src.bot.routers.profile.balance.t", return_value=""):
             mock_s.models = _MODELS_SETTINGS
             mock_s.chatgpt_price_per_1000_tokens = 0.002
             mock_s.whisper_price_per_1_min = 0.006
-            result = _build_balance_text(db_user, "en")
+            result = _build_balance_md(db_user, "en")
         assert isinstance(result, str)
 
     def test_with_token_usage_calculates_cost(self) -> None:
-        from src.bot.routers.profile.balance import _build_balance_text
+        from src.bot.routers.profile.balance import _build_balance_md
         n_input = fake.random_int(min=100, max=50000)
         n_output = fake.random_int(min=100, max=20000)
         db_user = _fake_db_user(
@@ -108,11 +108,11 @@ class TestBuildBalanceText:
             mock_s.models = _MODELS_SETTINGS
             mock_s.chatgpt_price_per_1000_tokens = 0.002
             mock_s.whisper_price_per_1_min = 0.006
-            result = _build_balance_text(db_user, "ru")
+            result = _build_balance_md(db_user, "ru")
         assert isinstance(result, str)
 
     def test_with_images_includes_image_cost(self) -> None:
-        from src.bot.routers.profile.balance import _build_balance_text
+        from src.bot.routers.profile.balance import _build_balance_md
         n_images = fake.random_int(min=1, max=20)
         db_user = _fake_db_user(n_generated_images=n_images)
         with patch("src.bot.routers.profile.balance.settings") as mock_s, \
@@ -120,11 +120,11 @@ class TestBuildBalanceText:
             mock_s.models = _MODELS_SETTINGS
             mock_s.chatgpt_price_per_1000_tokens = 0.002
             mock_s.whisper_price_per_1_min = 0.006
-            result = _build_balance_text(db_user, "en")
+            result = _build_balance_md(db_user, "en")
         assert isinstance(result, str)
 
     def test_with_voice_includes_voice_cost(self) -> None:
-        from src.bot.routers.profile.balance import _build_balance_text
+        from src.bot.routers.profile.balance import _build_balance_md
         seconds = fake.pyfloat(min_value=10.0, max_value=3600.0)
         db_user = _fake_db_user(n_transcribed_seconds=seconds)
         with patch("src.bot.routers.profile.balance.settings") as mock_s, \
@@ -132,11 +132,11 @@ class TestBuildBalanceText:
             mock_s.models = _MODELS_SETTINGS
             mock_s.chatgpt_price_per_1000_tokens = 0.002
             mock_s.whisper_price_per_1_min = 0.006
-            result = _build_balance_text(db_user, "ru")
+            result = _build_balance_md(db_user, "ru")
         assert isinstance(result, str)
 
     def test_faker_random_token_counts(self) -> None:
-        from src.bot.routers.profile.balance import _build_balance_text
+        from src.bot.routers.profile.balance import _build_balance_md
         for _ in range(3):
             db_user = _fake_db_user(
                 n_used_tokens={
@@ -151,7 +151,7 @@ class TestBuildBalanceText:
                 mock_s.models = {"info": {}}
                 mock_s.chatgpt_price_per_1000_tokens = 0.002
                 mock_s.whisper_price_per_1_min = 0.006
-                result = _build_balance_text(db_user, "en")
+                result = _build_balance_md(db_user, "en")
             assert isinstance(result, str)
 
 # cmd_balance

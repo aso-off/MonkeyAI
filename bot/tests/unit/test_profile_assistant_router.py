@@ -3,7 +3,7 @@
 
 Покрываем:
 - _assistant_keyboard()  - skip_keys, текущий режим ✅, имена через t(), статические имена
-- _assistant_text()      - template welcome ({key}), static welcome, нет welcome
+- _assistant_md()      - template welcome ({key}), static welcome, нет welcome
 - cmd_mode()             - db_user=None, с db_user
 - cb_profile_assistant() - db_user=None, успешно, TelegramBadRequest
 - cb_set_chat_mode()     - режим не найден, db_user=None, тот же режим, смена режима
@@ -111,41 +111,41 @@ class TestAssistantKeyboard:
         )
         assert back_btn is not None
 
-# _assistant_text
+# _assistant_md
 
 class TestAssistantText:
 
     def test_template_welcome_resolved_via_t(self) -> None:
-        from src.bot.routers.profile.assistant import _assistant_text
+        from src.bot.routers.profile.assistant import _assistant_md
         with patch("src.bot.routers.profile.assistant.settings") as mock_s, \
              patch("src.bot.routers.profile.assistant.t", return_value="Welcome!") as mock_t:
             mock_s.chat_modes = {"assistant": {"welcome_message": "{assistant_welcome}"}}
-            text = _assistant_text("ru", "assistant")
+            text = _assistant_md("ru", "assistant")
         assert "Welcome!" in text
 
     def test_static_welcome_used_directly(self) -> None:
-        from src.bot.routers.profile.assistant import _assistant_text
+        from src.bot.routers.profile.assistant import _assistant_md
         welcome = fake.sentence()
         with patch("src.bot.routers.profile.assistant.settings") as mock_s, \
              patch("src.bot.routers.profile.assistant.t", return_value="select"):
             mock_s.chat_modes = {"coder": {"welcome_message": welcome}}
-            text = _assistant_text("en", "coder")
+            text = _assistant_md("en", "coder")
         assert welcome in text
 
     def test_no_welcome_no_extra_newlines(self) -> None:
-        from src.bot.routers.profile.assistant import _assistant_text
+        from src.bot.routers.profile.assistant import _assistant_md
         with patch("src.bot.routers.profile.assistant.settings") as mock_s, \
              patch("src.bot.routers.profile.assistant.t", return_value="select:"):
             mock_s.chat_modes = {"silent": {"welcome_message": ""}}
-            text = _assistant_text("en", "silent")
+            text = _assistant_md("en", "silent")
         assert not text.startswith("\n")
 
     def test_unknown_mode_returns_text(self) -> None:
-        from src.bot.routers.profile.assistant import _assistant_text
+        from src.bot.routers.profile.assistant import _assistant_md
         with patch("src.bot.routers.profile.assistant.settings") as mock_s, \
              patch("src.bot.routers.profile.assistant.t", return_value=""):
             mock_s.chat_modes = {}
-            text = _assistant_text("ru", "nonexistent")
+            text = _assistant_md("ru", "nonexistent")
         assert isinstance(text, str)
 
 # cmd_mode

@@ -6,6 +6,7 @@ from aiogram.enums import ChatType
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, FSInputFile, Message
 from src.core.config import settings
+from src.utils import rich_panel as rp
 from src.utils.localization import t
 
 _VIDEO_PATH = Path("/app/static/help_group_chat.mp4")
@@ -13,32 +14,37 @@ _VIDEO_PATH = Path("/app/static/help_group_chat.mp4")
 logger = logging.getLogger(__name__)
 router = Router()
 
+_USER_CMD_KEYS = (
+    "help_start",
+    "help_new",
+    "help_mode",
+    "help_model",
+    "help_retry",
+    "help_balance",
+    "help_settings",
+    "help_language",
+    "help_profile",
+    "help_ping",
+    "help_about",
+    "help_cancel",
+)
+_ADMIN_CMD_KEYS = ("help_admin", "help_status", "help_restart", "help_system")
 
-def _help_text(is_admin: bool, lang: str) -> str:
-    text = (
-        f"{t('help_title', lang)}\n\n"
-        f"{t('help_start', lang)}\n"
-        f"{t('help_new', lang)}\n"
-        f"{t('help_mode', lang)}\n"
-        f"{t('help_model', lang)}\n"
-        f"{t('help_retry', lang)}\n"
-        f"{t('help_balance', lang)}\n"
-        f"{t('help_settings', lang)}\n"
-        f"{t('help_language', lang)}\n"
-        f"{t('help_profile', lang)}\n"
-        f"{t('help_ping', lang)}\n"
-        f"{t('help_about', lang)}\n"
-        f"{t('help_cancel', lang)}"
+
+def _cmd_line(raw: str) -> str:
+    cmd, sep, desc = raw.partition(" - ")
+    return f"{rp.bold(cmd)} — {desc}" if sep else raw
+
+
+def _help_md(is_admin: bool, lang: str) -> str:
+    md = rp.join(
+        rp.heading(t("help_title", lang), 2),
+        rp.ul(_cmd_line(t(k, lang)) for k in _USER_CMD_KEYS),
     )
     if is_admin:
-        text += (
-            f"\n\n{t('help_admin_title', lang)}\n\n"
-            f"{t('help_admin', lang)}\n"
-            f"{t('help_status', lang)}\n"
-            f"{t('help_restart', lang)}\n"
-            f"{t('help_system', lang)}"
-        )
-    return text
+        admin_body = rp.ul(_cmd_line(t(k, lang)) for k in _ADMIN_CMD_KEYS)
+        md = rp.join(md, rp.details(t("help_admin_title", lang), admin_body))
+    return md
 
 
 @router.message(Command("help"), StateFilter("*"))
@@ -46,7 +52,7 @@ async def cmd_help(message: Message, language: str, db_user=None) -> None:
     if message.from_user is None:
         return
     is_admin = (db_user is not None and db_user.is_admin) or (message.from_user.id in settings.admin_ids)
-    await message.answer(_help_text(is_admin, language))
+    await rp.answer_panel(message, _help_md(is_admin, language))
 
 
 @router.callback_query(F.data == "help", StateFilter("*"))
@@ -55,7 +61,7 @@ async def cb_help(query: CallbackQuery, language: str, db_user=None) -> None:
     if not isinstance(query.message, Message):
         return
     is_admin = (db_user is not None and db_user.is_admin) or (query.from_user.id in settings.admin_ids)
-    await query.message.edit_text(_help_text(is_admin, language))
+    await rp.edit_panel(query.message, _help_md(is_admin, language))
 
 
 @router.message(Command("help_group_chat"), StateFilter("*"))

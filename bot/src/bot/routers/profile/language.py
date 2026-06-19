@@ -5,6 +5,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from src.services import api_client as api
+from src.utils import rich_panel as rp
 from src.utils.localization import resolve_lang, t
 
 logger = logging.getLogger(__name__)
@@ -24,10 +25,10 @@ _FIXED_LANGUAGES: dict[str, str] = {
 
 # Keyboard layout: pairs displayed side-by-side
 _LANGUAGE_PAIRS: list[list[tuple[str, str]]] = [
-    [("en", "English"),  ("ru", "Русский")],
-    [("de", "Deutsch"),  ("fr", "Français")],
-    [("es", "Español"),  ("pt", "Português")],
-    [("tr", "Türkçe"),   ("pl", "Polski")],
+    [("en", "English"), ("ru", "Русский")],
+    [("de", "Deutsch"), ("fr", "Français")],
+    [("es", "Español"), ("pt", "Português")],
+    [("tr", "Türkçe"), ("pl", "Polski")],
 ]
 
 
@@ -43,29 +44,37 @@ def _language_keyboard(effective_lang: str, db_lang: str, tg_lang_code: str | No
     system_check = " ✅" if db_lang == "system" else ""
 
     rows = [
-        [InlineKeyboardButton(
-            text=f"{t('language_system', effective_lang)} ({resolved_label}){system_check}",
-            callback_data="set_lang|system",
-            icon_custom_emoji_id="5769403725898584391",
-        )],
+        [
+            InlineKeyboardButton(
+                text=f"{t('language_system', effective_lang)} ({resolved_label}){system_check}",
+                callback_data="set_lang|system",
+                icon_custom_emoji_id="5769403725898584391",
+            )
+        ],
     ]
 
     for pair in _LANGUAGE_PAIRS:
         row = []
         for code, name in pair:
             check = " ✅" if db_lang == code else ""
-            row.append(InlineKeyboardButton(
-                text=f"{name}{check}",
-                callback_data=f"set_lang|{code}",
-                icon_custom_emoji_id="5769403725898584391",
-            ))
+            row.append(
+                InlineKeyboardButton(
+                    text=f"{name}{check}",
+                    callback_data=f"set_lang|{code}",
+                    icon_custom_emoji_id="5769403725898584391",
+                )
+            )
         rows.append(row)
 
-    rows.append([InlineKeyboardButton(
-        text=t("back_to_settings", effective_lang),
-        callback_data="profile_settings",
-        icon_custom_emoji_id="5960671702059848143",
-    )])
+    rows.append(
+        [
+            InlineKeyboardButton(
+                text=t("back_to_settings", effective_lang),
+                callback_data="profile_settings",
+                icon_custom_emoji_id="5960671702059848143",
+            )
+        ]
+    )
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -74,8 +83,9 @@ async def cmd_language(message: Message, language: str, db_user=None) -> None:
     if message.from_user is None:
         return
     db_lang = db_user.language if db_user else "system"
-    await message.answer(
-        t("language_prompt", language),
+    await rp.answer_panel(
+        message,
+        rp.heading(t("language_prompt", language), 2),
         reply_markup=_language_keyboard(language, db_lang, message.from_user.language_code),
     )
 
@@ -86,8 +96,9 @@ async def cb_profile_language(query: CallbackQuery, language: str, db_user=None)
     if not isinstance(query.message, Message):
         return
     db_lang = db_user.language if db_user else "system"
-    await query.message.edit_text(
-        t("language_prompt", language),
+    await rp.edit_panel(
+        query.message,
+        rp.heading(t("language_prompt", language), 2),
         reply_markup=_language_keyboard(language, db_lang, query.from_user.language_code),
     )
 
@@ -107,13 +118,20 @@ async def cb_set_language(query: CallbackQuery, language: str) -> None:
     else:
         effective = lang_code
 
-    logger.info("User %s set language to %s (effective: %s) (client: %s)", query.from_user.id, lang_code, effective, query.from_user.language_code)
+    logger.info(
+        "User %s set language to %s (effective: %s) (client: %s)",
+        query.from_user.id,
+        lang_code,
+        effective,
+        query.from_user.language_code,
+    )
     await query.answer()
     if not isinstance(query.message, Message):
         return
     try:
-        await query.message.edit_text(
-            t("language_prompt", effective),
+        await rp.edit_panel(
+            query.message,
+            rp.heading(t("language_prompt", effective), 2),
             reply_markup=_language_keyboard(effective, lang_code, query.from_user.language_code),
         )
     except TelegramBadRequest:
