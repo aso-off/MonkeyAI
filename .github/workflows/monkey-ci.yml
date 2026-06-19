@@ -154,7 +154,7 @@ jobs:
 
   # Job 5: SAST + dependency audit
   security:
-    name: SAST (Bandit + pip-audit)
+    name: Security scan (Bandit + pip-audit + gitleaks + Trivy)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -263,12 +263,12 @@ jobs:
 
           out = ["# 🔒 Security Report", ""]
           trivy_ok = (mis["CRITICAL"] + mis["HIGH"] + vuln["CRITICAL"] + vuln["HIGH"]) == 0
-          out.append(
-              f"**Bandit:** {badge(high == 0, 'no HIGH', f'{high} HIGH')}  ·  "
-              f"**pip-audit:** {badge(not pkgs, 'clean', f'{total} advisories')}  ·  "
-              f"**gitleaks:** {badge(leaks == 0, 'clean', f'{leaks} findings')}  ·  "
-              f"**Trivy:** {badge(trivy_ok, 'clean', f'{sum(mis.values())} misconfig / {sum(vuln.values())} CVE')}"
-          )
+          out += [
+              f"- **Bandit:** {badge(high == 0, 'no HIGH', f'{high} HIGH')}",
+              f"- **pip-audit:** {badge(not pkgs, 'clean', f'{total} advisories')}",
+              f"- **gitleaks:** {badge(leaks == 0, 'clean', f'{leaks} findings')}",
+              f"- **Trivy:** {badge(trivy_ok, 'clean', f'{sum(mis.values())} misconfig / {sum(vuln.values())} CVE')}",
+          ]
           out += ["", "## 🛡️ Bandit - static analysis", "", "| Severity | Count |", "|:--|--:|",
                   f"| 🔴 High | {high} |", f"| 🟠 Medium | {med} |", f"| 🟡 Low | {low} |", ""]
 
@@ -294,15 +294,15 @@ jobs:
                   f"| Licenses | {lic['CRITICAL']} | {lic['HIGH']} | {lic['MEDIUM']} | {lic['LOW']} |",
                   ""]
           mis_items = [
-              (m.get("Severity", ""), m.get("ID", ""), m.get("Title", ""))
+              (m.get("Severity", ""), m.get("ID", ""), m.get("Title", ""), res.get("Target", ""))
               for res in (tc or {}).get("Results", []) or []
               for m in res.get("Misconfigurations", []) or []
               if m.get("Severity", "").upper() in ("CRITICAL", "HIGH")
           ]
           if mis_items:
               out.append(f"<details><summary>⚠️ {len(mis_items)} critical/high misconfigurations</summary>")
-              out += ["", "| Severity | ID | Title |", "|:--|:--|:--|"]
-              out += [f"| {sev} | {mid} | {title} |" for sev, mid, title in mis_items[:50]]
+              out += ["", "| Severity | ID | Title | Target |", "|:--|:--|:--|:--|"]
+              out += [f"| {sev} | {mid} | {title} | `{tgt}` |" for sev, mid, title, tgt in mis_items[:50]]
               out += ["", "</details>", ""]
 
           print("\n".join(out))
