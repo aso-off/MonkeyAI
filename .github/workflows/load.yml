@@ -1,14 +1,12 @@
 name: Load tests
 
 on:
-  schedule:
-    - cron: "0 2 * * *"  # 02:00 (cron is UTC, no DST)
   workflow_dispatch:
     inputs:
       profile:
         description: "Load profile"
         type: choice
-        options: [load, stress, spike]
+        options: [load, stress, spike, all]
         default: load
       users:
         description: "Users (-u), load profile only"
@@ -21,8 +19,12 @@ concurrency:
   group: load-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   MONKEY_CONFIGS_DIR: ${{ github.workspace }}/configs
+  MONKEY_LOG_DIR: ${{ github.workspace }}/logs
   POSTGRES_HOST: localhost
   POSTGRES_PORT: "5432"
   POSTGRES_DB: monkey_test
@@ -36,7 +38,7 @@ env:
   LOAD_BASE_URL: http://localhost:8000
 
 jobs:
-  # Nightly (all profiles) + manual (chosen profile)
+  # Manual run: chosen profile, or "all" for every profile
   full:
     name: Load profiles
     runs-on: ubuntu-latest
@@ -84,12 +86,18 @@ jobs:
           MOCK_PID=$!
           PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 &
           API_PID=$!
-          for _ in $(seq 1 30); do curl -sf http://localhost:8000/health && break; sleep 2; done
+          UP=0
+          for _ in $(seq 1 30); do curl -sf http://localhost:8000/health >/dev/null && { UP=1; break; }; sleep 2; done
+          if [ "$UP" != 1 ]; then
+            echo "::error::API failed to start"; tail -n 50 logs/api.log 2>/dev/null || true
+            kill $MOCK_PID $API_PID 2>/dev/null || true
+            exit 1
+          fi
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PROFILES="${{ github.event.inputs.profile }}"
-          else
+          if [ "${{ github.event.inputs.profile }}" = "all" ]; then
             PROFILES="load stress spike"
+          else
+            PROFILES="${{ github.event.inputs.profile }}"
           fi
 
           for p in $PROFILES; do
