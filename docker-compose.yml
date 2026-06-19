@@ -255,7 +255,6 @@ services:
       - ./bot/data:/app/data
       - ./bot/logs:/app/logs
       - ./bot/static:/app/static
-      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     mem_limit: 512m
     mem_reservation: 256m
