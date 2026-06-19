@@ -82,9 +82,10 @@ jobs:
           USERS: ${{ github.event.inputs.users || '150' }}
           RUN_TIME: ${{ github.event.inputs.run_time || '2m' }}
         run: |
-          .venv/bin/python -m uvicorn mock_openai:app --app-dir tests/load --port 9090 &
+          mkdir -p logs
+          .venv/bin/python -m uvicorn mock_openai:app --app-dir tests/load --port 9090 > logs/mock.log 2>&1 &
           MOCK_PID=$!
-          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 &
+          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 > logs/api-server.log 2>&1 &
           API_PID=$!
           UP=0
           for _ in $(seq 1 30); do curl -sf http://localhost:8000/health >/dev/null && { UP=1; break; }; sleep 2; done
@@ -112,8 +113,8 @@ jobs:
 
           kill $MOCK_PID $API_PID 2>/dev/null || true
 
-          echo "::group::API log (tail)"
-          tail -n 150 logs/api.log 2>/dev/null || true
+          echo "::group::API server output (tail)"
+          tail -n 200 logs/api-server.log 2>/dev/null || true
           echo "::endgroup::"
 
       - name: Load summary
@@ -158,5 +159,5 @@ jobs:
           path: |
             report-*.html
             report-*.csv
-            logs/api.log
+            logs/api-server.log
           retention-days: 14
