@@ -4,7 +4,7 @@ import logging
 from io import BytesIO
 
 from core.security import verify_service_token
-from db.db import get_session
+from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
 from fastapi import APIRouter, Depends, HTTPException
@@ -60,7 +60,7 @@ async def _persist_chat_result(
     await user_repo.update_last_interaction(session, req.user_id)
 
 
-async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
+async def _run_stream(req: ChatCompleteRequest):
     """Async generator yielding SSE lines."""
     image_buffer: BytesIO | None = None
     if req.image_b64:
@@ -90,11 +90,12 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
 
     chatgpt = ChatGPT(model=req.model)
 
-    # серверный контекст
-    dialog_id = await _resolve_dialog_id(session, req)
-    context: list = []
-    if dialog_id:
-        context = await dialog_repo.get_context(session, req.user_id, dialog_id, _CONTEXT_LIMIT)
+    # серверный контекст; соединение не держим во время стрима
+    async with Session() as session:
+        dialog_id = await _resolve_dialog_id(session, req)
+        context: list = []
+        if dialog_id:
+            context = await dialog_repo.get_context(session, req.user_id, dialog_id, _CONTEXT_LIMIT)
 
     if image_buffer is not None:
         gen = chatgpt.send_vision_message_stream(
@@ -142,9 +143,10 @@ async def _run_stream(req: ChatCompleteRequest, session: AsyncSession):
     # Persist to DB after full answer
     if final_answer:
         try:
-            await _persist_chat_result(
-                session, req, dialog_id, final_answer, n_input, n_output, image_buffer
-            )
+            async with Session() as session:
+                await _persist_chat_result(
+                    session, req, dialog_id, final_answer, n_input, n_output, image_buffer
+                )
         except Exception:
             logger.exception("Failed to persist chat result for user %d", req.user_id)
 
@@ -209,12 +211,11 @@ async def chat_complete(
 @router.post("/stream")
 async def chat_stream(
     req: ChatCompleteRequest,
-    session: AsyncSession = Depends(get_session),
     _: None = Depends(verify_service_token),
 ):
     """SSE streaming: yields data: <json> lines until status=finished."""
     return StreamingResponse(
-        _run_stream(req, session),
+        _run_stream(req),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
