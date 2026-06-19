@@ -100,8 +100,8 @@ jobs:
             -H "Authorization: Bearer ${API_SERVICE_TOKEN}" -H "Content-Type: application/json" \
             -d '{"user_id":12345,"message":"hi","model":"gpt-5.4-nano","chat_mode":"assistant"}' \
             -w '\nHTTP_CODE=%{http_code}\n'
-          echo "--- api-server.log after single request ---"
-          cat logs/api-server.log 2>/dev/null || true
+          echo "--- api.log (app logger — has traceback) ---"
+          cat logs/api.log 2>/dev/null || true
           echo "::endgroup::"
 
           if [ "${{ github.event.inputs.profile }}" = "all" ]; then
@@ -122,8 +122,8 @@ jobs:
 
           kill $MOCK_PID $API_PID 2>/dev/null || true
 
-          echo "::group::API server output (tail)"
-          tail -n 200 logs/api-server.log 2>/dev/null || true
+          echo "::group::API log (tail)"
+          tail -n 200 logs/api.log 2>/dev/null || true
           echo "::endgroup::"
 
       - name: Load summary
@@ -168,5 +168,6 @@ jobs:
           path: |
             report-*.html
             report-*.csv
+            logs/api.log
             logs/api-server.log
           retention-days: 14
