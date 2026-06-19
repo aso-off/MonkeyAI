@@ -70,7 +70,7 @@ async def cmd_help_group_chat(message: Message, language: str, bot: Bot) -> None
         return
     bot_info = await bot.get_me()
     text = t("help_group_chat_message", language).format("@" + (bot_info.username or ""))
-    await message.answer(text, parse_mode="HTML")
+    await rp.answer_panel(message, text)
     if _VIDEO_PATH.exists():
         await message.answer_video(
             FSInputFile(_VIDEO_PATH),
@@ -78,4 +78,4 @@ async def cmd_help_group_chat(message: Message, language: str, bot: Bot) -> None
         )
     else:
         logger.warning("help_group_chat video not found at %s", _VIDEO_PATH)
-        await message.answer(t("group_chat_missing_video", language))
+        await rp.answer_panel(message, rp.bold(t("group_chat_missing_video", language)))

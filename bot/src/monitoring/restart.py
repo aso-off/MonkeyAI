@@ -16,6 +16,10 @@ async def check_restart_notification(bot, redis) -> None:
         if not claimed:
             return
 
+        from aiogram.types import InputRichMessage
+
+        from src.core.config import settings
+        from src.utils import rich_panel as rp
         from src.utils.localization import t
 
         lang = lang_b.decode() if lang_b else "ru"
@@ -25,23 +29,34 @@ async def check_restart_notification(bot, redis) -> None:
         keyboard = None
         if source == "panel":
             from src.bot.routers.admin.admin import _admin_panel_keyboard
+
             keyboard = _admin_panel_keyboard(lang)
 
+        md = rp.join(rp.bold(t("restart_done", lang)), rp.kv(t("version", lang), rp.code(settings.bot_version)))
+        chat_id, message_id = int(chat_id_b), int(message_id_b)
+
         try:
-            await bot.edit_message_text(
-                chat_id=int(chat_id_b),
-                message_id=int(message_id_b),
-                text=t("restart_done", lang),
-                reply_markup=keyboard,
-            )
+            if settings.enable_rich_messages:
+                await bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    rich_message=InputRichMessage(html=md),
+                    reply_markup=keyboard,
+                )
+            else:
+                await bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    text=rp.to_legacy_html(md),
+                    parse_mode="HTML",
+                    reply_markup=keyboard,
+                )
         except Exception as e:
-            if "message is not modified" not in str(e):
+            if "not modified" not in str(e):
                 logger.warning(f"Could not edit restart message: {e}")
                 try:
                     await bot.send_message(
-                        chat_id=int(chat_id_b),
-                        text=t("restart_done", lang),
-                        reply_markup=keyboard,
+                        chat_id=chat_id, text=rp.to_legacy_html(md), parse_mode="HTML", reply_markup=keyboard
                     )
                 except Exception:
                     pass

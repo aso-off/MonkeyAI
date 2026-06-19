@@ -5,6 +5,7 @@ from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.types import CallbackQuery, Message
 from src.core.config import settings
+from src.utils import rich_panel as rp
 from src.utils.localization import t
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ async def cmd_restart(message: Message, language: str) -> None:
         return
 
     from src.core.bot import fsm_redis
+
     redis = fsm_redis()
 
     ssh = settings.ssh_connection
@@ -55,9 +57,7 @@ async def cmd_restart(message: Message, language: str) -> None:
 
     await redis.setex("restart_in_progress", 300, "1")
 
-    reply = await message.answer(
-        t("restart_in_progress_msg", language),
-    )
+    reply = await rp.answer_panel(message, rp.bold(t("restart_in_progress_msg", language)))
 
     try:
         await redis.setex("restart:chat_id", 3600, str(message.from_user.id))
@@ -80,6 +80,7 @@ async def cb_admin_restart(query: CallbackQuery, language: str) -> None:
         return
 
     from src.core.bot import fsm_redis
+
     redis = fsm_redis()
 
     ssh = settings.ssh_connection
@@ -109,13 +110,11 @@ async def cb_admin_restart(query: CallbackQuery, language: str) -> None:
         await redis.delete("restart_in_progress")
         return
 
-    try:
-        # Сохраняем существующую клавиатуру - текст меняется, кнопки остаются
-        await query.message.edit_text(
-            t("restart_in_progress_msg", language),
-            reply_markup=query.message.reply_markup,
-        )
-    except Exception as e:
-        logger.error(f"Error editing restart message: {e}")
+    # Сохраняем существующую клавиатуру - текст меняется, кнопки остаются
+    await rp.edit_panel(
+        query.message,
+        rp.bold(t("restart_in_progress_msg", language)),
+        reply_markup=query.message.reply_markup,
+    )
 
     await _do_restart(redis)

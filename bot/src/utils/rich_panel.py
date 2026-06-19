@@ -175,12 +175,11 @@ async def answer_panel(
     html_str: str,
     *,
     reply_markup: InlineKeyboardMarkup | None = None,
-) -> None:
+) -> Message:
     html_str = _cap(html_str)
     if settings.enable_rich_messages:
         try:
-            await message.answer_rich(rich_message=InputRichMessage(html=html_str), reply_markup=reply_markup)
-            return
+            return await message.answer_rich(rich_message=InputRichMessage(html=html_str), reply_markup=reply_markup)
         except Exception as exc:
             logger.warning("answer_panel rich failed (chat %s): %s", message.chat.id, exc)
-    await message.answer(to_legacy_html(html_str), reply_markup=reply_markup, parse_mode="HTML")
+    return await message.answer(to_legacy_html(html_str), reply_markup=reply_markup, parse_mode="HTML")

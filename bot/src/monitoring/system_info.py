@@ -6,7 +6,7 @@ from src.core.config import settings
 from src.core.logger import logger
 
 SYSTEM_INFO_KEY = "system_info"
-SYSTEM_INFO_TTL = 7200   # 2 часа
+SYSTEM_INFO_TTL = 7200  # 2 часа
 SYSTEM_INFO_INTERVAL = 1800  # 30 минут
 
 
@@ -27,9 +27,6 @@ async def _collect_system_info(redis) -> None:
     import asyncssh
     import yaml as _yaml
 
-    from src.utils.localization import t
-
-    lang = "ru"
     project_path = ssh.get("project_path", "/root/bot")
     container_names: list[str] = settings.container_names
     timeout = ssh.get("timeout", 10)
@@ -42,9 +39,9 @@ async def _collect_system_info(redis) -> None:
             elif "MiB" in s:
                 return float(s.replace("MiB", "").strip()) / 1024
             elif "kB" in s:
-                return float(s.replace("kB", "").strip()) / (1024 ** 2)
+                return float(s.replace("kB", "").strip()) / (1024**2)
             elif s.endswith("B"):
-                return float(s[:-1].strip()) / (1024 ** 3)
+                return float(s[:-1].strip()) / (1024**3)
         except ValueError:
             pass
         return 0.0
@@ -58,7 +55,7 @@ async def _collect_system_info(redis) -> None:
                 known_hosts=None,
                 connect_timeout=timeout,
             ) as conn:
-                blocks: list[str] = []
+                containers: list[dict] = []
 
                 if container_names:
                     container_cpus: dict[str, float] = {}
@@ -77,10 +74,7 @@ async def _collect_system_info(redis) -> None:
                         logger.warning(f"Could not parse docker-compose.yml for cpus: {e}")
 
                     fmt = "{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.NetIO}}"
-                    stats_r = await conn.run(
-                        f'docker stats --no-stream --format "{fmt}" 2>/dev/null'
-                    )
-                    container_blocks: list[str] = []
+                    stats_r = await conn.run(f'docker stats --no-stream --format "{fmt}" 2>/dev/null')
                     stats_out = _stdout(stats_r)
                     if stats_out.strip():
                         for line in stats_out.strip().splitlines():
@@ -94,37 +88,25 @@ async def _collect_system_info(redis) -> None:
                                 cpu_pct = float(cpu_str.replace("%", "").strip())
                             except ValueError:
                                 cpu_pct = 0.0
-                            mem_used_s, mem_limit_s = (
-                                mem_str.split(" / ", 1) if " / " in mem_str else (mem_str, "0B")
+                            mem_used_s, mem_limit_s = mem_str.split(" / ", 1) if " / " in mem_str else (mem_str, "0B")
+                            net_rx_str, net_tx_str = net_str.split(" / ", 1) if " / " in net_str else (net_str, "0B")
+                            containers.append(
+                                {
+                                    "name": name,
+                                    "cpu_percent": cpu_pct,
+                                    "cpus": container_cpus.get(name, 0.0),
+                                    "ram_usage": _parse_mem_gb(mem_used_s),
+                                    "ram_limit": _parse_mem_gb(mem_limit_s),
+                                    "net_rx": net_rx_str.strip(),
+                                    "net_tx": net_tx_str.strip(),
+                                }
                             )
-                            net_rx_str, net_tx_str = (
-                                net_str.split(" / ", 1) if " / " in net_str else (net_str, "0B")
-                            )
-                            container_blocks.append(
-                                "<pre>"
-                                + t("container_info_template", lang).format(
-                                    name=name,
-                                    cpu_percent=cpu_pct,
-                                    cpus=container_cpus.get(name, 0.0),
-                                    ram_usage=_parse_mem_gb(mem_used_s),
-                                    ram_limit=_parse_mem_gb(mem_limit_s),
-                                    net_rx_str=net_rx_str.strip(),
-                                    net_tx_str=net_tx_str.strip(),
-                                )
-                                + "</pre>"
-                            )
-
-                    if container_blocks:
-                        blocks.append(f"<b>{t('docker_title', lang)}</b>")
-                        blocks.extend(container_blocks)
 
                 hostname_r = await conn.run("hostname")
                 hostname = _stdout(hostname_r).strip() or "unknown"
 
                 cpu_r = await conn.run(
-                    "top -bn1 | grep 'Cpu(s)' | "
-                    "sed 's/.*, *\\([0-9.]*\\)%* id.*/\\1/' | "
-                    "awk '{print 100 - $1}'"
+                    "top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\\([0-9.]*\\)%* id.*/\\1/' | awk '{print 100 - $1}'"
                 )
                 try:
                     cpu_pct = float(_stdout(cpu_r).strip())
@@ -137,16 +119,12 @@ async def _collect_system_info(redis) -> None:
                 except ValueError:
                     cores = 1
 
-                ram_r = await conn.run(
-                    "free | awk 'NR==2{printf \"%.2f %.2f\", $3/1024/1024, $2/1024/1024}'"
-                )
+                ram_r = await conn.run("free | awk 'NR==2{printf \"%.2f %.2f\", $3/1024/1024, $2/1024/1024}'")
                 ram_vals = _stdout(ram_r).strip().split()
                 ram_used = float(ram_vals[0]) if len(ram_vals) >= 1 else 0.0
                 ram_total = float(ram_vals[1]) if len(ram_vals) >= 2 else 0.0
 
-                disk_r = await conn.run(
-                    "df -BG / | awk 'NR==2{gsub(/G/,\"\"); print $4, $2}'"
-                )
+                disk_r = await conn.run("df -BG / | awk 'NR==2{gsub(/G/,\"\"); print $4, $2}'")
                 disk_vals = _stdout(disk_r).strip().split()
                 if len(disk_vals) >= 2:
                     disk_free = float(disk_vals[0])
@@ -155,22 +133,17 @@ async def _collect_system_info(redis) -> None:
                 else:
                     disk_used = disk_total_gb = 0.0
 
-                blocks.append(
-                    f"<b>{t('host_title', lang)}</b>\n"
-                    "<pre>"
-                    + t("host_info_template", lang).format(
-                        hostname=hostname,
-                        cpu_percent=cpu_pct,
-                        num_cores=cores,
-                        ram_usage=ram_used,
-                        ram_total=ram_total,
-                        disk_usage=disk_used,
-                        disk_total=disk_total_gb,
-                    )
-                    + "</pre>"
-                )
+                host = {
+                    "hostname": hostname,
+                    "cpu_percent": cpu_pct,
+                    "num_cores": cores,
+                    "ram_usage": ram_used,
+                    "ram_total": ram_total,
+                    "disk_usage": disk_used,
+                    "disk_total": disk_total_gb,
+                }
 
-                payload = json.dumps({"timestamp": time.time(), "blocks": blocks})
+                payload = json.dumps({"timestamp": time.time(), "containers": containers, "host": host})
                 await redis.setex(SYSTEM_INFO_KEY, SYSTEM_INFO_TTL, payload)
                 logger.info("System info collected and cached")
 
