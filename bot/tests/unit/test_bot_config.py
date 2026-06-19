@@ -12,6 +12,7 @@ import io
 import os
 from pathlib import Path
 from unittest import mock
+from urllib.parse import urlparse
 
 import pytest
 from faker import Faker
@@ -249,7 +250,8 @@ class TestBotYamlValues:
 
     def test_webapp_url_from_yaml(self, bot_cfg) -> None:
         module, *_ = bot_cfg
-        assert "example.com" in module.settings.webapp_url
+        host = urlparse(module.settings.webapp_url).hostname or ""
+        assert host == "example.com" or host.endswith(".example.com")
 
     def test_container_names_from_yaml(self, bot_cfg) -> None:
         module, *_ = bot_cfg

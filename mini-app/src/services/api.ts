@@ -509,7 +509,8 @@ export class WsClient {
     if (id && this._handlers.has(id)) {
       this._handlers.get(id)!(msg);
     } else {
-      this._typeHandlers.get(type)?.(msg);
+      const handler = this._typeHandlers.get(type);
+      if (typeof handler === 'function') handler(msg);
     }
   }
 
