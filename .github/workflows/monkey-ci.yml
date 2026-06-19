@@ -191,6 +191,15 @@ jobs:
             --source /repo --redact --no-banner \
             --report-format sarif --report-path /repo/gitleaks.sarif --exit-code 0
 
+      - name: Trivy scan (config + vuln + license + SBOM, report-only, no image build)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/aquasecurity/trivy:latest config /repo \
+            --format json --output /repo/trivy-config.json --exit-code 0 --quiet || true
+          docker run --rm -v "$PWD:/repo" ghcr.io/aquasecurity/trivy:latest fs /repo \
+            --scanners vuln,license --format json --output /repo/trivy-fs.json --exit-code 0 --quiet || true
+          docker run --rm -v "$PWD:/repo" ghcr.io/aquasecurity/trivy:latest fs /repo \
+            --format cyclonedx --output /repo/sbom.cdx.json --exit-code 0 --quiet || true
+
       - name: Security summary
         if: always()
         run: |
@@ -214,6 +223,20 @@ jobs:
                   return " / ".join(sorted(vals))
 
           b, pa, g = load("bandit.json"), load("pip-audit.json"), load("gitleaks.sarif")
+          tc, tf = load("trivy-config.json"), load("trivy-fs.json")
+
+          def _trivy_counts(report, key):
+              counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
+              for res in (report or {}).get("Results", []) or []:
+                  for item in res.get(key, []) or []:
+                      sev = item.get("Severity", "").upper()
+                      if sev in counts:
+                          counts[sev] += 1
+              return counts
+
+          mis = _trivy_counts(tc, "Misconfigurations")
+          vuln = _trivy_counts(tf, "Vulnerabilities")
+          lic = _trivy_counts(tf, "Licenses")
 
           high = med = low = 0
           if b:
@@ -239,10 +262,12 @@ jobs:
               return f"✅ {ok_txt}" if ok else f"⚠️ {bad_txt}"
 
           out = ["# 🔒 Security Report", ""]
+          trivy_ok = (mis["CRITICAL"] + mis["HIGH"] + vuln["CRITICAL"] + vuln["HIGH"]) == 0
           out.append(
               f"**Bandit:** {badge(high == 0, 'no HIGH', f'{high} HIGH')}  ·  "
               f"**pip-audit:** {badge(not pkgs, 'clean', f'{total} advisories')}  ·  "
-              f"**gitleaks:** {badge(leaks == 0, 'clean', f'{leaks} findings')}"
+              f"**gitleaks:** {badge(leaks == 0, 'clean', f'{leaks} findings')}  ·  "
+              f"**Trivy:** {badge(trivy_ok, 'clean', f'{sum(mis.values())} misconfig / {sum(vuln.values())} CVE')}"
           )
           out += ["", "## 🛡️ Bandit - static analysis", "", "| Severity | Count |", "|:--|--:|",
                   f"| 🔴 High | {high} |", f"| 🟠 Medium | {med} |", f"| 🟡 Low | {low} |", ""]
@@ -261,6 +286,25 @@ jobs:
                   ("✅ No secrets detected" if leaks == 0 else f"⚠️ {leaks} potential secrets")
                   + " _(report-only)_", ""]
 
+          out += ["## 🐳 Trivy - infra & dependencies", "",
+                  "| Scan | 🔴 Critical | 🟠 High | 🟡 Medium | Low |",
+                  "|:--|--:|--:|--:|--:|",
+                  f"| Misconfig (IaC) | {mis['CRITICAL']} | {mis['HIGH']} | {mis['MEDIUM']} | {mis['LOW']} |",
+                  f"| Vulnerabilities | {vuln['CRITICAL']} | {vuln['HIGH']} | {vuln['MEDIUM']} | {vuln['LOW']} |",
+                  f"| Licenses | {lic['CRITICAL']} | {lic['HIGH']} | {lic['MEDIUM']} | {lic['LOW']} |",
+                  ""]
+          mis_items = [
+              (m.get("Severity", ""), m.get("ID", ""), m.get("Title", ""))
+              for res in (tc or {}).get("Results", []) or []
+              for m in res.get("Misconfigurations", []) or []
+              if m.get("Severity", "").upper() in ("CRITICAL", "HIGH")
+          ]
+          if mis_items:
+              out.append(f"<details><summary>⚠️ {len(mis_items)} critical/high misconfigurations</summary>")
+              out += ["", "| Severity | ID | Title |", "|:--|:--|:--|"]
+              out += [f"| {sev} | {mid} | {title} |" for sev, mid, title in mis_items[:50]]
+              out += ["", "</details>", ""]
+
           print("\n".join(out))
           PY
 
@@ -273,4 +317,7 @@ jobs:
             bandit.json
             pip-audit.json
             gitleaks.sarif
+            trivy-config.json
+            trivy-fs.json
+            sbom.cdx.json
           retention-days: 14

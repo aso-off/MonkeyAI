@@ -11,8 +11,11 @@ fake = Faker()
 
 _BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN", "123456:e2e-token")
 _SERVICE_TOKEN = os.environ.get("API_SERVICE_TOKEN", "e2e-service-token")
-_MODEL = os.environ.get("LOAD_MODEL", "gpt-5.4-nano")
 _BASE_URL = os.environ.get("LOAD_BASE_URL", "http://localhost:8000")
+
+_MODELS = ["gpt-5.4-nano", "gpt-4o", "gpt-5.4-mini"]
+_THEMES = ["light", "dark", "system"]
+_LANGS = ["ru", "en"]
 
 
 def _make_init_data(user_id: int) -> str:
@@ -30,12 +33,37 @@ def _make_init_data(user_id: int) -> str:
 
 class MonkeyUser(HttpUser):
     host = _BASE_URL
-    wait_time = between(1, 3)
+    wait_time = between(0.5, 5)  # рваный ритм — у каждого юзера свой
 
     def on_start(self) -> None:
         self.user_id = fake.random_int(min=10_000_000, max=99_999_999)
+        self.model = fake.random_element(_MODELS)
         self._tma = {"Authorization": f"tma {_make_init_data(self.user_id)}"}
         self._svc = {"Authorization": f"Bearer {_SERVICE_TOKEN}"}
+        self._dialog_id: str | None = None
+
+        # регистрация + whitelist через service-token, чтобы открыть webapp-gated роуты
+        self.client.post(
+            "/users",
+            json={"id": self.user_id, "chat_id": self.user_id, "first_name": "Load"},
+            headers=self._svc, name="POST /users",
+        )
+        self.client.patch(
+            f"/users/{self.user_id}", json={"is_whitelisted": True},
+            headers=self._svc, name="PATCH /users/[id]",
+        )
+        self._create_dialog()
+
+    def _create_dialog(self) -> None:
+        with self.client.post(
+            "/webapp/dialogs/new", headers=self._tma,
+            name="POST /webapp/dialogs/new", catch_response=True,
+        ) as r:
+            if r.status_code == 200:
+                self._dialog_id = r.json().get("dialog_id")
+                r.success()
+            else:
+                r.failure(f"status {r.status_code}")
 
     @task(1)
     def health(self) -> None:
@@ -46,27 +74,26 @@ class MonkeyUser(HttpUser):
         self.client.get("/webapp/me", headers=self._tma, name="GET /webapp/me")
 
     @task(3)
-    def webapp_dialogs(self) -> None:
+    def list_dialogs(self) -> None:
         self.client.get("/webapp/dialogs", headers=self._tma, name="GET /webapp/dialogs")
 
     @task(4)
+    def webapp_chat(self) -> None:
+        body = {"message": fake.sentence(nb_words=8), "chat_mode": "mini_app_assistant", "model": self.model}
+        if self._dialog_id:
+            body["dialog_id"] = self._dialog_id
+        self.client.post("/webapp/chat", json=body, headers=self._tma, name="POST /webapp/chat")
+
+    @task(2)
     def chat_complete(self) -> None:
-        body = {
-            "user_id": self.user_id,
-            "message": fake.sentence(nb_words=8),
-            "model": _MODEL,
-            "chat_mode": "assistant",
-        }
+        body = {"user_id": self.user_id, "message": fake.sentence(nb_words=8),
+                "model": self.model, "chat_mode": "assistant"}
         self.client.post("/chat/complete", json=body, headers=self._svc, name="POST /chat/complete")
 
     @task(1)
     def chat_stream(self) -> None:
-        body = {
-            "user_id": self.user_id,
-            "message": fake.sentence(nb_words=8),
-            "model": _MODEL,
-            "chat_mode": "assistant",
-        }
+        body = {"user_id": self.user_id, "message": fake.sentence(nb_words=8),
+                "model": self.model, "chat_mode": "assistant"}
         with self.client.post(
             "/chat/stream", json=body, headers=self._svc,
             stream=True, name="POST /chat/stream", catch_response=True,
@@ -77,6 +104,58 @@ class MonkeyUser(HttpUser):
             for _ in resp.iter_lines():
                 pass
             resp.success()
+
+    @task(2)
+    def new_dialog(self) -> None:
+        self._create_dialog()
+
+    @task(1)
+    def rename_dialog(self) -> None:
+        if not self._dialog_id:
+            return
+        self.client.patch(
+            f"/webapp/dialogs/{self._dialog_id}", json={"title": fake.sentence(nb_words=3)},
+            headers=self._tma, name="PATCH /webapp/dialogs/[id]",
+        )
+
+    @task(1)
+    def pin_dialog(self) -> None:
+        if not self._dialog_id:
+            return
+        self.client.patch(
+            f"/webapp/dialogs/{self._dialog_id}/pin", json={"pinned": fake.boolean()},
+            headers=self._tma, name="PATCH /webapp/dialogs/[id]/pin",
+        )
+
+    @task(1)
+    def delete_dialog(self) -> None:
+        if not self._dialog_id:
+            return
+        with self.client.delete(
+            f"/webapp/dialogs/{self._dialog_id}", headers=self._tma,
+            name="DELETE /webapp/dialogs/[id]", catch_response=True,
+        ) as r:
+            if r.status_code in (204, 404):  # 404 = уже удалён, не ошибка
+                r.success()
+            else:
+                r.failure(f"status {r.status_code}")
+        self._dialog_id = None
+
+    @task(2)
+    def reaction(self) -> None:
+        if not self._dialog_id:
+            return
+        body = {"reaction": fake.random_element(["like", "dislike"]),
+                "model": self.model, "dialog_id": self._dialog_id}
+        self.client.post("/webapp/reactions", json=body, headers=self._tma, name="POST /webapp/reactions")
+
+    @task(2)
+    def update_prefs(self) -> None:
+        # «выбор модели»/темы/языка — сохранение префов (Redis + БД), без OpenAI
+        self.model = fake.random_element(_MODELS)
+        body = {"model": self.model, "theme": fake.random_element(_THEMES),
+                "language": fake.random_element(_LANGS)}
+        self.client.patch("/webapp/me", json=body, headers=self._tma, name="PATCH /webapp/me")
 
 
 @events.quitting.add_listener
