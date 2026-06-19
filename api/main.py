@@ -35,6 +35,7 @@ from routes.media import router as media_router
 from routes.users import router as users_router
 from routes.webapp import router as webapp_router
 from routes.ws import router as ws_router
+from sqlalchemy.exc import TimeoutError as SAPoolTimeout
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
@@ -148,6 +149,11 @@ def create_app() -> FastAPI:
             "docExpansion": "list",
         },
     )
+
+    @app.exception_handler(SAPoolTimeout)
+    async def db_pool_timeout_handler(request: Request, exc: SAPoolTimeout) -> JSONResponse:
+        # пул соединений исчерпан под нагрузкой — отдаём 503, а не 500
+        return JSONResponse(status_code=503, content={"detail": "Service busy, please retry"})
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
