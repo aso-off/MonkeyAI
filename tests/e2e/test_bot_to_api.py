@@ -13,14 +13,14 @@ _BOT_DIR = str(Path(__file__).resolve().parents[2] / "bot")
 def _load_api_client():
     """Импортируем реальный bot.api_client, застабив только bot-конфиг (env/yaml бота не нужны)."""
     fake_cfg = types.ModuleType("src.core.config")
-    fake_cfg.settings = types.SimpleNamespace(
+    fake_cfg.settings = types.SimpleNamespace(  # type: ignore[attr-defined]
         api_request_timeout_seconds=30.0,
         enable_content_moderation=True,
     )
     sys.modules["src.core.config"] = fake_cfg
     if _BOT_DIR not in sys.path:
         sys.path.insert(0, _BOT_DIR)
-    import src.services.api_client as api_client
+    import src.services.api_client as api_client  # type: ignore[import-not-found]
 
     return api_client
 
@@ -56,4 +56,5 @@ async def test_bot_api_client_chat_complete_persists(app, seed, monkeypatch):
 
     async with Session() as s:
         dialog = await s.get(Dialog, did)
+        assert dialog is not None
         assert [m["role"] for m in dialog.messages] == ["user", "assistant"]

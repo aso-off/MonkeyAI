@@ -183,6 +183,7 @@ jobs:
 
             docker compose --env-file .env --env-file secrets.env pull
             docker compose --env-file .env --env-file secrets.env up -d --remove-orphans
+            docker compose --env-file .env --env-file secrets.env up -d --build pg_backup
             docker compose --env-file .env --env-file secrets.env restart cloudflared
 
             docker system prune -af
