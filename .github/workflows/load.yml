@@ -112,6 +112,10 @@ jobs:
 
           kill $MOCK_PID $API_PID 2>/dev/null || true
 
+          echo "::group::API log (tail)"
+          tail -n 150 logs/api.log 2>/dev/null || true
+          echo "::endgroup::"
+
       - name: Load summary
         if: always()
         run: |
@@ -154,4 +158,5 @@ jobs:
           path: |
             report-*.html
             report-*.csv
+            logs/api.log
           retention-days: 14
