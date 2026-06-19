@@ -72,7 +72,8 @@ jobs:
         run: uv sync --extra api --extra bot --group dev --group load --no-install-project
 
       - name: Point OpenAI to mock
-        run: 'echo "openai_api_base: http://127.0.0.1:9090/v1" >> configs/config.yml'
+        run: |
+          printf '\nopenai_api_base: http://127.0.0.1:9090/v1\n' >> configs/config.yml
 
       - name: Alembic upgrade
         run: .venv/bin/alembic -c api/alembic.ini upgrade head
@@ -85,26 +86,15 @@ jobs:
           mkdir -p logs
           .venv/bin/python -m uvicorn mock_openai:app --app-dir tests/load --port 9090 > logs/mock.log 2>&1 &
           MOCK_PID=$!
-          PYTHONPATH=api/src .venv/bin/python -u -m uvicorn main:app --app-dir api --port 8000 > logs/api-server.log 2>&1 &
+          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 > logs/api-server.log 2>&1 &
           API_PID=$!
           UP=0
           for _ in $(seq 1 30); do curl -sf http://localhost:8000/health >/dev/null && { UP=1; break; }; sleep 2; done
           if [ "$UP" != 1 ]; then
-            echo "::error::API failed to start"; tail -n 50 logs/api.log 2>/dev/null || true
+            echo "::error::API failed to start"; tail -n 50 logs/api-server.log 2>/dev/null || true
             kill $MOCK_PID $API_PID 2>/dev/null || true
             exit 1
           fi
-
-          echo "::group::Diagnostic single /chat/complete"
-          curl -s -X POST http://localhost:8000/chat/complete \
-            -H "Authorization: Bearer ${API_SERVICE_TOKEN}" -H "Content-Type: application/json" \
-            -d '{"user_id":12345,"message":"hi","model":"gpt-5.4-nano","chat_mode":"assistant"}' \
-            -w '\nHTTP_CODE=%{http_code}\n'
-          echo "--- api.log ---"
-          cat logs/api.log 2>/dev/null || true
-          echo "--- api-server.log (uvicorn stderr, unbuffered — traceback here) ---"
-          cat logs/api-server.log 2>/dev/null || true
-          echo "::endgroup::"
 
           if [ "${{ github.event.inputs.profile }}" = "all" ]; then
             PROFILES="load stress spike"
@@ -123,10 +113,6 @@ jobs:
           done
 
           kill $MOCK_PID $API_PID 2>/dev/null || true
-
-          echo "::group::API log (tail)"
-          tail -n 200 logs/api.log 2>/dev/null || true
-          echo "::endgroup::"
 
       - name: Load summary
         if: always()
@@ -170,6 +156,5 @@ jobs:
           path: |
             report-*.html
             report-*.csv
-            logs/api.log
             logs/api-server.log
           retention-days: 14

@@ -153,12 +153,6 @@ def create_app() -> FastAPI:
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         request_id = uuid.uuid4().hex[:12]
         logger.exception("Unhandled error [%s] %s %s", request_id, request.method, request.url.path)
-        import traceback as _tb
-        print(
-            f"UNHANDLED [{request_id}] {request.method} {request.url.path}\n"
-            + "".join(_tb.format_exception(type(exc), exc, exc.__traceback__)),
-            flush=True,
-        )
         return JSONResponse(
             status_code=500,
             content={"detail": "Internal server error", "request_id": request_id},
