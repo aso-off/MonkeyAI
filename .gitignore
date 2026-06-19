@@ -5,6 +5,10 @@
 secrets.env
 !secrets.env.example
 
+# Private configs
+configs/user-ids.yml
+configs/chat_modes.yml
+
 # Python
 __pycache__/
 *.py[cod]
