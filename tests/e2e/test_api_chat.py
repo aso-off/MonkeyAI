@@ -23,10 +23,12 @@ async def test_chat_complete_persists_exchange(client, seed):
 
     async with Session() as s:
         dialog = await s.get(Dialog, did)
+        assert dialog is not None
         assert [m["role"] for m in dialog.messages] == ["user", "assistant"]
         assert dialog.messages[1]["content"] == "E2E canned answer"
 
         stats = await s.get(UserStatistics, uid)
+        assert stats is not None
         assert stats.n_used_tokens  # обновился per-model счётчик
 
 
@@ -56,6 +58,7 @@ async def test_chat_complete_flagged_blocks(client, seed, monkeypatch):
 
     async with Session() as s:
         dialog = await s.get(Dialog, did)
+        assert dialog is not None
         assert dialog.messages == []  # ничего не записали
 
 

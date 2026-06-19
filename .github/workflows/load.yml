@@ -9,10 +9,14 @@ on:
         options: [load, stress, spike, all]
         default: load
       users:
-        description: "Users (-u), load profile only"
+        description: "Users (peak)"
+        type: choice
+        options: ["50", "150", "300", "500", "1000"]
         default: "150"
       run_time:
-        description: "Duration (-t), load profile only"
+        description: "Duration"
+        type: choice
+        options: ["30s", "1m", "2m", "4m", "5m"]
         default: "2m"
 
 concurrency:
@@ -96,20 +100,29 @@ jobs:
             exit 1
           fi
 
+          case "$RUN_TIME" in
+            30s) SECS=30;;
+            1m) SECS=60;;
+            2m) SECS=120;;
+            4m) SECS=240;;
+            5m) SECS=300;;
+            *) SECS=120;;
+          esac
+          SPAWN=$(( USERS / 10 ))
+          if [ "$SPAWN" -lt 1 ]; then SPAWN=1; fi
+          export LOAD_MAX_USERS="$USERS" LOAD_RUN_TIME_S="$SECS"
+
           if [ "${{ github.event.inputs.profile }}" = "all" ]; then
             PROFILES="load stress spike"
           else
             PROFILES="${{ github.event.inputs.profile }}"
           fi
 
+          # load: -u/-r/-t рулят напрямую; stress/spike: форма читает LOAD_MAX_USERS/LOAD_RUN_TIME_S
           for p in $PROFILES; do
-            if [ "$p" = "load" ]; then
-              ARGS="-u $USERS -r 20 --run-time $RUN_TIME"
-            else
-              ARGS=""  # shape drives the profile
-            fi
             .venv/bin/locust -f "tests/load/locust_$p.py" --headless --only-summary \
-              --html "report-$p.html" --csv "report-$p" $ARGS || true
+              -u "$USERS" -r "$SPAWN" --run-time "$RUN_TIME" \
+              --html "report-$p.html" --csv "report-$p" || true
           done
 
           kill $MOCK_PID $API_PID 2>/dev/null || true
@@ -156,5 +169,4 @@ jobs:
           path: |
             report-*.html
             report-*.csv
-            logs/api-server.log
           retention-days: 14
