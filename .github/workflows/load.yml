@@ -95,6 +95,15 @@ jobs:
             exit 1
           fi
 
+          echo "::group::Diagnostic single /chat/complete"
+          curl -s -X POST http://localhost:8000/chat/complete \
+            -H "Authorization: Bearer ${API_SERVICE_TOKEN}" -H "Content-Type: application/json" \
+            -d '{"user_id":12345,"message":"hi","model":"gpt-5.4-nano","chat_mode":"assistant"}' \
+            -w '\nHTTP_CODE=%{http_code}\n'
+          echo "--- api-server.log after single request ---"
+          cat logs/api-server.log 2>/dev/null || true
+          echo "::endgroup::"
+
           if [ "${{ github.event.inputs.profile }}" = "all" ]; then
             PROFILES="load stress spike"
           else
