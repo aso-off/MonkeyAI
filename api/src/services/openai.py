@@ -176,7 +176,12 @@ class ChatGPT:
                 answer = answer.strip()
                 if not answer:
                     raise ValueError("Model returned an empty response. Please try again.")
-                return answer, (r.usage.prompt_tokens, r.usage.completion_tokens), n_before - len(dialog_messages)
+                usage = r.usage
+                return (
+                    answer,
+                    (usage.prompt_tokens if usage else 0, usage.completion_tokens if usage else 0),
+                    n_before - len(dialog_messages),
+                )
             except BadRequestError:
                 if not dialog_messages:
                     raise ValueError("Dialog reduced to zero but still exceeds token limit") from None
@@ -205,13 +210,13 @@ class ChatGPT:
         async for event in stream:
             etype = getattr(event, "type", "")
             if etype == "response.output_text.delta":
-                answer += event.delta
+                answer += getattr(event, "delta", "")
                 yield "not_finished", answer, reasoning, (n_input, n_output), 0
             elif etype == "response.reasoning_summary_text.delta":
-                reasoning += event.delta
+                reasoning += getattr(event, "delta", "")
                 yield "not_finished", answer, reasoning, (n_input, n_output), 0
             elif etype == "response.completed":
-                usage = getattr(event.response, "usage", None)
+                usage = getattr(getattr(event, "response", None), "usage", None)
                 if usage:
                     n_input, n_output = usage.input_tokens, usage.output_tokens
 
@@ -244,7 +249,12 @@ class ChatGPT:
                 answer = answer.strip()
                 if not answer:
                     raise ValueError("Model returned an empty response. Please try again.")
-                return answer, (r.usage.prompt_tokens, r.usage.completion_tokens), n_before - len(dialog_messages)
+                usage = r.usage
+                return (
+                    answer,
+                    (usage.prompt_tokens if usage else 0, usage.completion_tokens if usage else 0),
+                    n_before - len(dialog_messages),
+                )
             except BadRequestError:
                 if not dialog_messages:
                     raise ValueError("Dialog reduced to zero but still exceeds token limit") from None
@@ -276,13 +286,13 @@ class ChatGPT:
         async for event in stream:
             etype = getattr(event, "type", "")
             if etype == "response.output_text.delta":
-                answer += event.delta
+                answer += getattr(event, "delta", "")
                 yield "not_finished", answer, reasoning, (n_input, n_output), 0
             elif etype == "response.reasoning_summary_text.delta":
-                reasoning += event.delta
+                reasoning += getattr(event, "delta", "")
                 yield "not_finished", answer, reasoning, (n_input, n_output), 0
             elif etype == "response.completed":
-                usage = getattr(event.response, "usage", None)
+                usage = getattr(getattr(event, "response", None), "usage", None)
                 if usage:
                     n_input, n_output = usage.input_tokens, usage.output_tokens
 
