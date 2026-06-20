@@ -16,8 +16,18 @@ async def health() -> JSONResponse:
     except Exception:
         redis_status = "down"
 
-    overall = "ok" if redis_status == "ok" else "degraded"
-    return JSONResponse({"status": overall, "redis": redis_status})
+    db_status = "ok"
+    try:
+        from db.db import engine
+        from sqlalchemy import text
+
+        async with engine.connect() as conn:
+            await asyncio.wait_for(conn.execute(text("SELECT 1")), timeout=1.0)
+    except Exception:
+        db_status = "down"
+
+    overall = "ok" if redis_status == "ok" and db_status == "ok" else "degraded"
+    return JSONResponse({"status": overall, "redis": redis_status, "db": db_status})
 
 
 @router.get("/health/debug/500", include_in_schema=False)

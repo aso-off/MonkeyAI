@@ -31,6 +31,8 @@ jobs:
           python-version: "3.11"
 
       - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --extra api --extra bot --group dev --no-install-project
@@ -67,6 +69,8 @@ jobs:
           python-version: "3.11"
 
       - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --extra api --extra bot --group dev --no-install-project
@@ -128,6 +132,8 @@ jobs:
           python-version: "3.11"
 
       - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --extra api --extra bot --group dev --no-install-project
@@ -164,6 +170,8 @@ jobs:
           python-version: "3.11"
 
       - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --extra api --extra bot --group dev --group security --no-install-project
