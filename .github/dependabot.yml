@@ -34,11 +34,22 @@ updates:
     directory: "/api"
     schedule:
       interval: "weekly"
+    # python: только патчи 3.11.x
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "docker"
     directory: "/bot"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "docker"
     directory: "/deployment/backup"
     schedule:
       interval: "weekly"
+    # postgres: без мажора (без 18)
+    ignore:
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
