@@ -5,7 +5,6 @@
   "type": "module",
   "homepage": "https://telegram-mini-apps.github.io/vuejs-template",
   "scripts": {
-    "deploy": "gh-pages -d dist",
     "dev": "vite",
     "dev:https": "cross-env HTTPS=true vite",
     "build": "run-p type-check \"build-only {@}\" --",
@@ -45,7 +44,6 @@
     "cross-env": "^7.0.3",
     "eslint": "^9.14.0",
     "eslint-plugin-vue": "^9.30.0",
-    "gh-pages": "^6.3.0",
     "jsdom": "^26.1.0",
     "npm-run-all2": "^7.0.1",
     "typescript": "^6.0.3",
