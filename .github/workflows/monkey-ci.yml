@@ -65,7 +65,7 @@ jobs:
 
   # Job 3: Unit tests + coverage
   unit-tests:
-    name: Unit tests (coverage ≥ 60%)
+    name: Tests (coverage ≥ 80%)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -84,15 +84,15 @@ jobs:
       - name: Health smoke tests
         run: .venv/bin/python -m pytest -q api/tests/test_api_health.py bot/tests/test_bot_health.py
 
-      - name: Unit tests + coverage
+      - name: Tests + coverage
         run: >-
           .venv/bin/python -m pytest -q
-          api/tests/unit bot/tests/unit
+          api/tests bot/tests
           --cov=api/src
           --cov=bot/src
           --cov-report=term-missing
           --cov-report=xml:coverage.xml
-          --cov-fail-under=60
+          --cov-fail-under=80
 
       - name: Upload coverage to Codecov
         if: always()
