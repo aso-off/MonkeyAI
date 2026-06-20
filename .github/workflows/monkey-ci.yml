@@ -6,10 +6,16 @@ on:
     paths-ignore:
       - "configs/version.yml"
       - "mini-app/**"
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
   pull_request:
     paths-ignore:
       - "configs/version.yml"
       - "mini-app/**"
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
 
 concurrency:
   group: ci-${{ github.ref }}

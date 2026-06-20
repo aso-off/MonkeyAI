@@ -43,7 +43,7 @@ docker compose --env-file .env --env-file secrets.env up -d
 docker compose logs -f api
 ```
 
-Private configs `configs/user-ids.yml` and `configs/chat_modes.yml` are not committed - copy the `*.example.yml` templates and fill in your data.
+The private configs `configs/user-ids.yml` and `configs/chat_modes.yml` are git-ignored. Copy the matching `*.example.yml` templates and fill in your own values.
 
 ## Development
 
