@@ -6,7 +6,7 @@ on:
       keep_days:
         description: "Delete completed runs older than N days"
         type: choice
-        options: ["14", "21", "30"]
+        options: ["14", "21", "30", "60", "90"]
         default: "14"
 
 concurrency:
@@ -40,18 +40,22 @@ jobs:
               | .[]
               | select(.status == "completed")
               | select((.createdAt | fromdateiso8601) < $cutoff)
-              | [.id, .name] | @tsv
+              | [.id, .name, .createdAt] | @tsv
             ')
 
           total=0
+          oldest=""
+          newest=""
           declare -A counts
           if [ -n "$to_delete" ]; then
-            while IFS=$'\t' read -r id wf; do
+            while IFS=$'\t' read -r id wf created; do
               [ -z "$id" ] && continue
               if gh run delete "$id"; then
                 counts["$wf"]=$(( ${counts["$wf"]:-0} + 1 ))
                 total=$(( total + 1 ))
-                echo "deleted $id ($wf)"
+                if [ -z "$oldest" ] || [[ "$created" < "$oldest" ]]; then oldest="$created"; fi
+                if [ -z "$newest" ] || [[ "$created" > "$newest" ]]; then newest="$created"; fi
+                echo "deleted $id ($wf $created)"
               fi
             done <<< "$to_delete"
           fi
@@ -59,11 +63,13 @@ jobs:
           {
             echo "## Cleanup old runs"
             echo ""
-            echo "- Older than: **${KEEP_DAYS} days** · keep last **${KEEP_LAST}** per workflow"
+            echo "- Older than: **${KEEP_DAYS} days**"
             echo ""
             if [ "$total" -eq 0 ]; then
               echo "_Nothing to delete._"
             else
+              echo "Deleted runs from **${oldest:0:10}** to **${newest:0:10}**"
+              echo ""
               echo "| Workflow | Deleted |"
               echo "|:--|--:|"
               for wf in "${!counts[@]}"; do
