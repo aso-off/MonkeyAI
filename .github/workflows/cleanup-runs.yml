@@ -30,16 +30,43 @@ jobs:
         run: |
           set -euo pipefail
           cutoff=$(date -u -d "$KEEP_DAYS days ago" +%s)
-          gh run list --limit 500 --json databaseId,createdAt,status,workflowName \
+
+          to_delete=$(gh run list --limit 500 --json databaseId,createdAt,status,workflowName \
             | jq -r --argjson keep "$KEEP_LAST" --argjson cutoff "$cutoff" '
                 group_by(.workflowName)[]
                 | (sort_by(.createdAt) | reverse | .[$keep:])
                 | .[]
                 | select(.status == "completed")
                 | select((.createdAt | fromdateiso8601) < $cutoff)
-                | .databaseId
-              ' \
-            | while read -r id; do
-                echo "delete run $id"
-                gh run delete "$id" || true
+                | [.databaseId, .workflowName] | @tsv
+              ')
+
+          total=0
+          declare -A counts
+          if [ -n "$to_delete" ]; then
+            while IFS=$'\t' read -r id wf; do
+              [ -z "$id" ] && continue
+              if gh run delete "$id"; then
+                counts["$wf"]=$(( ${counts["$wf"]:-0} + 1 ))
+                total=$(( total + 1 ))
+                echo "deleted $id ($wf)"
+              fi
+            done <<< "$to_delete"
+          fi
+
+          {
+            echo "## Cleanup old runs"
+            echo ""
+            echo "- Older than: **${KEEP_DAYS} days** · keep last **${KEEP_LAST}** per workflow"
+            echo ""
+            if [ "$total" -eq 0 ]; then
+              echo "_Nothing to delete._"
+            else
+              echo "| Workflow | Deleted |"
+              echo "|:--|--:|"
+              for wf in "${!counts[@]}"; do
+                echo "| ${wf} | ${counts[$wf]} |"
               done
+              echo "| **Total** | **${total}** |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
