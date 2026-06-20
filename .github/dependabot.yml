@@ -9,6 +9,10 @@ updates:
     groups:
       python:
         patterns: ["*"]
+    # без мажоров - только patch/minor
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # Mini App (npm)
   - package-ecosystem: "npm"
@@ -19,6 +23,9 @@ updates:
     groups:
       npm:
         patterns: ["*"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
