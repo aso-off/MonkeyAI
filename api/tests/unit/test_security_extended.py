@@ -59,17 +59,20 @@ def _make_init_data(bot_token: str, user_id: int, max_age_seconds: int = 3600) -
 class TestVerifyServiceToken:
 
     @pytest.mark.asyncio
-    async def test_no_service_token_allows_all(self) -> None:
-        """Если _SERVICE_TOKEN пустой - любой запрос проходит."""
+    async def test_no_service_token_fails_closed(self) -> None:
+        """Если _SERVICE_TOKEN пустой - fail-closed: 503, защищённые роуты недоступны."""
         from unittest.mock import MagicMock
 
-        # Загружаем реальный модуль с пустым токеном
+        from fastapi import HTTPException
+
         mod = _load_real_security()
         mod._SERVICE_TOKEN = ""
 
         credentials = MagicMock()
         credentials.credentials = fake.sha256()
-        await mod.verify_service_token(credentials)  # не должен падать
+        with pytest.raises(HTTPException) as exc:
+            await mod.verify_service_token(credentials)
+        assert exc.value.status_code == 503
 
     @pytest.mark.asyncio
     async def test_matching_token_passes(self) -> None:
