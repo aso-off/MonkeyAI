@@ -1,0 +1,45 @@
+name: Cleanup old runs
+
+on:
+  schedule:
+    - cron: "0 2 * * 0"
+  workflow_dispatch:
+    inputs:
+      keep_days:
+        description: "Delete completed runs older than N days"
+        default: "14"
+
+concurrency:
+  group: cleanup-runs
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      KEEP_DAYS: ${{ github.event.inputs.keep_days || '14' }}
+      KEEP_LAST: "10"
+    steps:
+      - name: Delete old runs (keep last 10 per workflow)
+        run: |
+          set -euo pipefail
+          cutoff=$(date -u -d "$KEEP_DAYS days ago" +%s)
+          gh run list --limit 500 --json databaseId,createdAt,status,workflowName \
+            | jq -r --argjson keep "$KEEP_LAST" --argjson cutoff "$cutoff" '
+                group_by(.workflowName)[]
+                | (sort_by(.createdAt) | reverse | .[$keep:])
+                | .[]
+                | select(.status == "completed")
+                | select((.createdAt | fromdateiso8601) < $cutoff)
+                | .databaseId
+              ' \
+            | while read -r id; do
+                echo "delete run $id"
+                gh run delete "$id" || true
+              done
