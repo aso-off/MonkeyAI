@@ -2,13 +2,9 @@
 
 AI-powered Telegram bot & Mini App: GPT chat, image generation, voice transcription.
 
-[![Backend CI](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-ci.yml/badge.svg)](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-ci.yml)
-[![Backend CD](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-cd.yml/badge.svg)](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-cd.yml)
-[![Mini-App CI](https://github.com/aso-off/MonkeyAI/actions/workflows/mini-app-ci.yml/badge.svg)](https://github.com/aso-off/MonkeyAI/actions/workflows/mini-app-ci.yml)
+[![Last commit](https://img.shields.io/github/last-commit/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/commits/main)
 [![Release](https://img.shields.io/github/v/release/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/releases)
 [![License](https://img.shields.io/github/license/aso-off/MonkeyAI)](LICENSE)
-[![Last commit](https://img.shields.io/github/last-commit/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/commits/main)
-[![Stars](https://img.shields.io/github/stars/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/stargazers)
 
 ## Features
 
