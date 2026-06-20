@@ -1,6 +1,6 @@
 # ---- Stage 1: builder ----
 # Compiles all Python C extensions into .venv using build tools
-FROM python:3.11-slim AS builder
+FROM python:3.14-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1
 
@@ -19,7 +19,7 @@ RUN uv sync --frozen --extra bot --no-install-project
 
 # ---- Stage 2: runtime ----
 # Only the compiled .venv + source; no build tools, no headers
-FROM python:3.11-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 ARG VERSION=dev
 ARG BUILD_TIME=unknown
