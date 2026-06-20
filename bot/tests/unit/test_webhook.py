@@ -297,7 +297,7 @@ class TestCreateApp:
 
     def test_app_has_webhook_router_included(self, webhook_app_module) -> None:
         app = webhook_app_module.create_app()
-        routes = [r.path for r in app.routes]
+        routes = [r.path for r in app.routes if hasattr(r, "path")]
         assert any("/webhook" in p for p in routes)
 
 class TestLifespan:
