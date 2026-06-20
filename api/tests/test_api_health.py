@@ -25,6 +25,10 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
 
     fake_settings = types.SimpleNamespace(
         database_url="postgresql+asyncpg://u:p@localhost:5432/db",
+        db_pool_size=5,
+        db_max_overflow=10,
+        db_pool_timeout=30,
+        db_pool_recycle=1800,
         telegram_token=types.SimpleNamespace(get_secret_value=lambda: "token"),
         chat_modes={"assistant": {"prompt_start": "x"}},
         models={},
