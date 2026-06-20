@@ -1,16 +1,19 @@
-# Monkey AI 🐵
+# Monkey AI
 
 AI-powered Telegram bot & Mini App: GPT chat, image generation, voice transcription.
 
 [![Backend CI](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-ci.yml/badge.svg)](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-ci.yml)
+[![Backend CD](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-cd.yml/badge.svg)](https://github.com/aso-off/MonkeyAI/actions/workflows/monkey-cd.yml)
 [![Mini-App CI](https://github.com/aso-off/MonkeyAI/actions/workflows/mini-app-ci.yml/badge.svg)](https://github.com/aso-off/MonkeyAI/actions/workflows/mini-app-ci.yml)
-
-**Mini App:** https://aso-off.github.io/MonkeyAI/
+[![Release](https://img.shields.io/github/v/release/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/releases)
+[![License](https://img.shields.io/github/license/aso-off/MonkeyAI)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/commits/main)
+[![Stars](https://img.shields.io/github/stars/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/stargazers)
 
 ## Features
 
 - 💬 **Chat** with GPT models, multiple assistant personas (general, code, text editor)
-- 🎨 **Image generation** (DALL·E)
+- 🎨 **Image generation** (GPT Image 1.5)
 - 🎙️ **Voice** transcription (Whisper)
 - 🛡️ **Content moderation** (OpenAI moderation API)
 - 👥 **Whitelist** access control + admin tools
@@ -48,7 +51,7 @@ Private configs `configs/user-ids.yml` and `configs/chat_modes.yml` are not comm
 
 ## Development
 
-**Backend** (Python + [uv](https://docs.astral.sh/uv/)):
+**Backend** (Python + uv):
 
 ```bash
 uv sync --extra api --extra bot --group dev --no-install-project
@@ -71,11 +74,3 @@ npm run build
 - **monkey-cd** (on `vX.Y.Z` tag) - tests > build & push Docker images > SSH deploy to VPS.
 - **mini-app-ci / mini-app-cd** - type-check/lint/test/build > deploy to GitHub Pages.
 - **CodeQL** + **Dependabot** for continuous security and dependency hygiene.
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
-
-## License
-
-[MIT](LICENSE) © 2026 Vadim
