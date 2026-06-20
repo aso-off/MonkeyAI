@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from core.config import settings
@@ -11,7 +12,15 @@ class Base(DeclarativeBase):
     pass
 
 
-engine = create_async_engine(settings.database_url, echo=False, pool_pre_ping=True)
+engine = create_async_engine(
+    settings.database_url,
+    echo=False,
+    pool_pre_ping=True,
+    pool_size=settings.db_pool_size,
+    max_overflow=settings.db_max_overflow,
+    pool_timeout=settings.db_pool_timeout,
+    pool_recycle=settings.db_pool_recycle,
+)
 Session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
@@ -47,6 +56,10 @@ async def init_db() -> None:
         UserState,
         UserStatistics,
     )
+
+    # миграции накатаны отдельно (мультиворкерный load) — пропуск гонки
+    if os.environ.get("API_SKIP_MIGRATIONS"):
+        return
 
     async with engine.connect() as conn:
         await conn.run_sync(_run_migrations)
