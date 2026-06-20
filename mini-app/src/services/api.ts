@@ -507,7 +507,8 @@ export class WsClient {
     //   No matching id-handler           > broadcast to another device (use type-handler)
     const id = msg.id as string | undefined;
     if (id && this._handlers.has(id)) {
-      this._handlers.get(id)!(msg);
+      const handler = this._handlers.get(id);
+      if (typeof handler === 'function') handler(msg);
     } else {
       const handler = this._typeHandlers.get(type);
       if (typeof handler === 'function') handler(msg);
