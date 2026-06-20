@@ -1,0 +1,22 @@
+system_prompt: |
+  Test assistant.
+assistant:
+  name: "Assistant"
+  model_type: text
+  prompt_start: "You are a helpful assistant."
+code_assistant:
+  name: "Code"
+  prompt_start: "You are a coding assistant."
+artist:
+  name: "Artist"
+  model_type: image
+text_improver:
+  name: "Editor"
+  prompt_start: "You improve text."
+mini_app_assistant:
+  name: "Monkey AI"
+  model_type: text
+  prompt_start: "You are a helpful assistant."
+mini_app_artist:
+  name: "Monkey AI Artist"
+  model_type: image

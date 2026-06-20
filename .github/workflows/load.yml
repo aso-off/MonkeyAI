@@ -79,6 +79,11 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra api --extra bot --group dev --group load --no-install-project
 
+      - name: Stub private configs (fake data for CI)
+        run: |
+          cp configs/user-ids.example.yml configs/user-ids.yml
+          cp configs/chat_modes.example.yml configs/chat_modes.yml
+
       - name: Point OpenAI to mock
         run: |
           printf '\nopenai_api_base: http://127.0.0.1:9090/v1\n' >> configs/config.yml
