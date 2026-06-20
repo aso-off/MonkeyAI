@@ -42,7 +42,6 @@ env:
   LOAD_BASE_URL: http://localhost:8000
   DB_POOL_SIZE: "20"
   DB_MAX_OVERFLOW: "20"
-  API_SKIP_MIGRATIONS: "1"
 
 jobs:
   # Manual run: chosen profile, or "all" for every profile
@@ -93,7 +92,7 @@ jobs:
           mkdir -p logs
           .venv/bin/python -m uvicorn mock_openai:app --app-dir tests/load --port 9090 > logs/mock.log 2>&1 &
           MOCK_PID=$!
-          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 --workers 2 > logs/api-server.log 2>&1 &
+          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 > logs/api-server.log 2>&1 &
           API_PID=$!
           UP=0
           for _ in $(seq 1 30); do curl -sf http://localhost:8000/health >/dev/null && { UP=1; break; }; sleep 2; done
