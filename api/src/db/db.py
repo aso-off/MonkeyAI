@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from core.config import settings
@@ -56,10 +55,6 @@ async def init_db() -> None:
         UserState,
         UserStatistics,
     )
-
-    # миграции накатаны отдельно (мультиворкерный load) — пропуск гонки
-    if os.environ.get("API_SKIP_MIGRATIONS"):
-        return
 
     async with engine.connect() as conn:
         await conn.run_sync(_run_migrations)
