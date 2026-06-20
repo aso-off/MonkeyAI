@@ -18,7 +18,7 @@ async def test_token_not_reflected_on_401(client):
 async def test_health_exposes_only_status(client):
     r = await client.get("/health")
     assert r.status_code == 200
-    assert set(r.json().keys()) <= {"status", "redis"}
+    assert set(r.json().keys()) <= {"status", "redis", "db"}
 
 
 async def test_404_has_no_internals(client):

@@ -27,9 +27,13 @@ async def verify_service_token(
 ) -> None:
     """Bot > API internal calls. Authorization: Bearer <API_SERVICE_TOKEN>."""
     if not _SERVICE_TOKEN:
-        return
-    token = credentials.credentials if credentials else None
-    if token != _SERVICE_TOKEN:
+        # fail-closed: без сконфигурированного токена защищённые роуты недоступны
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service token not configured",
+        )
+    token = credentials.credentials if credentials else ""
+    if not hmac.compare_digest(token, _SERVICE_TOKEN):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid service token")
 
 
