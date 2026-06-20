@@ -11,7 +11,7 @@ on:
       users:
         description: "Users (peak)"
         type: choice
-        options: ["50", "150", "300", "500", "1000"]
+        options: ["50", "150", "300", "500"]
         default: "150"
       run_time:
         description: "Duration"
@@ -40,6 +40,9 @@ env:
   TELEGRAM_TOKEN: "123456:load-token"
   API_SERVICE_TOKEN: load-service-token
   LOAD_BASE_URL: http://localhost:8000
+  DB_POOL_SIZE: "20"
+  DB_MAX_OVERFLOW: "20"
+  API_SKIP_MIGRATIONS: "1"
 
 jobs:
   # Manual run: chosen profile, or "all" for every profile
@@ -90,7 +93,7 @@ jobs:
           mkdir -p logs
           .venv/bin/python -m uvicorn mock_openai:app --app-dir tests/load --port 9090 > logs/mock.log 2>&1 &
           MOCK_PID=$!
-          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 > logs/api-server.log 2>&1 &
+          PYTHONPATH=api/src .venv/bin/python -m uvicorn main:app --app-dir api --port 8000 --workers 2 > logs/api-server.log 2>&1 &
           API_PID=$!
           UP=0
           for _ in $(seq 1 30); do curl -sf http://localhost:8000/health >/dev/null && { UP=1; break; }; sleep 2; done
@@ -110,7 +113,7 @@ jobs:
           esac
           SPAWN=$(( USERS / 10 ))
           if [ "$SPAWN" -lt 1 ]; then SPAWN=1; fi
-          export LOAD_MAX_USERS="$USERS" LOAD_RUN_TIME_S="$SECS"
+          export LOAD_MAX_USERS="$USERS" LOAD_RUN_TIME_S="$SECS" LOAD_SEED_USERS="$USERS"
 
           if [ "${{ github.event.inputs.profile }}" = "all" ]; then
             PROFILES="load stress spike"
