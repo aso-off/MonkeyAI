@@ -13,8 +13,8 @@ export default defineConfig(({ command }) => ({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
-  // GitHub Pages: https://aso-off.github.io/mini-app/
-  base: '/mini-app/',
+  // GitHub Pages: https://aso-off.github.io/MonkeyAI/
+  base: '/MonkeyAI/',
   // Read .env from mini-app/ (contains only VITE_API_URL - safe to keep local)
   envDir: fileURLToPath(new URL('.', import.meta.url)),
   plugins: [

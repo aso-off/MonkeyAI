@@ -62,7 +62,7 @@ moderation_thresholds:
   violence/graphic: 0.5
 
 # Mini-App
-webapp_url: 'https://aso-off.github.io/mini-app/'
+webapp_url: 'https://aso-off.github.io/MonkeyAI/'
 
 # Docker-контейнеры для мониторинга (system info)
 container_names:
