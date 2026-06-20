@@ -5,7 +5,7 @@ AI-powered Telegram bot & Mini App: GPT chat, image generation, voice transcript
 [![Last commit](https://img.shields.io/github/last-commit/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/commits/main)
 [![Release](https://img.shields.io/github/v/release/aso-off/MonkeyAI)](https://github.com/aso-off/MonkeyAI/releases)
 [![License](https://img.shields.io/github/license/aso-off/MonkeyAI)](LICENSE)
-[![codecov](https://codecov.io/gh/aso-off/MonkeyAI/graph/badge.svg)](https://codecov.io/gh/aso-off/MonkeyAI)
+[![Coverage](https://img.shields.io/codecov/c/github/aso-off/MonkeyAI)](https://codecov.io/gh/aso-off/MonkeyAI)
 
 ## Features
 
