@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_password: SecretStr
 
+    # Пул соединений к БД (дефолты = прод)
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 30
+    db_pool_recycle: int = 1800
+
     # Redis
     redis_host: str = "redis"
     redis_port: int = 6379
