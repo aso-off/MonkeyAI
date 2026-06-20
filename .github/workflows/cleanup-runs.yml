@@ -31,15 +31,17 @@ jobs:
           set -euo pipefail
           cutoff=$(date -u -d "$KEEP_DAYS days ago" +%s)
 
-          to_delete=$(gh run list --limit 500 --json databaseId,createdAt,status,workflowName \
-            | jq -r --argjson keep "$KEEP_LAST" --argjson cutoff "$cutoff" '
-                group_by(.workflowName)[]
-                | (sort_by(.createdAt) | reverse | .[$keep:])
-                | .[]
-                | select(.status == "completed")
-                | select((.createdAt | fromdateiso8601) < $cutoff)
-                | [.databaseId, .workflowName] | @tsv
-              ')
+          runs=$(gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" \
+            --jq '.workflow_runs[] | {id, createdAt: .created_at, status, name}' | jq -s '.')
+
+          to_delete=$(echo "$runs" | jq -r --argjson keep "$KEEP_LAST" --argjson cutoff "$cutoff" '
+              group_by(.name)[]
+              | (sort_by(.createdAt) | reverse | .[$keep:])
+              | .[]
+              | select(.status == "completed")
+              | select((.createdAt | fromdateiso8601) < $cutoff)
+              | [.id, .name] | @tsv
+            ')
 
           total=0
           declare -A counts
