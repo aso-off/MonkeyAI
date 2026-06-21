@@ -1373,12 +1373,12 @@ async function sendMessage() {
   // ленивое создание: диалог появляется только с первым сообщением
   let genDialogId = store.dialogId;
   const createdNewDialog = !genDialogId;
+  let recentsAdded = false;
   if (!genDialogId) {
     try {
       const { dialog_id } = await api.newDialog();
       genDialogId = dialog_id;
       store.setDialogId(dialog_id);
-      dialogsStore.prepend(dialog_id);
       router.replace({ name: "chat", params: { dialogId: dialog_id } });
     } catch (e) {
       console.error("[newDialog]", e);
@@ -1435,7 +1435,11 @@ async function sendMessage() {
     if (isImageModel) {
       // Image generation over WebSocket: progress events > no polling, no HTTP/2 PING issue.
       const result = await wsClient.generateImage(text, store.dialogId, () => {
-        // Keep the empty bot slot (spinner) during both moderation and generation.
+        // первый прогресс = сервер принял (не лимит) - показываем чат в меню
+        if (createdNewDialog && genDialogId && !recentsAdded) {
+          dialogsStore.prepend(genDialogId);
+          recentsAdded = true;
+        }
       });
       if (stillActive()) {
         if (result.dialog_id) store.setDialogId(result.dialog_id);
@@ -1471,6 +1475,10 @@ async function sendMessage() {
         },
         (delta) => {
           if (!stillActive() || !delta) return;
+          if (createdNewDialog && genDialogId && !recentsAdded) {
+            dialogsStore.prepend(genDialogId);
+            recentsAdded = true;
+          }
           chatMessages.value[botIdx] = { type: "bot", contentType: "text", text: delta };
           bumpStreamRender();
           nextTick().then(scrollToBottomIfAtBottom);
@@ -1499,10 +1507,11 @@ async function sendMessage() {
         };
       }
       startLimitCountdown(e.kind, e.retryAfter);
-      // первый отказ создал пустой диалог - откатываем, чтобы не висел "New Chat"
       if (createdNewDialog && genDialogId) {
         dialogsStore.remove(genDialogId).catch(() => {});
         store.setDialogId(null);
+        streamingBotIdx.value = -1;
+        store.setChatHistory(chatMessages.value);
       }
     } else if (!stillActive()) {
       // переключились на другой диалог - результат досчитается на сервере, UI не трогаем
@@ -1566,6 +1575,7 @@ async function sendMessage() {
   }
   // дальнейшее - только для активного диалога (иначе затрём состояние другого чата)
   if (!stillActive()) return;
+  if (createdNewDialog && genDialogId && !recentsAdded) dialogsStore.prepend(genDialogId);
   if (!pendingReconnectReqId.value) streamingBotIdx.value = -1;
   await nextTick();
   scrollToBottom(); // always scroll after own message receives a response
