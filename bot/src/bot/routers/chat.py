@@ -126,6 +126,18 @@ def _limit_text(exc: RateLimitError, language: str) -> str:
     return t(key, language, limit=exc.limit, minutes=minutes)
 
 
+async def _limited(message: Message, language: str, user_id: int, kind: str, is_premium: bool) -> bool:
+    """Peek до стикеров/работы: True + отправлено сообщение, если лимит исчерпан."""
+    try:
+        await api.check_limit(user_id, kind, is_premium)
+    except RateLimitError as exc:
+        await _reply(message, _limit_text(exc, language))
+        return True
+    except Exception:
+        return False  # сбой проверки не блокирует пользователя
+    return False
+
+
 def _reply_to(message: Message) -> ReplyParameters:
     return ReplyParameters(message_id=message.message_id, allow_sending_without_reply=True)
 
@@ -254,6 +266,8 @@ async def generate_image(
     prompt: str,
     is_premium: bool = False,
 ) -> None:
+    if await _limited(message, language, user_id, "image_gen", is_premium):
+        return
     await monkey.send(bot, message.chat.id, "generating")
     await bot.send_chat_action(message.chat.id, "upload_photo")
 
@@ -267,7 +281,7 @@ async def generate_image(
             is_premium=is_premium,
         )
     except RateLimitError as e:
-        await monkey.send(bot, message.chat.id, "sad")
+        await monkey.delete_processing(bot, message.chat.id)
         await _reply(message, _limit_text(e, language))
         return
     except httpx.HTTPStatusError as e:
@@ -366,18 +380,6 @@ async def _handle_text_or_vision(
                 and rich.is_reasoning_model(current_model, settings.models)
             )
 
-            # индикатор сразу - у reasoning есть латентность, а сводка может и не прийти
-            if show_thinking:
-                try:
-                    await bot.send_rich_message_draft(
-                        chat_id=message.chat.id,
-                        draft_id=draft_id,
-                        rich_message=rich.thinking_draft(t("thinking", language)),
-                    )
-                except Exception as exc:
-                    logger.debug("thinking draft error (user %d): %s", user_id, exc)
-                last_think = time.monotonic()
-
             async for chunk in api.chat_stream(
                 user_id=user_id,
                 dialog_id=dialog_id,
@@ -475,7 +477,7 @@ async def _handle_text_or_vision(
         raise
 
     except RateLimitError as exc:
-        await monkey.send(bot, message.chat.id, "sad")
+        await monkey.delete_processing(bot, message.chat.id)
         await _reply(message, _limit_text(exc, language))
         return None
 
@@ -569,6 +571,9 @@ async def msg_photo(message: Message, language: str, bot: Bot) -> None:
         await _reply(message, t("file_too_large", language).format(settings.max_upload_mb))
         return
 
+    if await _limited(message, language, user_id, "msg", bool(message.from_user.is_premium)):
+        return
+
     await monkey.send(bot, message.chat.id, "thinking")
 
     file = await bot.get_file(photo.file_id)
@@ -613,6 +618,9 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
         await _reply(message, t("file_too_large", language).format(settings.max_upload_mb))
         return
 
+    if await _limited(message, language, user_id, "msg", bool(message.from_user.is_premium)):
+        return
+
     await monkey.send(bot, message.chat.id, "thinking")
 
     file = await bot.get_file(voice.file_id)
@@ -629,7 +637,7 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
             buf, user_id=user_id, lang=language, is_premium=is_premium
         )
     except RateLimitError as exc:
-        await monkey.send(bot, message.chat.id, "sad")
+        await monkey.delete_processing(bot, message.chat.id)
         await _reply(message, _limit_text(exc, language))
         return
     except Exception as exc:

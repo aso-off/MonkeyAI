@@ -12,6 +12,12 @@ class ChatCompleteRequest(BaseModel):
     is_premium: bool = False
 
 
+class LimitCheckRequest(BaseModel):
+    user_id: int
+    kind: str = "msg"
+    is_premium: bool = False
+
+
 class Usage(BaseModel):
     """Канон OpenAI: точные значения из ответа API."""
 

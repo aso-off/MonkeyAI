@@ -136,3 +136,91 @@ class TestEnforce:
         with patch("core.ratelimit.get_redis", return_value=r):
             await rl.enforce_rate_limit("msg", 1, consume=False)
         r.eval.assert_not_called()
+
+
+class _FakeRedis:
+    """Имитация Redis с серверной семантикой Lua-скрипта (INCR + TTL + откат)."""
+
+    def __init__(self) -> None:
+        self.counts: dict[str, int] = {}
+        self.ttls: dict[str, int] = {}
+
+    async def eval(self, script, numkeys, *args):
+        key = str(args[0])
+        limit = int(args[1])
+        window = int(args[2])
+        c = self.counts.get(key, 0) + 1
+        self.counts[key] = c
+        ttl = self.ttls.get(key, -1)
+        if ttl < 0:
+            self.ttls[key] = window
+            ttl = window
+        if c > limit:
+            self.counts[key] = c - 1
+            return [1, ttl]
+        return [0, ttl]
+
+    async def get(self, key):
+        c = self.counts.get(str(key))
+        return None if c is None else str(c)
+
+    async def ttl(self, key):
+        return self.ttls.get(str(key), -2)
+
+
+class TestReachingLimits:
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_default_messages_15_then_blocked(self) -> None:
+        r = _FakeRedis()
+        with patch("core.ratelimit.get_redis", return_value=r):
+            for _ in range(15):  # текст / анализ / голос - всё счётчик msg
+                assert await rl.consume_rate_limit("msg", 1) is None
+            assert await rl.consume_rate_limit("msg", 1) is not None  # 16-е - лимит
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_premium_messages_30_then_blocked(self) -> None:
+        r = _FakeRedis()
+        with patch("core.ratelimit.get_redis", return_value=r):
+            for _ in range(30):
+                assert await rl.consume_rate_limit("msg", 1, is_premium=True) is None
+            assert await rl.consume_rate_limit("msg", 1, is_premium=True) is not None
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_image_gen_5_then_blocked(self) -> None:
+        r = _FakeRedis()
+        with patch("core.ratelimit.get_redis", return_value=r):
+            for _ in range(5):
+                assert await rl.consume_rate_limit("image_gen", 1) is None
+            assert await rl.consume_rate_limit("image_gen", 1) is not None  # 6-я - лимит
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_msg_and_image_counters_independent(self) -> None:
+        r = _FakeRedis()
+        with patch("core.ratelimit.get_redis", return_value=r):
+            for _ in range(15):
+                await rl.consume_rate_limit("msg", 1)
+            assert await rl.consume_rate_limit("msg", 1) is not None  # msg исчерпан
+            assert await rl.consume_rate_limit("image_gen", 1) is None  # картинки свободны
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_over_limit_count_does_not_run_away(self) -> None:
+        r = _FakeRedis()
+        with patch("core.ratelimit.get_redis", return_value=r):
+            for _ in range(20):
+                await rl.consume_rate_limit("msg", 1)
+            usage = await rl.read_usage("msg", 1)
+        assert usage["used"] == 15  # счётчик стоит на лимите, не убегает
+        assert usage["percent"] == 100
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_admin_never_blocked(self) -> None:
+        r = _FakeRedis()
+        with patch("core.ratelimit.get_redis", return_value=r):
+            for _ in range(50):
+                assert await rl.consume_rate_limit("msg", 1, is_admin=True) is None

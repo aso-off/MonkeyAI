@@ -157,9 +157,13 @@ const searchQuery = ref('');
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const fullName = computed(() => {
-  const u = store.user;
-  if (!u) return '';
-  return [u.first_name, u.last_name].filter(Boolean).join(' ');
+  try {
+    const u = initData.user();
+    if (u) return [u.first_name, u.last_name].filter(Boolean).join(' ');
+  } catch {
+    /* dev/mock env */
+  }
+  return '';
 });
 
 const avatarLoaded = ref(false);

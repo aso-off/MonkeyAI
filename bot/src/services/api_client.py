@@ -246,6 +246,15 @@ async def append_exchange(
 
 # Chat (контекст строится на сервере по dialog_id)
 
+async def check_limit(user_id: int, kind: str, is_premium: bool = False) -> None:
+    """Peek-проверка лимита до тяжёлой работы/стикеров. RateLimitError если исчерпан."""
+    r = await _request("POST", "/chat/check-limit", json={
+        "user_id": user_id, "kind": kind, "is_premium": is_premium,
+    })
+    _raise_if_rate_limited(r)
+    r.raise_for_status()
+
+
 async def chat_complete(
     user_id: int,
     dialog_id: str | None,

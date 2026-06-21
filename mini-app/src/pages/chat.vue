@@ -1360,6 +1360,7 @@ function maybeAutoGenerate() {
 async function sendMessage() {
   if (isStreaming.value) return;
   if (attachBlocking.value) return;
+  if (isLimited.value) return; // лимит - не создаём диалог и не шлём
   const text = messageText.value.trim();
   if (!text) return;
 
@@ -1371,6 +1372,7 @@ async function sendMessage() {
 
   // ленивое создание: диалог появляется только с первым сообщением
   let genDialogId = store.dialogId;
+  const createdNewDialog = !genDialogId;
   if (!genDialogId) {
     try {
       const { dialog_id } = await api.newDialog();
@@ -1497,6 +1499,11 @@ async function sendMessage() {
         };
       }
       startLimitCountdown(e.kind, e.retryAfter);
+      // первый отказ создал пустой диалог - откатываем, чтобы не висел "New Chat"
+      if (createdNewDialog && genDialogId) {
+        dialogsStore.remove(genDialogId).catch(() => {});
+        store.setDialogId(null);
+      }
     } else if (!stillActive()) {
       // переключились на другой диалог - результат досчитается на сервере, UI не трогаем
     } else if (msg === "network error" && reqId) {

@@ -11,7 +11,7 @@ from db.repositories import dialogs as dialog_repo
 from db.repositories import users as user_repo
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from schemas.chat import ChatCompleteRequest, ChatCompleteResponse, Usage
+from schemas.chat import ChatCompleteRequest, ChatCompleteResponse, LimitCheckRequest, Usage
 from services.messages import assistant_message, user_message
 from services.moderation import moderate_content
 from services.openai import ChatGPT
@@ -151,6 +151,15 @@ async def _run_stream(req: ChatCompleteRequest):
                 )
         except Exception:
             logger.exception("Failed to persist chat result for user %d", req.user_id)
+
+
+@router.post("/check-limit")
+async def check_limit(req: LimitCheckRequest, _: None = Depends(verify_service_token)):
+    """Peek-проверка лимита (без списания) - бот не шлёт стикер, если лимит исчерпан."""
+    await enforce_rate_limit(
+        req.kind, req.user_id, req.is_premium, req.user_id in settings.admin_ids, consume=False
+    )
+    return {"ok": True}
 
 
 @router.post("/complete")

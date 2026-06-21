@@ -946,7 +946,7 @@ class TestRichMessages:
         )
 
         async def mock_stream(*args, **kwargs):
-            yield _stream_chunk(text="", status="not_finished")
+            yield _stream_chunk(text="", status="not_finished", reasoning="thinking")
             yield _stream_chunk(text="partial", status="not_finished")
             yield _stream_chunk(text="full answer", status="finished")
 
