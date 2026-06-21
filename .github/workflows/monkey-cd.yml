@@ -154,13 +154,14 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           USER_IDS_YML_B64: ${{ secrets.USER_IDS_YML_B64 }}
           CHAT_MODES_YML_B64: ${{ secrets.CHAT_MODES_YML_B64 }}
+          CLOUDFLARED_CONFIG_B64: ${{ secrets.CLOUDFLARED_CONFIG_B64 }}
         with:
           host: ${{ secrets.SSH_HOSTNAME }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           timeout: ${{ secrets.SSH_TIMEOUT }}
           command_timeout: 15m
-          envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,USER_IDS_YML_B64,CHAT_MODES_YML_B64
+          envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,USER_IDS_YML_B64,CHAT_MODES_YML_B64,CLOUDFLARED_CONFIG_B64
           script: |
             set -e
             PROJECT="${{ secrets.SSH_PROJECT_PATH }}"
@@ -187,6 +188,10 @@ jobs:
             mkdir -p configs
             printf '%s' "$USER_IDS_YML_B64" | base64 -d > configs/user-ids.yml
             printf '%s' "$CHAT_MODES_YML_B64" | base64 -d > configs/chat_modes.yml
+
+            # cloudflared config из Secret (.json/.pem уже на сервере)
+            mkdir -p deployment/cloudflared
+            printf '%s' "$CLOUDFLARED_CONFIG_B64" | base64 -d > deployment/cloudflared/config.yml
 
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 

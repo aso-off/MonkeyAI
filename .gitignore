@@ -73,6 +73,7 @@ major-minor-patch.png
 # Cloudflared (sensitive)
 deployment/cloudflared/*.json
 deployment/cloudflared/*.pem
+deployment/cloudflared/config.yml
 
 # IDE & editor
 .idea/
