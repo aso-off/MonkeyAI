@@ -1235,7 +1235,7 @@ class TestMsgPhoto:
         msg.photo = [MagicMock(file_id="file123", file_size=1024)]
         bot = _fake_bot()
         captured_text = []
-        async def mock_run(m, b, lang, uid, text, image_buffer=None):
+        async def mock_run(m, b, lang, uid, text, image_buffer=None, **kwargs):
             captured_text.append(text)
         with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
              patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \
@@ -1253,7 +1253,7 @@ class TestMsgPhoto:
         msg.photo = [MagicMock(file_id="file456", file_size=1024)]
         bot = _fake_bot()
         captured_text = []
-        async def mock_run(m, b, lang, uid, text, image_buffer=None):
+        async def mock_run(m, b, lang, uid, text, image_buffer=None, **kwargs):
             captured_text.append(text)
         with patch("src.bot.routers.chat._is_bot_mentioned", AsyncMock(return_value=True)), \
              patch("src.bot.routers.chat._is_busy", AsyncMock(return_value=False)), \

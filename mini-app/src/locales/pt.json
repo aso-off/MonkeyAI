@@ -52,6 +52,8 @@
   "lang_pt": "Português",
   "lang_tr": "Turco",
   "message_flagged": "Mensagem bloqueada pela moderação",
+  "limit_messages_reached": "🐵 Atingiste o limite de mensagens — {limit} por hora. Repõe em {minutes} min.",
+  "limit_images_reached": "🎨 Atingiste o limite de imagens — {limit} por hora. Tenta em {minutes} min.",
   "error_response": "Erro ao obter a resposta",
   "not_whitelisted_title": "Acesso restrito",
   "loading_init_tg": "A inicializar o Telegram...",

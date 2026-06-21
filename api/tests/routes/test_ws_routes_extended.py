@@ -191,7 +191,7 @@ class TestAuthHandshake:
         ws.send_text = AsyncMock()
         with patch("routes.ws._verify_init_data", return_value=parsed):
             result = await ws_mod._auth_handshake(ws)
-        assert result == uid
+        assert result == (uid, False)
         # Успешный handshake не отправляет ничего сам по себе
         ws.send_text.assert_not_awaited()
 

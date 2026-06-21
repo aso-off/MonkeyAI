@@ -6,6 +6,8 @@ pl:
     access_denied: "Odmowa dostępu"
     connection_error: "Błąd połączenia. Spróbuj ponownie później."
     rate_limit_error: "⚠️ Przekroczono limit żądań. Poczekaj chwilę i spróbuj ponownie."
+    limit_messages_reached: "🐵 Osiągnięto limit wiadomości - {limit} na godzinę.\nReset za {minutes} min."
+    limit_images_reached: "🎨 Osiągnięto limit generowania obrazów - {limit} na godzinę.\nSpróbuj ponownie za {minutes} min."
     api_error: "Błąd API. Spróbuj ponownie później."
     back: "Powrót do menu"
     back_to_profile: "Powrót do profilu"

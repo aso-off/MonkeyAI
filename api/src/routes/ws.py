@@ -66,6 +66,7 @@ import uuid
 from collections import defaultdict
 
 from core.config import settings
+from core.ratelimit import consume_rate_limit, limit_for
 from core.redis import get_redis_binary
 from core.security import _verify_init_data
 from db.db import Session
@@ -201,10 +202,10 @@ def _title_broadcast(user_id: int, dialog_id: str):
 
 # Auth handshake
 
-async def _auth_handshake(ws: WebSocket) -> int | None:
+async def _auth_handshake(ws: WebSocket) -> tuple[int, bool] | None:
     """
     Wait for the first frame and validate Telegram initData.
-    Returns the authenticated user_id, or None if auth fails.
+    Returns (user_id, is_premium), or None if auth fails.
     """
     try:
         raw = await asyncio.wait_for(ws.receive_text(), timeout=15.0)
@@ -234,7 +235,7 @@ async def _auth_handshake(ws: WebSocket) -> int | None:
         return None
     try:
         user_data = json.loads(raw_user)
-        return int(user_data["id"])
+        return int(user_data["id"]), bool(user_data.get("is_premium", False))
     except (json.JSONDecodeError, KeyError, TypeError):
         await _send(ws, {"type": "auth_error", "error": "malformed user field"})
         return None
@@ -279,7 +280,7 @@ async def _generation_keepalive(user_id: int, req_id: str) -> None:
 
 # Chat handler  (runs in background via _spawn)
 
-async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
+async def _handle_chat(ws: WebSocket, user_id: int, frame: dict, is_premium: bool = False) -> None:
     req_id = str(frame.get("id") or uuid.uuid4())
     message = str(frame.get("message", "")).strip()
     model = str(frame.get("model") or "gpt-5.4-nano")
@@ -297,6 +298,16 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
     gen_key = (user_id, dialog_id)
     if gen_key in _USER_GENERATING:
         await _send(ws, {"type": "chat_error", "id": req_id, "error": "already generating"})
+        return
+
+    retry_after = await consume_rate_limit(
+        "msg", user_id, is_premium, user_id in settings.admin_ids
+    )
+    if retry_after is not None:
+        await _send(ws, {
+            "type": "chat_error", "id": req_id, "error": "limit",
+            "kind": "msg", "limit": limit_for("msg", is_premium), "retry_after": retry_after,
+        })
         return
 
     user_content: str | list = (
@@ -440,7 +451,7 @@ async def _handle_chat(ws: WebSocket, user_id: int, frame: dict) -> None:
 
 # Image handler  (runs in background via _spawn)
 
-async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
+async def _handle_image(ws: WebSocket, user_id: int, frame: dict, is_premium: bool = False) -> None:
     req_id = str(frame.get("id") or uuid.uuid4())
     message = str(frame.get("message", "")).strip()
     dialog_id: str | None = frame.get("dialog_id")
@@ -453,6 +464,16 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
     gen_key = (user_id, dialog_id)
     if gen_key in _USER_GENERATING:
         await _send(ws, {"type": "image_error", "id": req_id, "error": "already generating"})
+        return
+
+    retry_after = await consume_rate_limit(
+        "image_gen", user_id, is_premium, user_id in settings.admin_ids
+    )
+    if retry_after is not None:
+        await _send(ws, {
+            "type": "image_error", "id": req_id, "error": "limit",
+            "kind": "image_gen", "limit": limit_for("image_gen", is_premium), "retry_after": retry_after,
+        })
         return
 
     user_msg = user_message(message)
@@ -580,7 +601,7 @@ async def _handle_image(ws: WebSocket, user_id: int, frame: dict) -> None:
 
 # Message loop
 
-async def _message_loop(ws: WebSocket, user_id: int) -> None:
+async def _message_loop(ws: WebSocket, user_id: int, is_premium: bool = False) -> None:
     while True:
         raw = await ws.receive_text()  # raises WebSocketDisconnect on close
         try:
@@ -595,10 +616,10 @@ async def _message_loop(ws: WebSocket, user_id: int) -> None:
             pass
 
         elif msg_type == "chat":
-            _spawn(_handle_chat(ws, user_id, frame))
+            _spawn(_handle_chat(ws, user_id, frame, is_premium))
 
         elif msg_type == "image":
-            _spawn(_handle_image(ws, user_id, frame))
+            _spawn(_handle_image(ws, user_id, frame, is_premium))
 
         else:
             await _send(ws, {"type": "error", "error": f"unknown type: {msg_type!r}"})
@@ -616,11 +637,13 @@ async def websocket_endpoint(ws: WebSocket) -> None:
     """
     await ws.accept()
     user_id: int | None = None
+    is_premium = False
     try:
-        user_id = await _auth_handshake(ws)
-        if user_id is None:
+        auth = await _auth_handshake(ws)
+        if auth is None:
             await ws.close(code=4001)
             return
+        user_id, is_premium = auth
 
         _WS_POOL[user_id].add(ws)
         await _send(ws, {"type": "auth_ok", "user_id": user_id})
@@ -645,7 +668,7 @@ async def websocket_endpoint(ws: WebSocket) -> None:
         # failure), cancel the other so the pool entry is cleaned up promptly instead
         # of waiting for the OS TCP timeout (minutes on mobile half-close).
         heart_task = asyncio.create_task(_heartbeat(ws))
-        loop_task  = asyncio.create_task(_message_loop(ws, user_id))
+        loop_task  = asyncio.create_task(_message_loop(ws, user_id, is_premium))
         # Add done-callback immediately so the exception is marked as
         # "retrieved" the moment _message_loop finishes - most reliable
         # way to silence "Task exception was never retrieved", fires

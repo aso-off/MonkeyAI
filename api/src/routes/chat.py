@@ -3,6 +3,8 @@ import json
 import logging
 from io import BytesIO
 
+from core.config import settings
+from core.ratelimit import enforce_rate_limit
 from core.security import verify_service_token
 from db.db import Session, get_session
 from db.repositories import dialogs as dialog_repo
@@ -161,6 +163,10 @@ async def chat_complete(
     Non-streaming: returns full answer at once.
     Bot uses this when enable_message_streaming=False.
     """
+    await enforce_rate_limit(
+        "msg", req.user_id, req.is_premium, req.user_id in settings.admin_ids
+    )
+
     image_buffer: BytesIO | None = None
     if req.image_b64:
         try:
@@ -214,6 +220,9 @@ async def chat_stream(
     _: None = Depends(verify_service_token),
 ):
     """SSE streaming: yields data: <json> lines until status=finished."""
+    await enforce_rate_limit(
+        "msg", req.user_id, req.is_premium, req.user_id in settings.admin_ids
+    )
     return StreamingResponse(
         _run_stream(req),
         media_type="text/event-stream",

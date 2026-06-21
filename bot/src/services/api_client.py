@@ -20,6 +20,33 @@ _SERVICE_TOKEN = os.environ.get("API_SERVICE_TOKEN", "")
 _client: httpx.AsyncClient | None = None
 
 
+class RateLimitError(Exception):
+    """429 от API: лимит сообщений/картинок исчерпан."""
+
+    def __init__(self, kind: str, limit: int, retry_after: int) -> None:
+        self.kind = kind
+        self.limit = limit
+        self.retry_after = retry_after
+        super().__init__(f"rate limit: {kind}")
+
+
+def _raise_if_rate_limited(r: httpx.Response) -> None:
+    if r.status_code != 429:
+        return
+    detail: dict = {}
+    try:
+        body = r.json()
+        if isinstance(body.get("detail"), dict):
+            detail = body["detail"]
+    except Exception:
+        pass
+    raise RateLimitError(
+        detail.get("kind", "msg"),
+        int(detail.get("limit", 0)),
+        int(detail.get("retry_after", 3600)),
+    )
+
+
 # Typed response structs
 
 class UserResponse(msgspec.Struct, frozen=True):
@@ -226,6 +253,7 @@ async def chat_complete(
     chat_mode: str,
     model: str,
     image_b64: str | None = None,
+    is_premium: bool = False,
 ) -> ChatCompleteResponse:
     r = await _request("POST", "/chat/complete", json={
         "user_id": user_id,
@@ -235,7 +263,9 @@ async def chat_complete(
         "model": model,
         "image_b64": image_b64,
         "skip_moderation": not settings.enable_content_moderation,
+        "is_premium": is_premium,
     })
+    _raise_if_rate_limited(r)
     r.raise_for_status()
     return _decode(r.content, ChatCompleteResponse)
 
@@ -247,6 +277,7 @@ async def chat_stream(
     chat_mode: str,
     model: str,
     image_b64: str | None = None,
+    is_premium: bool = False,
 ):
     """Async generator yielding ChatStreamChunk objects."""
     payload = {
@@ -257,8 +288,12 @@ async def chat_stream(
         "model": model,
         "image_b64": image_b64,
         "skip_moderation": not settings.enable_content_moderation,
+        "is_premium": is_premium,
     }
     async with get_client().stream("POST", "/chat/stream", json=payload) as resp:
+        if resp.status_code == 429:
+            await resp.aread()
+            _raise_if_rate_limited(resp)
         resp.raise_for_status()
         try:
             async for line in resp.aiter_lines():
@@ -277,26 +312,32 @@ async def generate_images(
     size: str = "1024x1024",
     quality: str = "medium",
     user_id: int | None = None,
+    is_premium: bool = False,
 ) -> tuple[list[BytesIO], list[str]]:
     """Returns (webp_buffers, imgbb_urls). imgbb_urls may contain empty strings if upload failed."""
     payload: dict = {"prompt": prompt, "n_images": n_images, "size": size, "quality": quality}
     if user_id is not None:
         payload["user_id"] = user_id
+        payload["is_premium"] = is_premium
     r = await _request("POST", "/media/images/generate", json=payload)
+    _raise_if_rate_limited(r)
     r.raise_for_status()
     resp = _decode(r.content, ImageGenerateResponse)
     buffers = [_b64_to_buf(b64, "image.png") for b64 in resp.images_b64]
     return buffers, list(resp.imgbb_urls)
 
 
-async def transcribe_audio(audio_buf: BytesIO, user_id: int, lang: str = "ru") -> tuple[str, float]:
+async def transcribe_audio(
+    audio_buf: BytesIO, user_id: int, lang: str = "ru", is_premium: bool = False
+) -> tuple[str, float]:
     audio_buf.seek(0)
     r = await _request(
         "POST",
         "/media/audio/transcribe",
-        params={"user_id": user_id, "lang": lang},
+        params={"user_id": user_id, "lang": lang, "is_premium": is_premium},
         files={"file": (audio_buf.name, audio_buf, "audio/ogg")},
     )
+    _raise_if_rate_limited(r)
     r.raise_for_status()
     resp = _decode(r.content, TranscribeResponse)
     return resp.text, resp.duration_seconds

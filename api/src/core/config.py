@@ -60,8 +60,12 @@ class Settings(BaseSettings):
     return_n_generated_images: int = 1
     image_size: str = "1024x1024"
     image_quality: str = "medium"
-    image_rate_limit_count: int = 15
-    image_rate_limit_window_seconds: int = 3600
+    # Лимиты (общий счётчик бот+мини-апп); premium не хранится в БД
+    limit_window_seconds: int = 3600
+    msg_limit_default: int = 15
+    msg_limit_premium: int = 30
+    image_limit_default: int = 5
+    image_limit_premium: int = 5
     # ImgBB API key for uploading generated images to permanent CDN storage.
     imgbb_api_key: str = ""
 
@@ -95,10 +99,11 @@ class Settings(BaseSettings):
         self.return_n_generated_images = cfg.get("return_n_generated_images", self.return_n_generated_images)
         self.image_size = cfg.get("image_size", self.image_size)
         self.image_quality = cfg.get("image_quality", self.image_quality)
-        self.image_rate_limit_count = cfg.get("image_rate_limit_count", self.image_rate_limit_count)
-        self.image_rate_limit_window_seconds = cfg.get(
-            "image_rate_limit_window_seconds", self.image_rate_limit_window_seconds
-        )
+        self.limit_window_seconds = cfg.get("limit_window_seconds", self.limit_window_seconds)
+        self.msg_limit_default = cfg.get("msg_limit_default", self.msg_limit_default)
+        self.msg_limit_premium = cfg.get("msg_limit_premium", self.msg_limit_premium)
+        self.image_limit_default = cfg.get("image_limit_default", self.image_limit_default)
+        self.image_limit_premium = cfg.get("image_limit_premium", self.image_limit_premium)
 
         ret = cfg.get("retention") or {}
         self.retention_enabled = ret.get("enabled", self.retention_enabled)

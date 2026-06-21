@@ -24,6 +24,7 @@ class UserRead(BaseModel):
     n_used_tokens: dict
     n_generated_images: int
     n_transcribed_seconds: float
+    limits: dict | None = None
 
     @classmethod
     def from_orm_user(cls, user) -> "UserRead":

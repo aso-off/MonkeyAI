@@ -6,6 +6,8 @@ tr:
     access_denied: "Erişim reddedildi"
     connection_error: "Bağlantı hatası. Lütfen daha sonra tekrar dene."
     rate_limit_error: "⚠️ İstek sınırı aşıldı. Biraz bekle ve tekrar dene."
+    limit_messages_reached: "🐵 Mesaj limitine ulaştın - saatte {limit}.\n{minutes} dk içinde sıfırlanır."
+    limit_images_reached: "🎨 Görsel oluşturma limitine ulaştın - saatte {limit}.\n{minutes} dk sonra tekrar dene."
     api_error: "API hatası. Lütfen daha sonra tekrar dene."
     back: "Menüye dön"
     back_to_profile: "Profile dön"

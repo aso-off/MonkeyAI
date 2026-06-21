@@ -7,6 +7,7 @@ class ImageGenerateRequest(BaseModel):
     size: str = "1024x1024"
     quality: str = "medium"
     user_id: int | None = None
+    is_premium: bool = False
 
 
 class ImageGenerateResponse(BaseModel):

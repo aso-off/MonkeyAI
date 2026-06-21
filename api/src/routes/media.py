@@ -3,6 +3,7 @@ import logging
 from io import BytesIO
 
 from core.config import settings
+from core.ratelimit import enforce_rate_limit
 from core.security import verify_service_token
 from db.db import get_session
 from db.repositories import users as user_repo
@@ -25,6 +26,10 @@ async def images_generate(
     _: None = Depends(verify_service_token),
 ):
     """Generate images via OpenAI. Returns list of base64-encoded PNG."""
+    if req.user_id is not None:
+        await enforce_rate_limit(
+            "image_gen", req.user_id, req.is_premium, req.user_id in settings.admin_ids
+        )
     try:
         buffers = await generate_images(
             prompt=req.prompt,
@@ -72,11 +77,16 @@ async def images_generate(
 async def audio_transcribe(
     user_id: int,
     lang: str = "ru",
+    is_premium: bool = False,
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_session),
     _: None = Depends(verify_service_token),
 ):
     """Transcribe voice/audio file. Updates user transcription counter in DB."""
+    # fail-fast до Whisper: голос идёт в счётчик msg (списывается на этапе чата)
+    await enforce_rate_limit(
+        "msg", user_id, is_premium, user_id in settings.admin_ids, consume=False
+    )
     content = await file.read()
     if len(content) > 10_000_000:
         raise HTTPException(status_code=413, detail="File too large. Maximum size is 10 MB.")

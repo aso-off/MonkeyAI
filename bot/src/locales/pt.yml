@@ -6,6 +6,8 @@ pt:
     access_denied: "Acesso negado"
     connection_error: "Erro de ligação. Tenta novamente mais tarde."
     rate_limit_error: "⚠️ Limite de pedidos excedido. Espera um momento e tenta novamente."
+    limit_messages_reached: "🐵 Atingiste o teu limite de mensagens - {limit} por hora.\nRepõe em {minutes} min."
+    limit_images_reached: "🎨 Atingiste o teu limite de geração de imagens - {limit} por hora.\nTenta novamente em {minutes} min."
     api_error: "Erro de API. Tenta novamente mais tarde."
     back: "Voltar ao menu"
     back_to_profile: "Voltar ao perfil"

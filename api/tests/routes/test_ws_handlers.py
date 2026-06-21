@@ -62,7 +62,7 @@ class TestAuthHandshakeEdgeCases:
         # Проверяем, что "tma " был срезан перед передачей
         call_arg = mock_verify.call_args[0][0]
         assert not call_arg.startswith("tma ")
-        assert result == uid
+        assert result == (uid, False)
 
     @pytest.mark.asyncio
     async def test_missing_user_field_in_params(self) -> None:

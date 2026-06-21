@@ -9,6 +9,7 @@ class ChatCompleteRequest(BaseModel):
     model: str
     image_b64: str | None = None
     skip_moderation: bool = False
+    is_premium: bool = False
 
 
 class Usage(BaseModel):

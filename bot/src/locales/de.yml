@@ -6,6 +6,8 @@ de:
     access_denied: "Zugang verweigert"
     connection_error: "Server-Verbindungsfehler. Bitte versuche es später noch einmal."
     rate_limit_error: "⚠️ Anfragelimit überschritten. Bitte warte einen Moment und versuche es erneut."
+    limit_messages_reached: "🐵 Dein Nachrichtenlimit ist erreicht - {limit} pro Stunde.\nZurückgesetzt in {minutes} Min."
+    limit_images_reached: "🎨 Dein Limit für die Bildgenerierung ist erreicht - {limit} pro Stunde.\nVersuche es in {minutes} Min. erneut."
     api_error: "API-Fehler. Bitte versuche es später noch einmal."
     back: "Zurück zum Menü"
     back_to_profile: "Zurück zum Profil"

@@ -550,7 +550,7 @@ import {
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
 import { retrieveLaunchParams, viewport, openLink } from "@tma.js/sdk-vue";
-import { api, wsClient, BASE_URL } from "@/services/api";
+import { api, wsClient, BASE_URL, LimitError } from "@/services/api";
 import { outbox } from "@/services/outbox";
 import {
   useUserStore,
@@ -889,9 +889,43 @@ const isStreaming = computed(() => streamingBotIdx.value !== -1);
 const attachBlocking = computed(
   () => !!attachment.value && attachment.value.status !== "ready",
 );
+
+/* Лимит: серая кнопка до сброса (раздельно msg / image, разное время сброса) */
+const limitedMsgUntil = ref(0); // ms timestamp; 0 = нет лимита
+const limitedImgUntil = ref(0);
+const nowTick = ref(Date.now());
+let limitTimer: ReturnType<typeof setInterval> | null = null;
+const isLimited = computed(
+  () =>
+    nowTick.value <
+    (isImageModel.value ? limitedImgUntil.value : limitedMsgUntil.value),
+);
+
+function startLimitCountdown(kind: string, retryAfterSec: number) {
+  const until = Date.now() + Math.max(1, retryAfterSec) * 1000;
+  if (kind === "image_gen") limitedImgUntil.value = until;
+  else limitedMsgUntil.value = until;
+  nowTick.value = Date.now();
+  if (limitTimer) clearInterval(limitTimer);
+  limitTimer = setInterval(() => {
+    nowTick.value = Date.now();
+    if (
+      nowTick.value >= limitedMsgUntil.value &&
+      nowTick.value >= limitedImgUntil.value &&
+      limitTimer
+    ) {
+      clearInterval(limitTimer);
+      limitTimer = null;
+    }
+  }, 1000);
+}
+
 const isSubmitDisabled = computed(
   () =>
-    messageText.value.trim() === "" || isStreaming.value || attachBlocking.value,
+    messageText.value.trim() === "" ||
+    isStreaming.value ||
+    attachBlocking.value ||
+    isLimited.value,
 );
 
 /**
@@ -1450,7 +1484,20 @@ async function sendMessage() {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const reqId = (e as { reqId?: string }).reqId;
-    if (!stillActive()) {
+    if (e instanceof LimitError) {
+      // лимит исчерпан: плашка в блоке ответа + серая кнопка с отсчётом
+      const key =
+        e.kind === "image_gen" ? "limit_images_reached" : "limit_messages_reached";
+      const minutes = Math.max(1, Math.ceil(e.retryAfter / 60));
+      if (stillActive()) {
+        chatMessages.value[botIdx] = {
+          type: "bot",
+          contentType: "text",
+          text: t(key, { limit: e.limit, minutes }),
+        };
+      }
+      startLimitCountdown(e.kind, e.retryAfter);
+    } else if (!stillActive()) {
       // переключились на другой диалог - результат досчитается на сервере, UI не трогаем
     } else if (msg === "network error" && reqId) {
       // WS dropped mid-generation (text or image) - keep the spinner and wait for reconnect.
@@ -1555,6 +1602,13 @@ async function flushOutbox(): Promise<void> {
         if (open) touchedOpenDialog = true;
       } catch (e) {
         const m = e instanceof Error ? e.message : String(e);
+        if (e instanceof LimitError) {
+          // лимит исчерпан - не копим (иначе уйдёт устаревшим через час), показываем отсчёт
+          startLimitCountdown(e.kind, e.retryAfter);
+          outbox.remove(item.id);
+          if (open) touchedOpenDialog = true;
+          break;
+        }
         if (m === "network error") break;
         if (m === "already generating") {
           // диалог занят - не теряем, повторим позже
@@ -2475,6 +2529,7 @@ onBeforeUnmount(() => {
   if (tipActiveTimer) clearTimeout(tipActiveTimer);
   document.body.style.overflow = "auto";
   if (copyTimeout) clearTimeout(copyTimeout);
+  if (limitTimer) { clearInterval(limitTimer); limitTimer = null; }
   if (smoothScrollWatchdog !== null) clearTimeout(smoothScrollWatchdog);
   if (composerMirror) { composerMirror.remove(); composerMirror = null; }
   footerResizeObs?.disconnect();

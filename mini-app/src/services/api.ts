@@ -6,6 +6,20 @@ import { initData } from '@tma.js/sdk-vue';
 
 export const BASE_URL = (import.meta.env.VITE_API_URL as string) || 'https://direct-api.si881.ru';
 
+/** Лимит сообщений/картинок исчерпан (429 / WS-событие limit). */
+export class LimitError extends Error {
+  kind: string;
+  limit: number;
+  retryAfter: number;
+  constructor(kind: string, limit: number, retryAfter: number) {
+    super('limit');
+    this.name = 'LimitError';
+    this.kind = kind;
+    this.limit = limit;
+    this.retryAfter = retryAfter;
+  }
+}
+
 /** Default for most API calls (slow mobile / Cloudflare tunnels need more headroom). */
 const DEFAULT_TIMEOUT_MS = 30_000;
 
@@ -100,6 +114,19 @@ export interface TelegramUser {
   n_used_tokens: Record<string, unknown>;
   n_generated_images: number;
   n_transcribed_seconds: number;
+  limits?: LimitsInfo | null;
+}
+
+export interface LimitUsage {
+  used: number;
+  limit: number;
+  percent: number;
+  reset_in: number;
+}
+
+export interface LimitsInfo {
+  messages: LimitUsage;
+  images: LimitUsage;
 }
 
 export interface ChatBody {
@@ -545,7 +572,15 @@ export class WsClient {
           });
         } else if (t === 'chat_error') {
           this._handlers.delete(id);
-          reject(new Error((msg.error as string) || 'chat error'));
+          if (msg.error === 'limit') {
+            reject(new LimitError(
+              String(msg.kind ?? 'msg'),
+              Number(msg.limit ?? 0),
+              Number(msg.retry_after ?? 3600),
+            ));
+          } else {
+            reject(new Error((msg.error as string) || 'chat error'));
+          }
         } else if (t === 'connection_lost') {
           this._handlers.delete(id);
           reject(Object.assign(new Error('network error'), { reqId: id }));
@@ -593,7 +628,15 @@ export class WsClient {
           });
         } else if (t === 'image_error') {
           this._handlers.delete(id);
-          reject(new Error((msg.error as string) || 'image generation failed'));
+          if (msg.error === 'limit') {
+            reject(new LimitError(
+              String(msg.kind ?? 'image_gen'),
+              Number(msg.limit ?? 0),
+              Number(msg.retry_after ?? 3600),
+            ));
+          } else {
+            reject(new Error((msg.error as string) || 'image generation failed'));
+          }
         } else if (t === 'connection_lost') {
           this._handlers.delete(id);
           reject(Object.assign(new Error('network error'), { reqId: id }));

@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import logging
+import math
 import time
 from io import BytesIO
 from typing import TYPE_CHECKING
@@ -15,6 +16,7 @@ from src.core.config import settings
 if TYPE_CHECKING:
     from src.core.bot import RedisAsync
 from src.services import api_client as api
+from src.services.api_client import RateLimitError
 from src.utils import rich_builder as rich
 from src.utils.formatting import convert_to_markdownv2
 from src.utils.localization import t
@@ -116,6 +118,12 @@ def _mode_welcome(chat_mode: str, lang: str) -> str:
     if isinstance(template, str) and template.startswith("{") and template.endswith("}"):
         return t(template.strip("{}"), lang)
     return template
+
+
+def _limit_text(exc: RateLimitError, language: str) -> str:
+    minutes = max(1, math.ceil(exc.retry_after / 60))
+    key = "limit_images_reached" if exc.kind == "image_gen" else "limit_messages_reached"
+    return t(key, language, limit=exc.limit, minutes=minutes)
 
 
 def _reply_to(message: Message) -> ReplyParameters:
@@ -231,7 +239,11 @@ async def cmd_retry(message: Message, language: str, bot: Bot, db_user=None) -> 
                         logger.warning("Failed to decode retry image for user %d", user_id)
 
     edit_message_id = await _get_answer_id(user_id)
-    await _run_handle(message, bot, language, user_id, text, image_buffer, edit_message_id=edit_message_id)
+    is_premium = bool(message.from_user.is_premium)
+    await _run_handle(
+        message, bot, language, user_id, text, image_buffer,
+        edit_message_id=edit_message_id, is_premium=is_premium,
+    )
 
 
 async def generate_image(
@@ -240,6 +252,7 @@ async def generate_image(
     language: str,
     user_id: int,
     prompt: str,
+    is_premium: bool = False,
 ) -> None:
     await monkey.send(bot, message.chat.id, "generating")
     await bot.send_chat_action(message.chat.id, "upload_photo")
@@ -251,7 +264,12 @@ async def generate_image(
             size=settings.image_size,
             quality=settings.image_quality,
             user_id=user_id,
+            is_premium=is_premium,
         )
+    except RateLimitError as e:
+        await monkey.send(bot, message.chat.id, "sad")
+        await _reply(message, _limit_text(e, language))
+        return
     except httpx.HTTPStatusError as e:
         status = e.response.status_code
         body = e.response.text
@@ -298,6 +316,7 @@ async def _handle_text_or_vision(
     text: str,
     image_buffer: BytesIO | None = None,
     edit_message_id: int | None = None,
+    is_premium: bool = False,
 ) -> int | None:
     user, ensure_result = await asyncio.gather(
         api.get_user(user_id),
@@ -313,7 +332,7 @@ async def _handle_text_or_vision(
     dialog_id = ensure_result.dialog_id
 
     if chat_mode == "artist":
-        await generate_image(message, bot, language, user_id, text)
+        await generate_image(message, bot, language, user_id, text, is_premium)
         return
 
     await bot.send_chat_action(message.chat.id, "typing")
@@ -366,6 +385,7 @@ async def _handle_text_or_vision(
                 chat_mode=chat_mode,
                 model=current_model,
                 image_b64=image_b64,
+                is_premium=is_premium,
             ):
                 if chunk.is_flagged:
                     is_flagged = True
@@ -410,6 +430,7 @@ async def _handle_text_or_vision(
                 chat_mode=chat_mode,
                 model=current_model,
                 image_b64=image_b64,
+                is_premium=is_premium,
             )
             is_flagged = result.is_flagged
             answer = result.answer
@@ -453,6 +474,11 @@ async def _handle_text_or_vision(
         await monkey.send(bot, message.chat.id, "sad")
         raise
 
+    except RateLimitError as exc:
+        await monkey.send(bot, message.chat.id, "sad")
+        await _reply(message, _limit_text(exc, language))
+        return None
+
     except Exception as exc:
         await monkey.send(bot, message.chat.id, "error")
         await _reply(message, t("error_message", language).format(exc))
@@ -471,6 +497,7 @@ async def _run_handle(
     text: str,
     image_buffer: BytesIO | None = None,
     edit_message_id: int | None = None,
+    is_premium: bool = False,
 ) -> None:
     """Acquire the distributed busy lock, store task ref, run core handler."""
     lock_key = f"{_BUSY_LOCK_PREFIX}{user_id}"
@@ -492,6 +519,7 @@ async def _run_handle(
             text,
             image_buffer,
             edit_message_id=edit_message_id,
+            is_premium=is_premium,
         )
         if sent_id is not None:
             await _store_answer_id(user_id, sent_id)
@@ -518,7 +546,10 @@ async def msg_text(message: Message, language: str, bot: Bot) -> None:
         if username:
             text = text.replace(f"@{username}", "").strip()
 
-    await _run_handle(message, bot, language, user_id, text)
+    await _run_handle(
+        message, bot, language, user_id, text,
+        is_premium=bool(message.from_user.is_premium),
+    )
 
 
 @router.message(F.photo, StateFilter(None))
@@ -556,7 +587,10 @@ async def msg_photo(message: Message, language: str, bot: Bot) -> None:
     if not text:
         text = t("photo_default_prompt", language)
 
-    await _run_handle(message, bot, language, user_id, text, image_buffer=buf)
+    await _run_handle(
+        message, bot, language, user_id, text, image_buffer=buf,
+        is_premium=bool(message.from_user.is_premium),
+    )
 
 
 @router.message(F.voice, StateFilter(None))
@@ -589,8 +623,15 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
     buf.name = "voice.oga"
     buf.seek(0)
 
+    is_premium = bool(message.from_user.is_premium)
     try:
-        transcribed, _ = await api.transcribe_audio(buf, user_id=user_id, lang=language)
+        transcribed, _ = await api.transcribe_audio(
+            buf, user_id=user_id, lang=language, is_premium=is_premium
+        )
+    except RateLimitError as exc:
+        await monkey.send(bot, message.chat.id, "sad")
+        await _reply(message, _limit_text(exc, language))
+        return
     except Exception as exc:
         logger.error("Voice transcription failed for user %d: %s", user_id, exc, exc_info=True)
         await monkey.send(bot, message.chat.id, "error")
@@ -602,7 +643,7 @@ async def msg_voice(message: Message, language: str, bot: Bot) -> None:
         await _reply(message, t("voice_recognition_failed", language))
         return
 
-    await _run_handle(message, bot, language, user_id, transcribed)
+    await _run_handle(message, bot, language, user_id, transcribed, is_premium=is_premium)
 
 
 @router.message(

@@ -6,6 +6,8 @@ en:
     access_denied: "Access denied"
     connection_error: "Connection error. Please try again later."
     rate_limit_error: "⚠️ Request limit exceeded. Please wait a moment and try again."
+    limit_messages_reached: "🐵 You've reached your message limit - {limit} per hour.\nResets in {minutes} min."
+    limit_images_reached: "🎨 You've reached your image generation limit - {limit} per hour.\nTry again in {minutes} min."
     api_error: "API error. Please try again later."
     back: "Back to Menu"
     back_to_profile: "Back to Profile"

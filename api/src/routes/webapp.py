@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 from io import BytesIO
 
 from core.config import settings
-from core.ratelimit import enforce_rate_limit
+from core.ratelimit import enforce_rate_limit, read_usage
 from core.redis import get_redis
 from core.security import verify_webapp_init_data
 from db.db import Session, get_session
@@ -300,6 +300,14 @@ async def get_me(
         for field in _PREFS_FIELDS:
             if field in redis_prefs:
                 setattr(user_read, field, redis_prefs[field])
+
+    is_premium = bool(tg.get("is_premium", False))
+    is_admin = tg["id"] in settings.admin_ids
+    messages_usage, images_usage = await asyncio.gather(
+        read_usage("msg", user.id, is_premium, is_admin),
+        read_usage("image_gen", user.id, is_premium, is_admin),
+    )
+    user_read.limits = {"messages": messages_usage, "images": images_usage}
     return user_read
 
 
@@ -659,6 +667,13 @@ async def chat_complete(
     user_id = tg["id"]
     await _require_whitelisted(session, user_id)
 
+    is_premium = bool(tg.get("is_premium", False))
+    is_admin = user_id in settings.admin_ids
+
+    # списываем до модерации (флагнутое тоже тратит слот - защита от спама)
+    kind = "image_gen" if body.model in IMAGE_MODELS else "msg"
+    await enforce_rate_limit(kind, user_id, is_premium, is_admin)
+
     image_buffer: BytesIO | None = None
     if body.image_b64:
         try:
@@ -676,12 +691,6 @@ async def chat_complete(
     chat_mode = body.chat_mode or "mini_app_assistant"
 
     if body.model in IMAGE_MODELS:
-        await enforce_rate_limit(
-            "image_gen",
-            user_id,
-            settings.image_rate_limit_count,
-            settings.image_rate_limit_window_seconds,
-        )
         try:
             image_url = await generate_image_url(prompt=body.message, model=body.model)
         except Exception as exc:

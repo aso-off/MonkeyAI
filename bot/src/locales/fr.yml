@@ -6,6 +6,8 @@ fr:
     access_denied: "Accès refusé"
     connection_error: "Erreur de connexion. Réessaie plus tard."
     rate_limit_error: "⚠️ Limite de requêtes dépassée. Attends un moment et réessaie."
+    limit_messages_reached: "🐵 Tu as atteint ta limite de messages - {limit} par heure.\nRéinitialisation dans {minutes} min."
+    limit_images_reached: "🎨 Tu as atteint ta limite de génération d'images - {limit} par heure.\nRéessaie dans {minutes} min."
     api_error: "Erreur API. Réessaie plus tard."
     back: "Retour au menu"
     back_to_profile: "Retour au profil"

@@ -2,7 +2,7 @@ export const APP_LINKS = {
   support: 'https://t.me/MonkeyAI_Support',
   channel: 'https://t.me/telegram',
   bot: 'https://t.me/Monkey_GPTbot',
-  repository: 'https://github.com/aso-off/MonkeyAI/releases/',
+  repository: 'https://github.com/aso-off/MonkeyAI',
   author: 'https://t.me/aso_off',
 } as const
 

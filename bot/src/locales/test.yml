@@ -6,6 +6,8 @@ test_language:
     access_denied: ""
     connection_error: ""
     rate_limit_error: ""
+    limit_messages_reached: ""
+    limit_images_reached: ""
     api_error: ""
     back: ""
     back_to_profile: ""

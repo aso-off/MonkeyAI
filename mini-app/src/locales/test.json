@@ -30,6 +30,8 @@
   "lang_pt": "",
   "lang_tr": "",
   "message_flagged": "",
+  "limit_messages_reached": "",
+  "limit_images_reached": "",
   "error_response": "",
   "not_whitelisted_title": "",
   "loading_init_tg": "",
