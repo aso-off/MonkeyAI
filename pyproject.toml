@@ -27,7 +27,7 @@ dependencies = [
 api = [
     "alembic==1.18.4",
     "asyncpg==0.31.0",
-    "openai==2.43.0",
+    "openai==2.44.0",
     "python-multipart==0.0.32",
     "sqlalchemy[asyncio]==2.0.51",
 ]
@@ -45,14 +45,14 @@ bot = [
 [dependency-groups]
 dev = [
     "asgi-lifespan==2.1.0",
-    "coverage==7.14.2",
+    "coverage==7.14.3",
     "faker==40.23.0",
     "fakeredis==2.36.2",
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
     "pytest-mock==3.15.1",
-    "ruff==0.15.18",
+    "ruff==0.15.19",
 ]
 load = [
     "locust==2.44.4",
