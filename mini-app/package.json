@@ -29,7 +29,7 @@
     "marked": "^18.0.5",
     "marked-katex-extension": "^5.1.10",
     "pinia": "^3.0.4",
-    "vue": "^3.5.38",
+    "vue": "^3.5.39",
     "vue-i18n": "^11.4.6",
     "vue-router": "^4.6.3"
   },
@@ -49,8 +49,8 @@
     "typescript": "^6.0.3",
     "vite": "^6.4.3",
     "vite-plugin-mkcert": "^1.17.12",
-    "vite-plugin-vue-devtools": "^7.7.0",
+    "vite-plugin-vue-devtools": "^7.7.10",
     "vitest": "^3.2.6",
-    "vue-tsc": "^3.3.5"
+    "vue-tsc": "^3.3.6"
   }
 }
