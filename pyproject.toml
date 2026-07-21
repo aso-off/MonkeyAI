@@ -27,7 +27,7 @@ dependencies = [
 api = [
     "alembic==1.18.5",
     "asyncpg==0.31.0",
-    "openai==2.44.0",
+    "openai==2.45.0",
     "python-multipart==0.0.32",
     "sqlalchemy[asyncio]==2.0.51",
 ]
@@ -35,7 +35,7 @@ bot = [
     "aiogram==3.29.1",
     "asyncssh==2.24.0",
     "cryptography==49.0.0",
-    "docker==7.1.0",
+    "docker==7.2.0",
     "msgspec==0.21.1",
     "psutil==7.2.2",
     "pyotp==2.10.0",
@@ -45,17 +45,17 @@ bot = [
 [dependency-groups]
 dev = [
     "asgi-lifespan==2.1.0",
-    "coverage==7.15.0",
-    "faker==40.28.1",
+    "coverage==7.15.2",
+    "faker==40.31.0",
     "fakeredis==2.36.2",
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
     "pytest-mock==3.15.1",
-    "ruff==0.15.20",
+    "ruff==0.15.21",
 ]
 load = [
-    "locust==2.44.4",
+    "locust==2.45.0",
 ]
 security = [
     "bandit==1.9.4",
