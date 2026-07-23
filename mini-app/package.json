@@ -24,13 +24,13 @@
     "highlight.js": "^11.11.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
-    "katex": "^0.17.0",
+    "katex": "^0.18.1",
     "lottie-web": "^5.13.0",
-    "marked": "^18.0.6",
+    "marked": "^18.0.7",
     "marked-katex-extension": "^5.1.10",
     "pinia": "^3.0.4",
     "vue": "^3.5.40",
-    "vue-i18n": "^11.4.6",
+    "vue-i18n": "^11.4.7",
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
@@ -51,6 +51,6 @@
     "vite-plugin-mkcert": "^1.17.12",
     "vite-plugin-vue-devtools": "^7.7.10",
     "vitest": "^3.2.6",
-    "vue-tsc": "^3.3.7"
+    "vue-tsc": "^3.3.8"
   }
 }
