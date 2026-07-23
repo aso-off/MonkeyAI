@@ -9,7 +9,7 @@ description = "MAKE MONKEY AI GREAT AGAIN!"
 requires-python = ">=3.11"
 dependencies = [
     "aiofiles==25.1.0",
-    "fastapi==0.139.0",
+    "fastapi==0.139.2",
     "httpx==0.28.1",
     "newrelic==11.5.0",
     "pillow>=10.3.0",
@@ -27,35 +27,35 @@ dependencies = [
 api = [
     "alembic==1.18.5",
     "asyncpg==0.31.0",
-    "openai==2.45.0",
+    "openai==2.47.0",
     "python-multipart==0.0.32",
     "sqlalchemy[asyncio]==2.0.51",
 ]
 bot = [
-    "aiogram==3.29.1",
+    "aiogram==3.30.0",
     "asyncssh==2.24.0",
     "cryptography==49.0.0",
     "docker==7.2.0",
     "msgspec==0.21.1",
     "psutil==7.2.2",
     "pyotp==2.10.0",
-    "telegram-init-data[fastapi]==1.0.2",
+    "telegram-init-data[fastapi]==1.1.0",
 ]
 
 [dependency-groups]
 dev = [
     "asgi-lifespan==2.1.0",
     "coverage==7.15.2",
-    "faker==40.31.0",
-    "fakeredis==2.36.2",
+    "faker==40.35.0",
+    "fakeredis==2.37.0",
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
     "pytest-mock==3.15.1",
-    "ruff==0.15.21",
+    "ruff==0.15.22",
 ]
 load = [
-    "locust==2.45.0",
+    "locust==2.46.1",
 ]
 security = [
     "bandit==1.9.4",
