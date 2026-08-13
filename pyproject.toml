@@ -9,53 +9,53 @@ description = "MAKE MONKEY AI GREAT AGAIN!"
 requires-python = ">=3.11"
 dependencies = [
     "aiofiles==25.1.0",
-    "fastapi==0.139.0",
+    "fastapi==0.141.1",
     "httpx==0.28.1",
     "newrelic==11.5.0",
     "pillow>=10.3.0",
-    "prometheus-client==0.25.0",
+    "prometheus-client==0.26.0",
     "pydantic==2.13.4",
-    "pydantic-settings==2.14.2",
+    "pydantic-settings==2.15.0",
     "python-dotenv==1.2.2",
     "pyyaml==6.0.3",
     "redis==5.3.1",
     "tenacity==9.1.4",
-    "uvicorn[standard]==0.51.0",
+    "uvicorn[standard]==0.52.1",
 ]
 
 [project.optional-dependencies]
 api = [
-    "alembic==1.18.5",
+    "alembic==1.19.1",
     "asyncpg==0.31.0",
-    "openai==2.45.0",
+    "openai==2.53.0",
     "python-multipart==0.0.32",
     "sqlalchemy[asyncio]==2.0.51",
 ]
 bot = [
-    "aiogram==3.29.1",
+    "aiogram==3.30.0",
     "asyncssh==2.24.0",
     "cryptography==49.0.0",
     "docker==7.2.0",
     "msgspec==0.21.1",
     "psutil==7.2.2",
     "pyotp==2.10.0",
-    "telegram-init-data[fastapi]==1.0.2",
+    "telegram-init-data[fastapi]==1.1.0",
 ]
 
 [dependency-groups]
 dev = [
     "asgi-lifespan==2.1.0",
-    "coverage==7.15.2",
-    "faker==40.31.0",
-    "fakeredis==2.36.2",
+    "coverage==7.15.4",
+    "faker==40.36.0",
+    "fakeredis==2.37.0",
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
     "pytest-mock==3.15.1",
-    "ruff==0.15.21",
+    "ruff==0.16.2",
 ]
 load = [
-    "locust==2.45.0",
+    "locust==2.46.3",
 ]
 security = [
     "bandit==1.9.4",
